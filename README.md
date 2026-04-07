@@ -1,98 +1,134 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Xitty Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Plataforma de turismo para Barranquilla, Colombia. Backend construido con NestJS + Supabase, siguiendo arquitectura hexagonal modular.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Stack
 
-## Description
+- **Framework**: NestJS (TypeScript estricto)
+- **Base de datos**: Supabase (Postgres + PostGIS)
+- **Auth**: Supabase Auth (email/password + Google OAuth)
+- **Storage**: Supabase Storage (imágenes de perfil, lugares, reseñas)
+- **Cliente de datos**: `@supabase/supabase-js` (sin Prisma, sin TypeORM)
+- **Validación**: `class-validator` + `class-transformer`
+- **Documentación API**: Swagger (`@nestjs/swagger`)
+- **Testing**: Jest
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tipos de usuario
 
-## Project setup
+1. **Turista** (usuario final): consume contenido, reseña, guarda favoritos
+2. **Dueño de negocio**: gestiona micrositio, promociones, métricas
+3. **Admin de Xitty**: equipo interno, curación, moderación
+
+Los roles se manejan vía RLS en Supabase + un guard de roles en NestJS.
+
+## Instalación
 
 ```bash
-$ npm install
+# 1. Clonar e instalar dependencias
+npm install
+
+# 2. Copiar variables de entorno
+cp .env.example .env
+# Editar .env con tus credenciales de Supabase
+
+# 3. Aplicar migraciones a Supabase
+npx supabase db push
+
+# 4. Generar tipos TypeScript desde el schema
+npx supabase gen types typescript --linked > src/core/types/database.types.ts
+
+# 5. Correr en desarrollo
+npm run start:dev
 ```
 
-## Compile and run the project
+La API queda en `http://localhost:3000` y Swagger en `http://localhost:3000/api/docs`.
+
+## Estructura del proyecto
+
+```
+src/
+├── core/                  # Compartido, sin lógica de negocio
+│   ├── config/            # Configuración + validación de env
+│   ├── supabase/          # Cliente Supabase compartido
+│   ├── common/            # Decorators, guards, filters, pipes
+│   └── types/             # Tipos generados desde Supabase
+│
+├── modules/               # Un módulo por dominio (auth, users, places, etc.)
+│   └── <module>/
+│       ├── application/   # Services (casos de uso)
+│       ├── domain/        # Entidades + interfaces de repositorio
+│       ├── infrastructure/# Implementaciones (Supabase repos)
+│       ├── presentation/  # Controllers + DTOs HTTP
+│       └── <module>.module.ts
+│
+├── shared/                # Utilidades cross-module sin negocio
+├── app.module.ts
+└── main.ts
+```
+
+Ver [docs/architecture.md](./docs/architecture.md) para la explicación completa.
+
+## Documentación
+
+- [Arquitectura](./docs/architecture.md) — principios hexagonales aplicados
+- [Convenciones](./docs/conventions.md) — naming, estructura de archivos, estilo
+- [Historias de usuario](./docs/user-stories.md) — las 46 historias del proyecto
+- [Agregar un módulo](./docs/adding-a-module.md) — guía paso a paso
+
+## Estado de implementación
+
+### Fase 1 (Marzo - Abril 2026)
+- [x] **M1 — Autenticación + Onboarding** (5 historias)
+  - [x] US-001 — Registro email/password + Google OAuth
+  - [ ] US-002 — Wizard de preferencias
+  - [ ] US-003 — Editar perfil y preferencias
+  - [ ] US-004 — Recuperar contraseña
+  - [ ] US-005 — Ver perfil con historial
+- [ ] **M2 — Geolocalización + Mapas** (5 historias)
+- [ ] **M3 — Directorio de Lugares** (6 historias)
+
+### Fase 2 (Abril - Mayo 2026)
+- [ ] **M4 — AI Chat Guide** (4 historias)
+- [ ] **M5 — Micrositios de Negocios** (5 historias)
+
+### Fase 3 (Mayo - Junio 2026)
+- [ ] **M6 — Motor de Recomendación AI** (4 historias)
+- [ ] **M7 — Ranking + Contenido Destacado** (3 historias)
+- [ ] **M8 — Seguridad** (3 historias)
+
+### Fase 4 (Junio 2026)
+- [ ] **M9 — Gamificación QR** (4 historias)
+- [ ] **M10 — Experiencias** (4 historias)
+- [ ] **M11 — Plan Personalizado** (3 historias)
+
+## Configuración requerida en Supabase Dashboard
+
+Estos pasos son manuales y deben hacerse en el dashboard de Supabase:
+
+### Auth
+- Habilitar provider de **Email** (con confirmación de email obligatoria)
+- Habilitar provider de **Google OAuth** y configurar `Client ID` + `Client Secret`
+- Configurar **Redirect URLs**: `http://localhost:3000/auth/google/callback` (dev) y la URL de prod
+- Personalizar templates de email: confirmación, recovery, magic link
+
+### Storage
+- Crear bucket `avatars` (público para lectura, escritura solo del dueño)
+- Crear bucket `places` (público para lectura, escritura solo de admins/dueños)
+- Crear bucket `reviews` (público para lectura, escritura del autor)
+
+### Database
+- Habilitar extensión **PostGIS** (para M2 - geolocalización)
+- Las migraciones SQL se aplican con `npx supabase db push`
+
+## Scripts útiles
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run start:dev          # Desarrollo con hot reload
+npm run build              # Build de producción
+npm run test               # Tests unitarios
+npm run test:e2e           # Tests end-to-end
+npm run lint               # Linter
+npm run format             # Prettier
+npx supabase db push       # Aplicar migraciones
+npx supabase gen types typescript --linked > src/core/types/database.types.ts
 ```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
