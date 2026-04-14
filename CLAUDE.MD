@@ -4,130 +4,133 @@ Este archivo se carga automáticamente al iniciar Claude Code en este repo. Cont
 
 ## Qué es Xitty
 
-Plataforma de turismo para Barranquilla, Colombia. 46 historias de usuario en 11 módulos, distribuidas en 4 fases de desarrollo (marzo - junio 2026). Tres tipos de usuarios: turista, dueño de negocio, admin.
+Plataforma de turismo para Barranquilla, Colombia. Backend en NestJS + Supabase. Tres tipos de usuarios: turista, dueño de negocio, admin.
 
-## Stack (NO cambiar nada de esto)
+> ⚠️ **Estado actual:** el backend está reseteado al **mínimo viable**. Solo el módulo `auth` está implementado. El resto de los módulos (places, reviews, etc.) se irán agregando uno a uno.
 
-- NestJS + TypeScript estricto
-- Supabase (Postgres + PostGIS) como única fuente de datos
-- Supabase Auth para autenticación (email/password + Google OAuth)
-- Supabase Storage para imágenes
-- `@supabase/supabase-js` como cliente (NO Prisma, NO TypeORM, NO Passport)
-- `class-validator` + `class-transformer` para validación
+## Stack
+
+- NestJS + TypeScript
+- Supabase (Postgres) accedido vía `@supabase/supabase-js` con la **Service Role Key** desde el backend
+- Supabase Auth para `signUp` / `signInWithPassword`
+- **JWT propio** firmado con `jsonwebtoken` para los access/refresh tokens que devuelve la API (no se usa el JWT de Supabase directamente)
+- `class-validator` + `class-transformer` para validar DTOs
 - `@nestjs/swagger` para documentación
+- `@nestjs/throttler` para rate limit en endpoints sensibles
+- `helmet` para security headers
 - Jest para testing
 
-## Arquitectura: Modular Hexagonal Ligera
-
-Cada módulo en `src/modules/<nombre>/` tiene 4 capas:
+## Arquitectura: módulos planos al estilo NestJS clásico
 
 ```
-modules/<module>/
-├── domain/                # Entidades + interfaces de repositorio (puertos)
-│   ├── entities/
-│   └── repositories/      # SOLO interfaces, nunca implementaciones
-├── application/           # Services con casos de uso (lógica de negocio)
-├── infrastructure/        # Implementaciones concretas (adaptadores)
-│   └── supabase/          # Repos que usan supabase-js
-├── presentation/          # Controllers HTTP + DTOs
+src/
+├── config/
+│   ├── database.module.ts        # Provee SUPABASE_CLIENT
+│   └── supabase.config.ts        # Factory que crea el SupabaseClient
+├── common/
 │   ├── dto/
-│   └── <module>.controller.ts
-└── <module>.module.ts
+│   │   └── pagination.dto.ts
+│   └── guards/
+│       └── auth.guard.ts          # Verifica el JWT propio (Bearer token)
+├── modules/
+│   └── auth/
+│       ├── dto/
+│       │   ├── login.dto.ts
+│       │   ├── register.dto.ts
+│       │   └── auth-response.dto.ts
+│       ├── auth.controller.ts
+│       ├── auth.service.ts
+│       └── auth.module.ts
+├── app.module.ts
+└── main.ts
 ```
 
-### Reglas inviolables
+### Reglas
 
-1. **`domain/` no importa nada de NestJS, Supabase, ni HTTP.** Es puro TypeScript.
-2. **`application/` recibe puertos por DI**, nunca implementaciones concretas. Usa tokens de inyección.
-3. **`infrastructure/` implementa los puertos** definidos en `domain/`.
-4. **`presentation/` es una capa fina**. Controllers solo: validan input → llaman service → formatean response.
-5. **DTOs HTTP nunca son entidades de dominio**. Mapeá explícitamente.
-6. **Módulos no se importan entre sí directamente.** Solo a través de servicios públicos exportados desde `<module>.module.ts`.
-7. **Toda tabla nueva tiene RLS activado** desde el primer momento.
+1. **Un service por módulo**, sin separar domain/infrastructure. Los services hablan directamente con Supabase a través del `SUPABASE_CLIENT` inyectado.
+2. **Controllers son finos**: validan input → llaman al service → devuelven la respuesta.
+3. **DTOs en `dto/`** dentro de cada módulo. Llevan decoradores `@ApiProperty` para Swagger y `class-validator` para validación.
+4. **El cliente Supabase se inyecta con el token `'SUPABASE_CLIENT'`** (string), provisto por `DatabaseModule`.
+5. **Auth = JWT propio firmado con `JWT_SECRET`**. El `AuthGuard` (`src/common/guards/auth.guard.ts`) lee el header `Authorization: Bearer <token>`, verifica firma y tipo (`access`), y mete `req.user = { id, role, email }`.
+6. **Endpoints sensibles** (`login`, `register`) van detrás de `ThrottlerGuard` (`@nestjs/throttler`) — ya configurado en `auth.module.ts`.
+7. **Documentación Swagger** en `/api/docs`. Todo endpoint nuevo lleva `@ApiTags`, `@ApiOperation`, `@ApiResponse`.
 
 ## Convenciones de código
 
 ### Naming
-- Archivos: `kebab-case.tipo.ts` → `register-user.service.ts`, `auth.controller.ts`
-- Clases: `PascalCase` → `RegisterUserService`, `AuthController`
-- Interfaces de puerto: prefijo `I` → `IAuthRepository`, `IUserRepository`
-- Tokens DI: `SCREAMING_SNAKE_CASE` constante exportada → `AUTH_REPOSITORY`
-- DTOs: sufijo `Dto` → `RegisterUserDto`, `LoginResponseDto`
-- Entidades de dominio: sin sufijo → `User`, `Profile`, `Place`
+- Archivos: `kebab-case.tipo.ts` → `auth.service.ts`, `login.dto.ts`
+- Clases: `PascalCase` → `AuthService`, `LoginDto`
+- Tablas en Supabase: `snake_case` → `profiles`, `user_roles`
 
 ### Estructura de un service
+
 ```typescript
 @Injectable()
-export class RegisterUserService {
+export class AuthService {
   constructor(
-    @Inject(AUTH_REPOSITORY)
-    private readonly authRepo: IAuthRepository,
+    @Inject('SUPABASE_CLIENT')
+    private readonly supabase: SupabaseClient,
   ) {}
 
-  async execute(input: RegisterUserInput): Promise<User> {
-    // lógica de negocio
+  async login(dto: LoginDto): Promise<AuthResponse> {
+    const { data, error } = await this.supabase.auth.signInWithPassword({
+      email: dto.email,
+      password: dto.password,
+    });
+    if (error) throw new UnauthorizedException('Invalid email or password');
+    // …
   }
 }
 ```
 
-### Estructura de un repo Supabase
-```typescript
-@Injectable()
-export class SupabaseAuthRepository implements IAuthRepository {
-  constructor(private readonly supabase: SupabaseService) {}
-  // implementación
-}
-```
+### Estructura de un module
 
-### Registro en el module
 ```typescript
 @Module({
+  imports: [DatabaseModule, ThrottlerModule.forRoot([{ ttl: 60000, limit: 5 }])],
   controllers: [AuthController],
-  providers: [
-    RegisterUserService,
-    LoginUserService,
-    {
-      provide: AUTH_REPOSITORY,
-      useClass: SupabaseAuthRepository,
-    },
-  ],
-  exports: [RegisterUserService],
+  providers: [AuthService],
+  exports: [AuthService],
 })
 export class AuthModule {}
 ```
 
-## Antes de implementar cualquier historia
+## Cómo agregar un módulo nuevo
 
-1. Leé `docs/user-stories.md` y ubicá la historia con sus criterios de aceptación
-2. Revisá módulos existentes en `src/modules/` para copiar el patrón
-3. Si la historia toca otro módulo, no metas lógica cruzada — exportá un service desde el otro módulo
-4. Si necesitás tablas nuevas, creá la migración SQL primero, después regenerá tipos
-5. Endpoints siempre con decoradores Swagger completos (`@ApiTags`, `@ApiOperation`, `@ApiResponse`)
-6. Cada service nuevo lleva al menos un test unitario básico
+1. Crear `src/modules/<nombre>/` con `dto/`, `<nombre>.module.ts`, `<nombre>.controller.ts`, `<nombre>.service.ts`.
+2. Importar `DatabaseModule` en el `imports` del module si necesita Supabase.
+3. Inyectar `@Inject('SUPABASE_CLIENT') private readonly supabase: SupabaseClient` en el service.
+4. Registrar el module en `AppModule` (`src/app.module.ts`).
+5. Documentar todos los endpoints con decoradores Swagger.
+6. Si el endpoint necesita auth: `@UseGuards(AuthGuard)` + `@ApiBearerAuth()`.
+7. Tabla nueva en Supabase: crear migración SQL en `supabase/migrations/` y activar RLS.
 
-## Flujo de implementación recomendado
+## Variables de entorno
 
-Cuando recibas una tarea de "implementá US-XXX":
+Ver `.env.example`. Las imprescindibles:
 
-1. **Plan primero, código después.** Mostrá qué archivos vas a crear/modificar antes de tocar nada.
-2. **Migraciones SQL** (con RLS) → aplicar → regenerar tipos
-3. **Domain** (entidades + interfaces de repo)
-4. **Infrastructure** (implementaciones Supabase)
-5. **Application** (services)
-6. **Presentation** (controllers + DTOs)
-7. **Registrar en el module**
-8. **Tests unitarios mínimos**
-9. **Actualizar README.md** marcando la historia como hecha
+| Var | Para qué |
+|---|---|
+| `SUPABASE_URL` | URL del proyecto Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (¡no exponer al frontend!) |
+| `JWT_SECRET` | Secret para firmar los access/refresh tokens propios |
+| `CORS_ORIGIN` | Lista separada por comas de orígenes permitidos |
+| `PORT` | Puerto del servidor (default 3001) |
 
 ## Errores comunes a evitar
 
-- Importar `@supabase/supabase-js` en `domain/` → ❌ rompe la arquitectura
-- Devolver entidades de dominio directamente en controllers → ❌ usar DTOs de respuesta
-- Hacer queries Supabase desde controllers → ❌ siempre via service → repo
-- Olvidar RLS en tablas nuevas → ❌ riesgo de seguridad
-- Crear módulos "utils" gigantes → ❌ usar `shared/` solo para utilidades puras
-- Mezclar lógica de auth con lógica de perfil → ❌ son módulos separados (`auth/` y `users/`)
+- ❌ Exponer la `SERVICE_ROLE_KEY` en código del frontend o en logs.
+- ❌ Confiar en el JWT de Supabase en el `AuthGuard` — el guard valida el JWT **propio** (firmado con `JWT_SECRET`), no el de Supabase.
+- ❌ Olvidar `@UseGuards(AuthGuard)` + `@ApiBearerAuth()` en endpoints privados.
+- ❌ Crear tablas sin RLS.
+- ❌ Devolver objetos del cliente Supabase crudos en los controllers — armar el response con la forma del DTO.
 
-## Configuración Supabase requerida
+## Referencia rápida de endpoints actuales
 
-Ver sección "Configuración requerida en Supabase Dashboard" en README.md raíz. Si una historia requiere configuración manual nueva, documentala ahí.
+| Método | Path | Auth | Rate limit | Descripción |
+|---|---|---|---|---|
+| `POST` | `/auth/register` | público | 5/min | Registra usuario en Supabase + perfil + rol `user` |
+| `POST` | `/auth/login` | público | 5/min | Login con email/password, devuelve JWT propio |
+| `GET`  | `/auth/me` | Bearer | — | Devuelve perfil del usuario actual |
+| `POST` | `/auth/logout` | público | — | Stub (el cliente debe descartar el token) |
+| `GET`  | `/auth/admin/users` | Bearer (rol admin) | — | Lista paginada de usuarios |
