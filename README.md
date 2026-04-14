@@ -1,134 +1,179 @@
 # Xitty Backend
 
-Plataforma de turismo para Barranquilla, Colombia. Backend construido con NestJS + Supabase, siguiendo arquitectura hexagonal modular.
+Plataforma de turismo para Barranquilla, Colombia. Backend NestJS + Supabase.
+
+> ⚠️ **Estado actual:** solo el módulo **auth** está implementado. Es el punto de partida del backend y se irán agregando los demás módulos sobre esta base.
 
 ## Stack
 
-- **Framework**: NestJS (TypeScript estricto)
-- **Base de datos**: Supabase (Postgres + PostGIS)
-- **Auth**: Supabase Auth (email/password + Google OAuth)
-- **Storage**: Supabase Storage (imágenes de perfil, lugares, reseñas)
-- **Cliente de datos**: `@supabase/supabase-js` (sin Prisma, sin TypeORM)
-- **Validación**: `class-validator` + `class-transformer`
-- **Documentación API**: Swagger (`@nestjs/swagger`)
-- **Testing**: Jest
-
-## Tipos de usuario
-
-1. **Turista** (usuario final): consume contenido, reseña, guarda favoritos
-2. **Dueño de negocio**: gestiona micrositio, promociones, métricas
-3. **Admin de Xitty**: equipo interno, curación, moderación
-
-Los roles se manejan vía RLS en Supabase + un guard de roles en NestJS.
+- **Framework:** NestJS (TypeScript)
+- **Base de datos:** Supabase (Postgres)
+- **Auth:** Supabase Auth + JWT propio firmado con `jsonwebtoken`
+- **Validación:** `class-validator` + `class-transformer`
+- **Documentación API:** Swagger (`@nestjs/swagger`) en `/api/docs`
+- **Rate limiting:** `@nestjs/throttler` (5 req/min en login y register)
+- **Security headers:** `helmet`
+- **Testing:** Jest
 
 ## Instalación
 
 ```bash
-# 1. Clonar e instalar dependencias
+# 1. Instalar dependencias
 npm install
 
 # 2. Copiar variables de entorno
 cp .env.example .env
-# Editar .env con tus credenciales de Supabase
+# Editar .env con tus credenciales reales
 
-# 3. Aplicar migraciones a Supabase
-npx supabase db push
-
-# 4. Generar tipos TypeScript desde el schema
-npx supabase gen types typescript --linked > src/core/types/database.types.ts
-
-# 5. Correr en desarrollo
+# 3. Levantar en desarrollo
 npm run start:dev
 ```
 
-La API queda en `http://localhost:3000` y Swagger en `http://localhost:3000/api/docs`.
+La API queda en `http://localhost:3001` y Swagger en `http://localhost:3001/api/docs`.
+
+## Variables de entorno
+
+```env
+NODE_ENV=development
+PORT=3001
+CORS_ORIGIN=http://localhost:3000
+
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
+
+JWT_SECRET=cambia-esto-en-produccion
+```
+
+| Variable | Para qué |
+|---|---|
+| `SUPABASE_URL` | URL del proyecto Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (uso desde backend, **NO** del frontend) |
+| `JWT_SECRET` | Secret para firmar los tokens propios |
+| `CORS_ORIGIN` | Orígenes permitidos, separados por coma |
+| `PORT` | Puerto del servidor (default 3001) |
 
 ## Estructura del proyecto
 
 ```
 src/
-├── core/                  # Compartido, sin lógica de negocio
-│   ├── config/            # Configuración + validación de env
-│   ├── supabase/          # Cliente Supabase compartido
-│   ├── common/            # Decorators, guards, filters, pipes
-│   └── types/             # Tipos generados desde Supabase
-│
-├── modules/               # Un módulo por dominio (auth, users, places, etc.)
-│   └── <module>/
-│       ├── application/   # Services (casos de uso)
-│       ├── domain/        # Entidades + interfaces de repositorio
-│       ├── infrastructure/# Implementaciones (Supabase repos)
-│       ├── presentation/  # Controllers + DTOs HTTP
-│       └── <module>.module.ts
-│
-├── shared/                # Utilidades cross-module sin negocio
+├── config/                       # Wiring de Supabase
+│   ├── database.module.ts
+│   └── supabase.config.ts
+├── common/                       # Guards y DTOs compartidos
+│   ├── dto/
+│   │   └── pagination.dto.ts
+│   └── guards/
+│       └── auth.guard.ts
+├── modules/
+│   └── auth/                     # Único módulo activo por ahora
+│       ├── dto/
+│       │   ├── login.dto.ts
+│       │   ├── register.dto.ts
+│       │   └── auth-response.dto.ts
+│       ├── auth.controller.ts
+│       ├── auth.service.ts
+│       └── auth.module.ts
 ├── app.module.ts
 └── main.ts
 ```
 
-Ver [docs/architecture.md](./docs/architecture.md) para la explicación completa.
+## Endpoints del módulo auth
 
-## Documentación
+Todos bajo el prefijo `/auth`. Documentación interactiva completa en `/api/docs`.
 
-- [Arquitectura](./docs/architecture.md) — principios hexagonales aplicados
-- [Convenciones](./docs/conventions.md) — naming, estructura de archivos, estilo
-- [Historias de usuario](./docs/user-stories.md) — las 46 historias del proyecto
-- [Agregar un módulo](./docs/adding-a-module.md) — guía paso a paso
+### `POST /auth/register`
 
-## Estado de implementación
+Registra un usuario en Supabase Auth, crea el perfil en `profiles` y le asigna rol `user`.
 
-### Fase 1 (Marzo - Abril 2026)
-- [x] **M1 — Autenticación + Onboarding** (5 historias)
-  - [x] US-001 — Registro email/password + Google OAuth
-  - [ ] US-002 — Wizard de preferencias
-  - [ ] US-003 — Editar perfil y preferencias
-  - [ ] US-004 — Recuperar contraseña
-  - [ ] US-005 — Ver perfil con historial
-- [ ] **M2 — Geolocalización + Mapas** (5 historias)
-- [ ] **M3 — Directorio de Lugares** (6 historias)
+```json
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "full_name": "John Doe",
+  "phone": "+573001234567"
+}
+```
 
-### Fase 2 (Abril - Mayo 2026)
-- [ ] **M4 — AI Chat Guide** (4 historias)
-- [ ] **M5 — Micrositios de Negocios** (5 historias)
+**Respuesta 201:**
+```json
+{
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "full_name": "John Doe",
+    "phone": "+573001234567",
+    "role": "user"
+  },
+  "access_token": "eyJ...",
+  "refresh_token": "eyJ..."
+}
+```
 
-### Fase 3 (Mayo - Junio 2026)
-- [ ] **M6 — Motor de Recomendación AI** (4 historias)
-- [ ] **M7 — Ranking + Contenido Destacado** (3 historias)
-- [ ] **M8 — Seguridad** (3 historias)
+Rate limit: 5 req/min.
 
-### Fase 4 (Junio 2026)
-- [ ] **M9 — Gamificación QR** (4 historias)
-- [ ] **M10 — Experiencias** (4 historias)
-- [ ] **M11 — Plan Personalizado** (3 historias)
+### `POST /auth/login`
 
-## Configuración requerida en Supabase Dashboard
+```json
+{ "email": "user@example.com", "password": "password123" }
+```
 
-Estos pasos son manuales y deben hacerse en el dashboard de Supabase:
+Devuelve el mismo shape que `/register`. Rate limit: 5 req/min.
 
-### Auth
-- Habilitar provider de **Email** (con confirmación de email obligatoria)
-- Habilitar provider de **Google OAuth** y configurar `Client ID` + `Client Secret`
-- Configurar **Redirect URLs**: `http://localhost:3000/auth/google/callback` (dev) y la URL de prod
-- Personalizar templates de email: confirmación, recovery, magic link
+### `GET /auth/me`
 
-### Storage
-- Crear bucket `avatars` (público para lectura, escritura solo del dueño)
-- Crear bucket `places` (público para lectura, escritura solo de admins/dueños)
-- Crear bucket `reviews` (público para lectura, escritura del autor)
+Header: `Authorization: Bearer <access_token>`. Devuelve el perfil del usuario actual.
 
-### Database
-- Habilitar extensión **PostGIS** (para M2 - geolocalización)
-- Las migraciones SQL se aplican con `npx supabase db push`
+### `POST /auth/logout`
+
+Stub. El cliente debe descartar el token (en una versión futura se podría implementar blacklist en Redis).
+
+### `GET /auth/admin/users?page=1&limit=10`
+
+Solo accesible por usuarios con `role = 'admin'`. Lista paginada de perfiles.
+
+## Cómo funciona el auth
+
+1. El usuario hace `POST /auth/register` o `POST /auth/login`.
+2. El backend usa el SDK de Supabase para autenticar contra Supabase Auth.
+3. El backend lee el rol desde la tabla `profiles` y firma **su propio JWT** con `JWT_SECRET`:
+   - `access_token`: payload `{ sub, role, type: 'access' }`, expira en 1h
+   - `refresh_token`: payload `{ sub, type: 'refresh' }`, expira en 7d
+4. Las rutas protegidas usan `AuthGuard` (`src/common/guards/auth.guard.ts`) que verifica el JWT y popula `req.user = { id, role, email }`.
+
+> El JWT que devuelve la API **no** es el de Supabase, es uno propio. Esto da control total sobre claims y expiración.
+
+## Tablas requeridas en Supabase
+
+El módulo asume que existen estas tablas en el schema `public`:
+
+### `profiles`
+| columna | tipo |
+|---|---|
+| `id` | `uuid` (PK, FK a `auth.users.id`) |
+| `email` | `text` |
+| `full_name` | `text` |
+| `phone` | `text` |
+| `role` | `text` (default `'user'`) |
+| `created_at` | `timestamptz` |
+| `updated_at` | `timestamptz` |
+
+### `user_roles`
+| columna | tipo |
+|---|---|
+| `user_id` | `uuid` (FK a `auth.users.id`) |
+| `role` | `text` |
+| `created_at` | `timestamptz` |
+
+> Las migraciones existentes en `supabase/migrations/` corresponden a una versión anterior del backend y deberán adaptarse cuando se conecten al nuevo módulo.
 
 ## Scripts útiles
 
 ```bash
 npm run start:dev          # Desarrollo con hot reload
-npm run build              # Build de producción
+npm run start              # Desarrollo sin watch
+npm run start:prod         # Producción (requiere build previo)
+npm run build              # Compilar a dist/
 npm run test               # Tests unitarios
-npm run test:e2e           # Tests end-to-end
 npm run lint               # Linter
 npm run format             # Prettier
-npx supabase db push       # Aplicar migraciones
-npx supabase gen types typescript --linked > src/core/types/database.types.ts
 ```
