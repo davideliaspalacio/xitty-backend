@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Xitty Backend — Workflow & Arquitectura</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f5f7fa;
+    color: #1a202c;
+    margin: 0;
+    padding: 2rem;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  h1 {
+    color: #2d3748;
+    border-bottom: 3px solid #4299e1;
+    padding-bottom: 0.5rem;
+  }
+  h2 {
+    color: #2b6cb0;
+    margin-top: 3rem;
+    font-size: 1.5rem;
+  }
+  h3 {
+    color: #2c5282;
+    margin-top: 1.5rem;
+  }
+  .diagram {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+  }
+  .legend span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .m1 { background: #e9d8fd; color: #553c9a; }
+  .m3 { background: #c6f6d5; color: #22543d; }
+  .m5 { background: #feebc8; color: #7b341e; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  th {
+    background: #edf2f7;
+    font-weight: 600;
+    color: #2d3748;
+  }
+  tr:hover {
+    background: #f7fafc;
+  }
+  code {
+    background: #edf2f7;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #2c5282;
+  }
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border-left: 4px solid #4299e1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .card .num {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2b6cb0;
+  }
+  .card .label {
+    color: #718096;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>Xitty Backend — Arquitectura & Workflows</h1>
+
+<div class="summary-cards">
+  <div class="card"><div class="num">34</div><div class="label">Endpoints REST</div></div>
+  <div class="card"><div class="num">9</div><div class="label">Modulos NestJS</div></div>
+  <div class="card"><div class="num">11</div><div class="label">Tablas Postgres</div></div>
+  <div class="card"><div class="num">48</div><div class="label">Unit tests pasando</div></div>
+  <div class="card"><div class="num">3</div><div class="label">Roles de usuario</div></div>
+</div>
+
+<div class="legend">
+  <span><span class="dot m1" style="background:#9f7aea"></span><strong>M1</strong> Auth + Onboarding</span>
+  <span><span class="dot m3" style="background:#48bb78"></span><strong>M3</strong> Directorio de Lugares</span>
+  <span><span class="dot m5" style="background:#ed8936"></span><strong>M5</strong> Micrositios de Negocios (NUEVO)</span>
+</div>
+
+<!-- ───────────────────────────────────────────────────────────── -->
+<h2>1. Arquitectura general</h2>
+
+<div class="diagram">
+<pre class="mermaid">
+flowchart TB
+    subgraph Clients["Clientes"]
+        APP[App movil / Web<br/>Turistas]
+        BIZ[Dashboard<br/>Duenos negocio]
+        PUB[Micrositios publicos<br/>xitty.co/slug]
+    end
+
+    subgraph Backend["NestJS Backend"]
+        MAIN[main.ts<br/>Helmet + CORS + Swagger]
+        AUTH_G[AuthGuard<br/>verifica JWT propio]
+
+        subgraph M1g["M1 — Auth + Onboarding"]
+            AUTH[AuthModule]
+            PREF[PreferencesModule]
+        end
+
+        subgraph M3g["M3 — Directorio"]
+            PLACES[PlacesModule]
+            REV[ReviewsModule]
+            FAV[FavoritesModule]
+        end
+
+        subgraph M5g["M5 — Micrositios NUEVO"]
+            MICRO[MicrositesModule]
+            PROMO[PromotionsModule]
+            MET[MetricsModule]
+            NOTIF[NotificationSettingsModule]
+        end
+
+        DB_MOD[DatabaseModule<br/>provee SUPABASE_CLIENT]
+    end
+
+    subgraph Supabase["Supabase"]
+        SBAUTH[Auth<br/>signUp/signIn]
+        PG[(Postgres<br/>11 tablas + RLS<br/>+ triggers + RPCs)]
+    end
+
+    APP --> MAIN
+    BIZ --> MAIN
+    PUB --> MAIN
+    MAIN --> AUTH_G
+    AUTH_G --> M1g
+    AUTH_G --> M3g
+    AUTH_G --> M5g
+    M1g --> DB_MOD
+    M3g --> DB_MOD
+    M5g --> DB_MOD
+    AUTH --> SBAUTH
+    DB_MOD --> PG
+
+    classDef m1 fill:#e9d8fd,stroke:#9f7aea,stroke-width:2px
+    classDef m3 fill:#c6f6d5,stroke:#48bb78,stroke-width:2px
+    classDef m5 fill:#feebc8,stroke:#ed8936,stroke-width:2px
+    class AUTH,PREF m1
+    class PLACES,REV,FAV m3
+    class MICRO,PROMO,MET,NOTIF m5
+</pre>
+</div>
+
+<!-- ───────────────────────────────────────────────────────────── -->
+<h2>2. Workflow del turista — Descubrir, valorar, compartir</h2>
+
+<div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor T as Turista
+    participant API as Backend
+    participant DB as Supabase
+
+    T->>API: POST /auth/register {email, pass, phone}
+    API->>DB: signUp + insert profile
+    DB-->>API: user creado
+    API-->>T: access_token + refresh_token
+
+    Note over T,API: Wizard de preferencias (opcional)
+    T->>API: POST /preferences {tipo, presupuesto, ...}
+    API->>DB: upsert user_preferences
+
+    Note over T,API: Explora el directorio
+    T->>API: GET /places?category_id&sort_by=rating
+    API->>DB: query con joins + cover photos
+    DB-->>API: listado paginado
+    API-->>T: cards (foto, nombre, rating, precio)
+
+    T->>API: GET /places/:id
+    API-->>T: detalle + fotos + reviews
+
+    Note over T,API: Acciones
+    par Resena
+        T->>API: POST /places/:id/reviews {rating, comment}
+        API->>DB: insert review
+        DB->>DB: trigger update_place_rating
+    and Favorito
+        T->>API: POST /places/:id/favorite
+        API->>DB: toggle favorites row
+    and Compartir
+        T->>API: GET /places/:id/og
+        API-->>T: metadata Open Graph
+    end
+</pre>
+</div>
+
+<!-- ───────────────────────────────────────────────────────────── -->
+<h2>3. Workflow dueño de negocio — Crear y gestionar micrositio</h2>
+
+<div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor B as Business Owner
+    participant API as Backend
+    participant DB as Supabase
+
+    B->>API: POST /auth/login
+    API-->>B: token (rol=business)
+
+    Note over B,API: Crear el lugar/negocio
+    B->>API: POST /places {name, address, lat, lng,<br/>cta_phone, cta_whatsapp}
+    API->>DB: insert place (owner_id = B)
+    DB->>DB: trigger places_set_slug<br/>"La Trattoria" -> "la-trattoria"
+    DB-->>API: place creado con slug
+    API-->>B: place + slug
+
+    B->>API: POST /places/:id/photos (galeria)
+
+    Note over B,API: Crear promociones
+    B->>API: POST /places/:id/promotions {title,<br/>discount, starts_at, ends_at}
+    API->>DB: ownership check + insert
+    Note right of DB: Vista active_promotions<br/>filtra is_active AND<br/>now() entre fechas
+
+    Note over B,API: Ver metricas
+    B->>API: GET /places/:id/metrics/summary?from&to
+    API->>DB: RPC place_metrics_summary
+    DB-->>API: totales + comparativa periodo anterior
+    API-->>B: dashboard data
+
+    B->>API: GET /places/:id/metrics/timeseries?granularity=day
+    API->>DB: RPC place_metrics_timeseries
+    DB-->>API: buckets diarios
+    API-->>B: serie temporal para grafico
+</pre>
+</div>
+
+<!-- ───────────────────────────────────────────────────────────── -->
+<h2>4. Workflow micrositio publico + tracking</h2>
+
+<div class="diagram">
+<pre class="mermaid">
+flowchart LR
+    URL[xitty.co/la-trattoria]
+    EP[GET /microsites/:slug]
+    PLACE[(places<br/>WHERE slug AND is_active)]
+    PROMOS[(active_promotions<br/>vista filtrada)]
+    PHOTOS[(place_photos)]
+    INTER[(microsite_interactions<br/>profile_view auto)]
+    PAGE[Pagina renderizada<br/>perfil + galeria + promos<br/>+ CTAs]
+
+    URL --> EP
+    EP --> PLACE
+    EP --> PROMOS
+    EP --> PHOTOS
+    EP -.fire-and-forget.-> INTER
+    PLACE --> PAGE
+    PROMOS --> PAGE
+    PHOTOS --> PAGE
+
+    PAGE --> CALL{click<br/>Llamar}
+    PAGE --> WA{click<br/>WhatsApp}
+    PAGE --> RES{click<br/>Reservar}
+    PAGE --> DIR{click<br/>Como llegar}
+
+    CALL --> TRACK[POST /places/:id/interactions<br/>type=call_click]
+    WA --> TRACK
+    RES --> TRACK
+    DIR --> TRACK
+    TRACK --> INTER
+
+    classDef nuevo fill:#feebc8,stroke:#ed8936,stroke-width:2px
+    class URL,EP,PROMOS,INTER,TRACK,PAGE nuevo
+</pre>
+</div>
+
+<!-- ───────────────────────────────────────────────────────────── -->
+<h2>5. Modelo de base de datos</h2>
+
+<div class="diagram">
+<pre class="mermaid">
+erDiagram
+    profiles ||--o{ user_preferences : tiene
+    profiles ||--o{ places : posee
+    profiles ||--o{ reviews : escribe
+    profiles ||--o{ favorites : guarda
+    profiles ||--o| business_notification_settings : configura
+
+    categories ||--o{ places : clasifica
+    places ||--o{ place_photos : contiene
+    places ||--o{ reviews : recibe
+    places ||--o{ favorites : aparece_en
+    places ||--o{ promotions : ofrece
+    places ||--o{ microsite_interactions : trackea
+    promotions ||--o{ microsite_interactions : promo_view
+
+    profiles {
+        uuid id PK
+        text email
+        text full_name
+        text phone
+        text role
+    }
+    user_preferences {
+        uuid user_id PK
+        text traveler_type
+        int budget_min_max
+        bool wizard_completed
+    }
+    categories {
+        uuid id PK
+        text name
+        text slug
+        text icon
+    }
+    places {
+        uuid id PK
+        text name
+        text slug "M5 UK"
+        double lat_lng
+        text cta_phone "M5"
+        text cta_whatsapp "M5"
+        text reservation_url "M5"
+        numeric average_rating
+        int total_reviews
+        bool is_active
+    }
+    place_photos {
+        uuid id PK
+        text url
+        bool is_cover
+    }
+    reviews {
+        uuid id PK
+        smallint rating "1-5"
+        text comment
+    }
+    favorites {
+        uuid user_id PK
+        uuid place_id PK
+    }
+    promotions {
+        uuid id PK
+        text title
+        smallint discount_percentage
+        timestamp starts_at
+        timestamp ends_at
+        bool is_active
+    }
+    microsite_interactions {
+        uuid id PK
+        text interaction_type
+        timestamp created_at
+    }
+    business_notification_settings {
+        uuid user_id PK
+        bool notify_call_click
+        bool notify_whatsapp_click
+        bool daily_summary
+    }
+</pre>
+</div>
+
+<!-- ───────────────────────────────────────────────────────────── -->
+<h2>6. Mapa de endpoints por modulo</h2>
+
+<table>
+<thead>
+<tr><th>Modulo</th><th>Endpoint</th><th>Auth</th><th>Proposito</th></tr>
+</thead>
+<tbody>
+<tr><td><span class="badge m1">M1</span>auth</td><td><code>POST /auth/register</code></td><td>publico</td><td>Crear cuenta</td></tr>
+<tr><td><span class="badge m1">M1</span>auth</td><td><code>POST /auth/login</code></td><td>publico</td><td>Obtener tokens</td></tr>
+<tr><td><span class="badge m1">M1</span>auth</td><td><code>POST /auth/refresh</code></td><td>publico</td><td>Renovar access_token</td></tr>
+<tr><td><span class="badge m1">M1</span>auth</td><td><code>GET /auth/me</code></td><td>bearer</td><td>Perfil actual</td></tr>
+<tr><td><span class="badge m1">M1</span>auth</td><td><code>PATCH /auth/profile</code></td><td>bearer</td><td>Editar perfil</td></tr>
+<tr><td><span class="badge m1">M1</span>auth</td><td><code>POST /auth/forgot-password</code></td><td>publico</td><td>Email de recuperacion</td></tr>
+<tr><td><span class="badge m1">M1</span>auth</td><td><code>POST /auth/reset-password</code></td><td>publico</td><td>Cambiar password</td></tr>
+<tr><td><span class="badge m1">M1</span>auth</td><td><code>POST /auth/verify-email</code></td><td>publico</td><td>Confirmar email</td></tr>
+<tr><td><span class="badge m1">M1</span>auth</td><td><code>GET /auth/admin/users</code></td><td>admin</td><td>Listar usuarios</td></tr>
+<tr><td><span class="badge m1">M1</span>preferences</td><td><code>POST /preferences</code></td><td>bearer</td><td>Wizard completo</td></tr>
+<tr><td><span class="badge m1">M1</span>preferences</td><td><code>GET /preferences/me</code></td><td>bearer</td><td>Leer preferencias</td></tr>
+<tr><td><span class="badge m1">M1</span>preferences</td><td><code>PATCH /preferences/me</code></td><td>bearer</td><td>Update parcial</td></tr>
+<tr><td><span class="badge m1">M1</span>preferences</td><td><code>POST /preferences/skip</code></td><td>bearer</td><td>Saltar wizard</td></tr>
+<tr><td><span class="badge m3">M3</span>places</td><td><code>GET /categories</code></td><td>publico</td><td>Listar categorias</td></tr>
+<tr><td><span class="badge m3">M3</span>places</td><td><code>GET /places</code></td><td>publico</td><td>Listado paginado con filtros</td></tr>
+<tr><td><span class="badge m3">M3</span>places</td><td><code>GET /places/search?q=</code></td><td>publico</td><td>Full-text search</td></tr>
+<tr><td><span class="badge m3">M3</span>places</td><td><code>GET /places/:id</code></td><td>publico</td><td>Detalle</td></tr>
+<tr><td><span class="badge m3">M3</span>places</td><td><code>GET /places/:id/og</code></td><td>publico</td><td>Open Graph metadata</td></tr>
+<tr><td><span class="badge m3">M3</span>places</td><td><code>POST /places</code></td><td>business</td><td>Crear lugar</td></tr>
+<tr><td><span class="badge m3">M3</span>places</td><td><code>PATCH /places/:id</code></td><td>owner</td><td>Editar</td></tr>
+<tr><td><span class="badge m3">M3</span>places</td><td><code>DELETE /places/:id</code></td><td>admin</td><td>Soft delete</td></tr>
+<tr><td><span class="badge m3">M3</span>places</td><td><code>POST /places/:id/photos</code></td><td>owner</td><td>Subir foto</td></tr>
+<tr><td><span class="badge m3">M3</span>reviews</td><td><code>GET /places/:id/reviews</code></td><td>publico</td><td>Listar resenas</td></tr>
+<tr><td><span class="badge m3">M3</span>reviews</td><td><code>POST /places/:id/reviews</code></td><td>bearer</td><td>Dejar resena</td></tr>
+<tr><td><span class="badge m3">M3</span>reviews</td><td><code>PATCH /places/:id/reviews</code></td><td>bearer</td><td>Editar la propia</td></tr>
+<tr><td><span class="badge m3">M3</span>reviews</td><td><code>DELETE /places/:id/reviews</code></td><td>bearer</td><td>Borrar la propia</td></tr>
+<tr><td><span class="badge m3">M3</span>favorites</td><td><code>POST /places/:id/favorite</code></td><td>bearer</td><td>Toggle favorito</td></tr>
+<tr><td><span class="badge m3">M3</span>favorites</td><td><code>GET /favorites</code></td><td>bearer</td><td>Mis favoritos</td></tr>
+<tr><td><span class="badge m5">M5</span>microsites</td><td><code>GET /microsites/:slug</code></td><td>publico</td><td>Micrositio publico</td></tr>
+<tr><td><span class="badge m5">M5</span>promotions</td><td><code>GET /promotions/active</code></td><td>publico</td><td>Promos del directorio</td></tr>
+<tr><td><span class="badge m5">M5</span>promotions</td><td><code>GET /places/:id/promotions</code></td><td>publico</td><td>Promos del lugar</td></tr>
+<tr><td><span class="badge m5">M5</span>promotions</td><td><code>POST /places/:id/promotions</code></td><td>owner</td><td>Crear promo</td></tr>
+<tr><td><span class="badge m5">M5</span>promotions</td><td><code>PATCH /places/:id/promotions/:id</code></td><td>owner</td><td>Editar promo</td></tr>
+<tr><td><span class="badge m5">M5</span>promotions</td><td><code>DELETE /places/:id/promotions/:id</code></td><td>owner</td><td>Borrar promo</td></tr>
+<tr><td><span class="badge m5">M5</span>metrics</td><td><code>POST /places/:id/interactions</code></td><td>publico</td><td>Trackear click CTA</td></tr>
+<tr><td><span class="badge m5">M5</span>metrics</td><td><code>GET /places/:id/metrics/summary</code></td><td>owner</td><td>Resumen + comparativa</td></tr>
+<tr><td><span class="badge m5">M5</span>metrics</td><td><code>GET /places/:id/metrics/timeseries</code></td><td>owner</td><td>Serie temporal</td></tr>
+<tr><td><span class="badge m5">M5</span>notification-settings</td><td><code>GET /me/notification-settings</code></td><td>business</td><td>Leer preferencias</td></tr>
+<tr><td><span class="badge m5">M5</span>notification-settings</td><td><code>PATCH /me/notification-settings</code></td><td>business</td><td>Actualizar</td></tr>
+</tbody>
+</table>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    themeVariables: {
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      primaryColor: '#bee3f8',
+      primaryBorderColor: '#3182ce',
+      lineColor: '#4a5568',
+    },
+    flowchart: { curve: 'basis', padding: 20 },
+    sequence: { showSequenceNumbers: false, mirrorActors: false }
+  });
+</script>
+
+</body>
+</html>
