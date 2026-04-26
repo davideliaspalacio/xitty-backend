@@ -5,6 +5,10 @@ import { PreferencesModule } from './modules/preferences/preferences.module';
 import { PlacesModule } from './modules/places/places.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
+import { MicrositesModule } from './modules/microsites/microsites.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
+import { MetricsModule } from './modules/metrics/metrics.module';
+import { NotificationSettingsModule } from './modules/notification-settings/notification-settings.module';
 
 @Module({
   imports: [
@@ -16,6 +20,10 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
     PlacesModule,
     ReviewsModule,
     FavoritesModule,
+    MicrositesModule,
+    PromotionsModule,
+    MetricsModule,
+    NotificationSettingsModule,
   ],
   controllers: [],
   providers: [],
