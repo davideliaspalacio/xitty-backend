@@ -91,4 +91,31 @@ export class CreatePlaceDto {
   @IsArray()
   @IsString({ each: true })
   tags?: string[];
+
+  @ApiProperty({
+    description: 'URL slug for microsite (auto-generated from name if omitted)',
+    example: 'la-trattoria',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  slug?: string;
+
+  @ApiProperty({ description: 'Phone number for "Call" CTA', required: false })
+  @IsOptional()
+  @IsString()
+  cta_phone?: string;
+
+  @ApiProperty({
+    description: 'WhatsApp number (international format) for "WhatsApp" CTA',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  cta_whatsapp?: string;
+
+  @ApiProperty({ description: 'External reservation URL', required: false })
+  @IsOptional()
+  @IsUrl()
+  reservation_url?: string;
 }

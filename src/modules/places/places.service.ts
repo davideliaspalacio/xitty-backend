@@ -21,7 +21,7 @@ const PLACE_CARD_SELECT =
   'id, name, description, address, latitude, longitude, price_range, average_rating, total_reviews, tags, categories(id, name, slug, icon)';
 
 const PLACE_DETAIL_SELECT =
-  'id, name, description, address, latitude, longitude, phone, website, price_range, schedule, category_id, categories(id, name, slug, icon), owner_id, tags, average_rating, total_reviews, is_active, created_at, updated_at';
+  'id, name, description, address, latitude, longitude, phone, website, price_range, schedule, category_id, categories(id, name, slug, icon), owner_id, tags, average_rating, total_reviews, is_active, slug, cta_phone, cta_whatsapp, reservation_url, created_at, updated_at';
 
 @Injectable()
 export class PlacesService {
@@ -244,6 +244,10 @@ export class PlacesService {
         category_id: dto.category_id,
         owner_id: userId,
         tags: dto.tags || [],
+        slug: dto.slug,
+        cta_phone: dto.cta_phone,
+        cta_whatsapp: dto.cta_whatsapp,
+        reservation_url: dto.reservation_url,
       })
       .select(PLACE_DETAIL_SELECT)
       .single();
@@ -281,6 +285,7 @@ export class PlacesService {
       'name', 'description', 'address', 'latitude', 'longitude',
       'phone', 'website', 'price_range', 'schedule', 'category_id',
       'tags', 'is_active',
+      'slug', 'cta_phone', 'cta_whatsapp', 'reservation_url',
     ] as const;
 
     for (const key of fields) {
