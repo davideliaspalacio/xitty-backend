@@ -50,6 +50,10 @@ export class PlaceDetailDto {
   @ApiProperty() average_rating: number;
   @ApiProperty() total_reviews: number;
   @ApiProperty() is_active: boolean;
+  @ApiProperty({ nullable: true }) slug: string | null;
+  @ApiProperty({ nullable: true }) cta_phone: string | null;
+  @ApiProperty({ nullable: true }) cta_whatsapp: string | null;
+  @ApiProperty({ nullable: true }) reservation_url: string | null;
   @ApiProperty({ type: [PlacePhotoDto] }) photos: PlacePhotoDto[];
   @ApiProperty() created_at: string;
   @ApiProperty() updated_at: string;
