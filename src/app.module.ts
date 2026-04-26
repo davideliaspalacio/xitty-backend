@@ -9,6 +9,8 @@ import { MicrositesModule } from './modules/microsites/microsites.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { NotificationSettingsModule } from './modules/notification-settings/notification-settings.module';
+import { RankingModule } from './modules/ranking/ranking.module';
+import { FeaturedModule } from './modules/featured/featured.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { NotificationSettingsModule } from './modules/notification-settings/noti
     PromotionsModule,
     MetricsModule,
     NotificationSettingsModule,
+    RankingModule,
+    FeaturedModule,
   ],
   controllers: [],
   providers: [],

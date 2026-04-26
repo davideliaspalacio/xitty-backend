@@ -21,7 +21,7 @@ const PLACE_CARD_SELECT =
   'id, name, description, address, latitude, longitude, price_range, average_rating, total_reviews, tags, categories(id, name, slug, icon)';
 
 const PLACE_DETAIL_SELECT =
-  'id, name, description, address, latitude, longitude, phone, website, price_range, schedule, category_id, categories(id, name, slug, icon), owner_id, tags, average_rating, total_reviews, is_active, slug, cta_phone, cta_whatsapp, reservation_url, created_at, updated_at';
+  'id, name, description, address, latitude, longitude, phone, website, price_range, schedule, category_id, categories(id, name, slug, icon), owner_id, tags, average_rating, total_reviews, is_active, slug, cta_phone, cta_whatsapp, reservation_url, is_sponsored, sponsored_until, created_at, updated_at';
 
 @Injectable()
 export class PlacesService {
