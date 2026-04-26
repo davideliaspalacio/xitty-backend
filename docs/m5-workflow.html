@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Xitty Backend — Workflow & Arquitectura</title>
+<title>Xitty Backend — Workflow & Arquitectura (M1 + M3 + M5 + M7)</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
   body {
@@ -68,6 +68,7 @@
   .m1 { background: #e9d8fd; color: #553c9a; }
   .m3 { background: #c6f6d5; color: #22543d; }
   .m5 { background: #feebc8; color: #7b341e; }
+  .m7 { background: #bee3f8; color: #1a365d; }
   table {
     width: 100%;
     border-collapse: collapse;
@@ -119,24 +120,30 @@
     font-size: 0.9rem;
     margin-top: 0.25rem;
   }
+  .card.new {
+    border-left-color: #3182ce;
+    background: linear-gradient(135deg, #ebf8ff 0%, #ffffff 100%);
+  }
 </style>
 </head>
 <body>
 
 <h1>Xitty Backend — Arquitectura & Workflows</h1>
+<p style="color:#718096;margin-top:-0.5rem;">M1 (Auth) + M3 (Directorio) + M5 (Micrositios) + <strong style="color:#3182ce;">M7 (Ranking & Contenido Destacado — NUEVO)</strong></p>
 
 <div class="summary-cards">
-  <div class="card"><div class="num">34</div><div class="label">Endpoints REST</div></div>
-  <div class="card"><div class="num">9</div><div class="label">Modulos NestJS</div></div>
-  <div class="card"><div class="num">11</div><div class="label">Tablas Postgres</div></div>
-  <div class="card"><div class="num">48</div><div class="label">Unit tests pasando</div></div>
-  <div class="card"><div class="num">3</div><div class="label">Roles de usuario</div></div>
+  <div class="card"><div class="num">44</div><div class="label">Endpoints REST</div></div>
+  <div class="card"><div class="num">11</div><div class="label">Modulos NestJS</div></div>
+  <div class="card"><div class="num">13</div><div class="label">Tablas + 1 vista materializada</div></div>
+  <div class="card"><div class="num">73</div><div class="label">Unit tests pasando</div></div>
+  <div class="card new"><div class="num">+10</div><div class="label">Endpoints nuevos en M7</div></div>
 </div>
 
 <div class="legend">
   <span><span class="dot m1" style="background:#9f7aea"></span><strong>M1</strong> Auth + Onboarding</span>
   <span><span class="dot m3" style="background:#48bb78"></span><strong>M3</strong> Directorio de Lugares</span>
-  <span><span class="dot m5" style="background:#ed8936"></span><strong>M5</strong> Micrositios de Negocios (NUEVO)</span>
+  <span><span class="dot m5" style="background:#ed8936"></span><strong>M5</strong> Micrositios de Negocios</span>
+  <span><span class="dot m7" style="background:#3182ce"></span><strong>M7</strong> Ranking + Destacados (NUEVO)</span>
 </div>
 
 <!-- ───────────────────────────────────────────────────────────── -->
@@ -149,6 +156,7 @@ flowchart TB
         APP[App movil / Web<br/>Turistas]
         BIZ[Dashboard<br/>Duenos negocio]
         PUB[Micrositios publicos<br/>xitty.co/slug]
+        ADM[Panel admin<br/>Xitty]
     end
 
     subgraph Backend["NestJS Backend"]
@@ -166,11 +174,16 @@ flowchart TB
             FAV[FavoritesModule]
         end
 
-        subgraph M5g["M5 — Micrositios NUEVO"]
+        subgraph M5g["M5 — Micrositios"]
             MICRO[MicrositesModule]
             PROMO[PromotionsModule]
             MET[MetricsModule]
             NOTIF[NotificationSettingsModule]
+        end
+
+        subgraph M7g["M7 — Ranking NUEVO"]
+            RANK[RankingModule]
+            FEAT[FeaturedModule]
         end
 
         DB_MOD[DatabaseModule<br/>provee SUPABASE_CLIENT]
@@ -178,28 +191,35 @@ flowchart TB
 
     subgraph Supabase["Supabase"]
         SBAUTH[Auth<br/>signUp/signIn]
-        PG[(Postgres<br/>11 tablas + RLS<br/>+ triggers + RPCs)]
+        PG[(Postgres<br/>13 tablas + vistas<br/>+ MV + RLS + RPCs)]
+        CRON[pg_cron<br/>refresh nocturno 03:00 BOG]
     end
 
     APP --> MAIN
     BIZ --> MAIN
     PUB --> MAIN
+    ADM --> MAIN
     MAIN --> AUTH_G
     AUTH_G --> M1g
     AUTH_G --> M3g
     AUTH_G --> M5g
+    AUTH_G --> M7g
     M1g --> DB_MOD
     M3g --> DB_MOD
     M5g --> DB_MOD
+    M7g --> DB_MOD
     AUTH --> SBAUTH
     DB_MOD --> PG
+    CRON --> PG
 
     classDef m1 fill:#e9d8fd,stroke:#9f7aea,stroke-width:2px
     classDef m3 fill:#c6f6d5,stroke:#48bb78,stroke-width:2px
     classDef m5 fill:#feebc8,stroke:#ed8936,stroke-width:2px
+    classDef m7 fill:#bee3f8,stroke:#3182ce,stroke-width:2px
     class AUTH,PREF m1
     class PLACES,REV,FAV m3
     class MICRO,PROMO,MET,NOTIF m5
+    class RANK,FEAT m7
 </pre>
 </div>
 
@@ -219,36 +239,35 @@ sequenceDiagram
     DB-->>API: user creado
     API-->>T: access_token + refresh_token
 
-    Note over T,API: Wizard de preferencias (opcional)
-    T->>API: POST /preferences {tipo, presupuesto, ...}
-    API->>DB: upsert user_preferences
+    Note over T,API: Pantalla home — descubrimiento curado
+    T->>API: GET /featured/current
+    API->>DB: vista current_featured + join places
+    API-->>T: destacados de la semana (curated)
+    T->>API: GET /ranking?limit=10
+    API->>DB: place_rankings + snapshots
+    API-->>T: top 10 con position_change y badge "Patrocinado"
 
-    Note over T,API: Explora el directorio
-    T->>API: GET /places?category_id&sort_by=rating
-    API->>DB: query con joins + cover photos
-    DB-->>API: listado paginado
-    API-->>T: cards (foto, nombre, rating, precio)
+    Note over T,API: Explora una categoria
+    T->>API: GET /ranking/categories/:id
+    API-->>T: top 20 ordenado por score
 
     T->>API: GET /places/:id
-    API-->>T: detalle + fotos + reviews
+    API-->>T: detalle + fotos + is_sponsored
 
     Note over T,API: Acciones
     par Resena
-        T->>API: POST /places/:id/reviews {rating, comment}
-        API->>DB: insert review
+        T->>API: POST /places/:id/reviews
         DB->>DB: trigger update_place_rating
     and Favorito
         T->>API: POST /places/:id/favorite
-        API->>DB: toggle favorites row
     and Compartir
         T->>API: GET /places/:id/og
-        API-->>T: metadata Open Graph
     end
 </pre>
 </div>
 
 <!-- ───────────────────────────────────────────────────────────── -->
-<h2>3. Workflow dueño de negocio — Crear y gestionar micrositio</h2>
+<h2>3. Workflow dueño de negocio — Crear, gestionar y subir en ranking</h2>
 
 <div class="diagram">
 <pre class="mermaid">
@@ -262,29 +281,24 @@ sequenceDiagram
     API-->>B: token (rol=business)
 
     Note over B,API: Crear el lugar/negocio
-    B->>API: POST /places {name, address, lat, lng,<br/>cta_phone, cta_whatsapp}
+    B->>API: POST /places {name, address, lat, lng, cta_*}
     API->>DB: insert place (owner_id = B)
-    DB->>DB: trigger places_set_slug<br/>"La Trattoria" -> "la-trattoria"
-    DB-->>API: place creado con slug
-    API-->>B: place + slug
+    DB->>DB: trigger places_set_slug
 
     B->>API: POST /places/:id/photos (galeria)
 
     Note over B,API: Crear promociones
-    B->>API: POST /places/:id/promotions {title,<br/>discount, starts_at, ends_at}
+    B->>API: POST /places/:id/promotions
     API->>DB: ownership check + insert
-    Note right of DB: Vista active_promotions<br/>filtra is_active AND<br/>now() entre fechas
 
     Note over B,API: Ver metricas
     B->>API: GET /places/:id/metrics/summary?from&to
     API->>DB: RPC place_metrics_summary
     DB-->>API: totales + comparativa periodo anterior
-    API-->>B: dashboard data
 
-    B->>API: GET /places/:id/metrics/timeseries?granularity=day
-    API->>DB: RPC place_metrics_timeseries
-    DB-->>API: buckets diarios
-    API-->>B: serie temporal para grafico
+    Note over B,API: Como subir en el ranking? Mas reviews +<br/>mas conversiones (clicks CTA) en 30 dias.
+    B->>API: GET /ranking/categories/:id
+    API-->>B: ve donde esta posicionado
 </pre>
 </div>
 
@@ -322,13 +336,93 @@ flowchart LR
     DIR --> TRACK
     TRACK --> INTER
 
+    INTER -.alimenta.-> RANK[(place_rankings<br/>materialized view)]
+
     classDef nuevo fill:#feebc8,stroke:#ed8936,stroke-width:2px
+    classDef m7 fill:#bee3f8,stroke:#3182ce,stroke-width:2px
     class URL,EP,PROMOS,INTER,TRACK,PAGE nuevo
+    class RANK m7
 </pre>
 </div>
 
 <!-- ───────────────────────────────────────────────────────────── -->
-<h2>5. Modelo de base de datos</h2>
+<h2>5. Workflow M7 — Como se calcula el ranking (NUEVO)</h2>
+
+<div class="diagram">
+<pre class="mermaid">
+flowchart TB
+    INTER[(microsite_interactions<br/>ultimos 30 dias)]
+    PLACES[(places<br/>average_rating)]
+
+    INTER --> AGG[Aggregacion 30d:<br/>views_30d + conversions_30d]
+    PLACES --> SCORE
+    AGG --> SCORE
+
+    SCORE["Score por lugar:<br/>0.4 * rating/5<br/>+ 0.3 * min(views/1000, 1)<br/>+ 0.3 * min(conv/100, 1)"]
+
+    SCORE --> RANK[(place_rankings MV<br/>RANK por categoria)]
+    RANK --> SNAP[(ranking_snapshots<br/>1 row/place/refresh)]
+
+    CRON[pg_cron 03:00 BOG] -.refresh nightly.-> RANK
+    ADMIN[POST /admin/ranking/refresh] -.refresh manual.-> RANK
+
+    RANK --> Q1[GET /ranking]
+    RANK --> Q2[GET /ranking/categories/:id]
+    SNAP --> Q1
+    SNAP --> Q2
+
+    Q1 --> ORDER{Ordenamiento}
+    Q2 --> ORDER
+    ORDER --> SP[Sponsored primero<br/>ordenados por score]
+    ORDER --> ORG[Organicos despues<br/>por position]
+
+    classDef m7 fill:#bee3f8,stroke:#3182ce,stroke-width:2px
+    class RANK,SNAP,Q1,Q2,SCORE,SP,ORG,ORDER,CRON,ADMIN m7
+</pre>
+</div>
+
+<!-- ───────────────────────────────────────────────────────────── -->
+<h2>6. Workflow admin — Sponsored placements y contenido destacado (NUEVO)</h2>
+
+<div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor A as Admin Xitty
+    participant API as Backend
+    participant DB as Supabase
+
+    A->>API: POST /auth/login
+    API-->>A: token (rol=admin)
+
+    Note over A,API: Activar patrocinio (US-031)
+    A->>API: POST /admin/places/:id/sponsorship<br/>{duration_days: 30}
+    API->>DB: UPDATE places SET<br/>is_sponsored=true,<br/>sponsored_until=now()+30d
+    DB-->>API: place actualizado
+    API-->>A: { is_sponsored, sponsored_until }
+    Note right of API: Ranking lo promueve<br/>al inicio con badge
+
+    Note over A,API: Programar destacado semanal (US-032)
+    A->>API: POST /admin/featured<br/>{place_id, curator_name, week_*}
+    API->>DB: insert featured_content
+    Note right of DB: Vista current_featured<br/>filtra por now() entre fechas
+    API-->>A: featured creado
+
+    Note over A,API: Forzar refresh (utilidad)
+    A->>API: POST /admin/ranking/refresh
+    API->>DB: SELECT refresh_place_rankings()
+    DB->>DB: REFRESH MV CONCURRENTLY +<br/>insert ranking_snapshots
+    DB-->>API: ok
+    API-->>A: { refreshed_at }
+
+    Note over A,API: Quitar patrocinio expirado
+    A->>API: DELETE /admin/places/:id/sponsorship
+    API->>DB: UPDATE is_sponsored=false
+</pre>
+</div>
+
+<!-- ───────────────────────────────────────────────────────────── -->
+<h2>7. Modelo de base de datos</h2>
 
 <div class="diagram">
 <pre class="mermaid">
@@ -338,13 +432,17 @@ erDiagram
     profiles ||--o{ reviews : escribe
     profiles ||--o{ favorites : guarda
     profiles ||--o| business_notification_settings : configura
+    profiles ||--o{ featured_content : crea
 
     categories ||--o{ places : clasifica
+    categories ||--o{ ranking_snapshots : agrupa
     places ||--o{ place_photos : contiene
     places ||--o{ reviews : recibe
     places ||--o{ favorites : aparece_en
     places ||--o{ promotions : ofrece
     places ||--o{ microsite_interactions : trackea
+    places ||--o{ ranking_snapshots : posiciona
+    places ||--o{ featured_content : destaca
     promotions ||--o{ microsite_interactions : promo_view
 
     profiles {
@@ -357,7 +455,6 @@ erDiagram
     user_preferences {
         uuid user_id PK
         text traveler_type
-        int budget_min_max
         bool wizard_completed
     }
     categories {
@@ -370,12 +467,12 @@ erDiagram
         uuid id PK
         text name
         text slug "M5 UK"
-        double lat_lng
         text cta_phone "M5"
         text cta_whatsapp "M5"
-        text reservation_url "M5"
+        bool is_sponsored "M7"
+        timestamp sponsored_until "M7"
+        timestamp sponsored_at "M7"
         numeric average_rating
-        int total_reviews
         bool is_active
     }
     place_photos {
@@ -398,7 +495,6 @@ erDiagram
         smallint discount_percentage
         timestamp starts_at
         timestamp ends_at
-        bool is_active
     }
     microsite_interactions {
         uuid id PK
@@ -408,14 +504,38 @@ erDiagram
     business_notification_settings {
         uuid user_id PK
         bool notify_call_click
-        bool notify_whatsapp_click
         bool daily_summary
+    }
+    ranking_snapshots {
+        uuid id PK
+        uuid category_id FK
+        uuid place_id FK
+        int position
+        numeric score
+        timestamp snapshot_at
+    }
+    featured_content {
+        uuid id PK
+        uuid place_id FK
+        text curator_name
+        text custom_title
+        text custom_description
+        text hero_image_url
+        timestamp week_starts_at
+        timestamp week_ends_at
+        smallint position
+        bool is_active
     }
 </pre>
 </div>
 
+<p style="background:white;padding:1rem 1.5rem;border-radius:8px;border-left:4px solid #3182ce;">
+<strong>Vista materializada M7:</strong> <code>place_rankings</code> (place_id, category_id, views_30d, conversions_30d, score, position) — refrescada por <code>refresh_place_rankings()</code> + cron job diario.
+<br/><strong>Vistas regulares:</strong> <code>active_promotions</code> (M5), <code>current_featured</code> (M7).
+</p>
+
 <!-- ───────────────────────────────────────────────────────────── -->
-<h2>6. Mapa de endpoints por modulo</h2>
+<h2>8. Mapa de endpoints por modulo</h2>
 
 <table>
 <thead>
@@ -438,7 +558,7 @@ erDiagram
 <tr><td><span class="badge m3">M3</span>places</td><td><code>GET /categories</code></td><td>publico</td><td>Listar categorias</td></tr>
 <tr><td><span class="badge m3">M3</span>places</td><td><code>GET /places</code></td><td>publico</td><td>Listado paginado con filtros</td></tr>
 <tr><td><span class="badge m3">M3</span>places</td><td><code>GET /places/search?q=</code></td><td>publico</td><td>Full-text search</td></tr>
-<tr><td><span class="badge m3">M3</span>places</td><td><code>GET /places/:id</code></td><td>publico</td><td>Detalle</td></tr>
+<tr><td><span class="badge m3">M3</span>places</td><td><code>GET /places/:id</code></td><td>publico</td><td>Detalle (incluye is_sponsored)</td></tr>
 <tr><td><span class="badge m3">M3</span>places</td><td><code>GET /places/:id/og</code></td><td>publico</td><td>Open Graph metadata</td></tr>
 <tr><td><span class="badge m3">M3</span>places</td><td><code>POST /places</code></td><td>business</td><td>Crear lugar</td></tr>
 <tr><td><span class="badge m3">M3</span>places</td><td><code>PATCH /places/:id</code></td><td>owner</td><td>Editar</td></tr>
@@ -461,6 +581,40 @@ erDiagram
 <tr><td><span class="badge m5">M5</span>metrics</td><td><code>GET /places/:id/metrics/timeseries</code></td><td>owner</td><td>Serie temporal</td></tr>
 <tr><td><span class="badge m5">M5</span>notification-settings</td><td><code>GET /me/notification-settings</code></td><td>business</td><td>Leer preferencias</td></tr>
 <tr><td><span class="badge m5">M5</span>notification-settings</td><td><code>PATCH /me/notification-settings</code></td><td>business</td><td>Actualizar</td></tr>
+<tr><td><span class="badge m7">M7</span>ranking</td><td><code>GET /ranking</code></td><td>publico</td><td>Top global con sponsored + position_change</td></tr>
+<tr><td><span class="badge m7">M7</span>ranking</td><td><code>GET /ranking/categories/:id</code></td><td>publico</td><td>Top por categoria</td></tr>
+<tr><td><span class="badge m7">M7</span>ranking</td><td><code>POST /admin/ranking/refresh</code></td><td>admin</td><td>Refrescar MV manualmente</td></tr>
+<tr><td><span class="badge m7">M7</span>ranking</td><td><code>POST /admin/places/:id/sponsorship</code></td><td>admin</td><td>Activar patrocinio (N dias)</td></tr>
+<tr><td><span class="badge m7">M7</span>ranking</td><td><code>DELETE /admin/places/:id/sponsorship</code></td><td>admin</td><td>Desactivar patrocinio</td></tr>
+<tr><td><span class="badge m7">M7</span>featured</td><td><code>GET /featured/current</code></td><td>publico</td><td>Destacados activos hoy</td></tr>
+<tr><td><span class="badge m7">M7</span>featured</td><td><code>GET /featured</code></td><td>publico</td><td>Historial paginado</td></tr>
+<tr><td><span class="badge m7">M7</span>featured</td><td><code>POST /admin/featured</code></td><td>admin</td><td>Programar destacado semanal</td></tr>
+<tr><td><span class="badge m7">M7</span>featured</td><td><code>PATCH /admin/featured/:id</code></td><td>admin</td><td>Editar destacado</td></tr>
+<tr><td><span class="badge m7">M7</span>featured</td><td><code>DELETE /admin/featured/:id</code></td><td>admin</td><td>Eliminar destacado</td></tr>
+</tbody>
+</table>
+
+<!-- ───────────────────────────────────────────────────────────── -->
+<h2>9. User Stories cubiertas en M7</h2>
+
+<table>
+<thead><tr><th>US</th><th>Historia</th><th>Como se resolvio</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>US-030</strong></td>
+  <td>Como turista quiero ver el ranking dinamico de los lugares mas populares</td>
+  <td>Materialized view <code>place_rankings</code> con score (rating + visitas + conversiones de 30d). Snapshots diarios para mostrar cambio de posicion.</td>
+</tr>
+<tr>
+  <td><strong>US-031</strong></td>
+  <td>Como negocio quiero pagar para aparecer destacado arriba en el ranking</td>
+  <td>Campos <code>is_sponsored</code> + <code>sponsored_until</code> en places. Endpoints admin para activar/desactivar. Stripe queda para fase posterior.</td>
+</tr>
+<tr>
+  <td><strong>US-032</strong></td>
+  <td>Como Xitty/influencer quiero curar contenido destacado semanal</td>
+  <td>Tabla <code>featured_content</code> con <code>curator_name</code> libre + ventana semanal. Vista <code>current_featured</code> filtra por fecha actual.</td>
+</tr>
 </tbody>
 </table>
 
