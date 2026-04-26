@@ -54,6 +54,8 @@ export class PlaceDetailDto {
   @ApiProperty({ nullable: true }) cta_phone: string | null;
   @ApiProperty({ nullable: true }) cta_whatsapp: string | null;
   @ApiProperty({ nullable: true }) reservation_url: string | null;
+  @ApiProperty({ default: false }) is_sponsored: boolean;
+  @ApiProperty({ nullable: true }) sponsored_until: string | null;
   @ApiProperty({ type: [PlacePhotoDto] }) photos: PlacePhotoDto[];
   @ApiProperty() created_at: string;
   @ApiProperty() updated_at: string;
