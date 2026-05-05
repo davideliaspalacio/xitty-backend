@@ -11,6 +11,8 @@ import { MetricsModule } from './modules/metrics/metrics.module';
 import { NotificationSettingsModule } from './modules/notification-settings/notification-settings.module';
 import { RankingModule } from './modules/ranking/ranking.module';
 import { FeaturedModule } from './modules/featured/featured.module';
+import { ExperiencesModule } from './modules/experiences/experiences.module';
+import { LocalPicksModule } from './modules/local-picks/local-picks.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { FeaturedModule } from './modules/featured/featured.module';
     NotificationSettingsModule,
     RankingModule,
     FeaturedModule,
+    ExperiencesModule,
+    LocalPicksModule,
   ],
   controllers: [],
   providers: [],
