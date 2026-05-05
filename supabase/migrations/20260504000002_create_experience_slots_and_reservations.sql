@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.experience_slots (
   seats_taken   smallint NOT NULL DEFAULT 0 CHECK (seats_taken >= 0),
   is_active     boolean NOT NULL DEFAULT true,
   created_at    timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT experience_slots_capacity_check CHECK (seats_taken <= capacity),
+  CONSTRAINT experience_slots_seats_within_capacity CHECK (seats_taken <= capacity),
   UNIQUE (experience_id, starts_at)
 );
 
