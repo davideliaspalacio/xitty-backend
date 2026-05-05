@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
+import basicAuth from 'express-basic-auth';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -47,16 +48,32 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger configuration
-  const config = new DocumentBuilder()
-    .setTitle('Xitty API')
-    .setDescription('API de Xitty - Plataforma de turismo para Barranquilla, Colombia')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+  // Swagger configuration — protected with HTTP Basic Auth (admin only)
+  const swaggerUser = process.env.SWAGGER_USER || 'admin';
+  const swaggerPassword = process.env.SWAGGER_PASSWORD;
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  if (!swaggerPassword) {
+    console.warn('⚠️  SWAGGER_PASSWORD not set — /api/docs will be unreachable');
+  } else {
+    app.use(
+      ['/api/docs', '/api/docs-json'],
+      basicAuth({
+        users: { [swaggerUser]: swaggerPassword },
+        challenge: true,
+        realm: 'Xitty API Docs',
+      }),
+    );
+
+    const config = new DocumentBuilder()
+      .setTitle('Xitty API')
+      .setDescription('API de Xitty - Plataforma de turismo para Barranquilla, Colombia')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
