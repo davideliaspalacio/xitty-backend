@@ -16,8 +16,12 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 @Injectable()
 export class AuthService {
   constructor(
+    // Cliente de datos (service role) — para todas las queries `.from(...)`.
     @Inject('SUPABASE_CLIENT')
     private readonly supabase: SupabaseClient,
+    // Cliente separado solo para auth, para no contaminar el de datos.
+    @Inject('SUPABASE_AUTH_CLIENT')
+    private readonly supabaseAuth: SupabaseClient,
   ) {}
 
   /**
@@ -27,7 +31,7 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
 
-    const { data, error } = await this.supabase.auth.signInWithPassword({
+    const { data, error } = await this.supabaseAuth.auth.signInWithPassword({
       email,
       password,
     });
@@ -71,7 +75,7 @@ export class AuthService {
   ): Promise<{ message: string; user_id: string }> {
     const { email, password, full_name, phone } = registerDto;
 
-    const { data, error } = await this.supabase.auth.signUp({
+    const { data, error } = await this.supabaseAuth.auth.signUp({
       email,
       password,
       options: {
@@ -129,7 +133,7 @@ export class AuthService {
     email: string,
     token: string,
   ): Promise<AuthResponseDto> {
-    const { data, error } = await this.supabase.auth.verifyOtp({
+    const { data, error } = await this.supabaseAuth.auth.verifyOtp({
       email,
       token,
       type: 'signup',
@@ -175,7 +179,7 @@ export class AuthService {
     }
 
     // Necesitamos el email del auth.users para devolverlo en el response
-    const { data: userData } = await this.supabase.auth.admin.getUserById(
+    const { data: userData } = await this.supabaseAuth.auth.admin.getUserById(
       userId,
     );
     const email = userData?.user?.email || profile.email || '';
@@ -221,7 +225,7 @@ export class AuthService {
       '/auth/reset-password';
 
     try {
-      await this.supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      await this.supabaseAuth.auth.resetPasswordForEmail(email, { redirectTo });
     } catch (err) {
       console.warn('forgotPassword error (silenced):', err);
     }
@@ -240,7 +244,7 @@ export class AuthService {
     token: string,
     newPassword: string,
   ): Promise<{ message: string }> {
-    const { data, error } = await this.supabase.auth.verifyOtp({
+    const { data, error } = await this.supabaseAuth.auth.verifyOtp({
       email,
       token,
       type: 'recovery',
@@ -253,7 +257,7 @@ export class AuthService {
     }
 
     const { error: updateError } =
-      await this.supabase.auth.admin.updateUserById(data.user.id, {
+      await this.supabaseAuth.auth.admin.updateUserById(data.user.id, {
         password: newPassword,
       });
 
