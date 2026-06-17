@@ -12,7 +12,9 @@ import { UpdatePromotionDto } from './dto/update-promotion.dto';
 
 const TABLE = 'promotions';
 const ACTIVE_VIEW = 'active_promotions';
+const ACTIVE_HERO_VIEW = 'active_hero_promotions';
 const PLACES_TABLE = 'places';
+const INTERACTIONS_TABLE = 'microsite_interactions';
 
 @Injectable()
 export class PromotionsService {
@@ -30,6 +32,55 @@ export class PromotionsService {
 
     if (error) throw new BadRequestException(error.message);
     return data || [];
+  }
+
+  // ── Hero ads ────────────────────────────────────────────────────
+
+  /**
+   * Returns the active hero rotation for the home slot #1.
+   * Reads from the view `active_hero_promotions` (already filters by
+   * is_hero, is_active, time window and ORDER BY hero_priority DESC).
+   * We also enforce the order client-side to keep behavior deterministic
+   * even if a future Supabase client strips the view's ORDER BY.
+   */
+  async getHero() {
+    const { data, error } = await this.supabase
+      .from(ACTIVE_HERO_VIEW)
+      .select(
+        'id, place_id, title, description, discount_percentage, starts_at, ends_at, is_active, is_hero, hero_priority, hero_image_url, places(id, name, slug)',
+      )
+      .order('hero_priority', { ascending: false })
+      .order('ends_at', { ascending: false });
+
+    if (error) throw new BadRequestException(error.message);
+    return data || [];
+  }
+
+  /**
+   * Records an ad impression for a hero promotion. Public endpoint —
+   * `userId` is optional (anonymous home views are allowed).
+   */
+  async recordImpression(promoId: string, userId?: string) {
+    const { data: promo, error: lookupError } = await this.supabase
+      .from(TABLE)
+      .select('id, place_id')
+      .eq('id', promoId)
+      .maybeSingle();
+
+    if (lookupError) throw new BadRequestException(lookupError.message);
+    if (!promo) throw new NotFoundException('Promotion not found');
+
+    const { error } = await this.supabase
+      .from(INTERACTIONS_TABLE)
+      .insert({
+        place_id: promo.place_id,
+        user_id: userId ?? null,
+        interaction_type: 'ad_impression',
+        promo_id: promo.id,
+      });
+
+    if (error) throw new BadRequestException(error.message);
+    return { success: true };
   }
 
   async findAllActive(page = 1, limit = 10) {

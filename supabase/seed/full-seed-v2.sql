@@ -620,6 +620,55 @@ FROM (
 SELECT public.refresh_place_rankings();
 
 -- ============================================================================
+-- N) HERO ADS — marca 5 promos como hero para el slot #1 del home
+-- ============================================================================
+-- Defensive: only runs if the hero columns exist (added by the
+-- 20260617000002_extend_promotions_for_hero migration). This lets older
+-- snapshots load the seed without error.
+
+DO $hero$
+DECLARE
+  has_hero boolean;
+  hero_images text[] := ARRAY[
+    'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=80',
+    'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1600&q=80',
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80',
+    'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=80',
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&q=80'
+  ];
+  priorities smallint[] := ARRAY[100, 80, 60, 40, 20]::smallint[];
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name   = 'promotions'
+      AND column_name  = 'is_hero'
+  ) INTO has_hero;
+
+  IF NOT has_hero THEN
+    RAISE NOTICE 'Skipping hero seed: promotions.is_hero column not present.';
+    RETURN;
+  END IF;
+
+  WITH picked AS (
+    SELECT id, row_number() OVER (ORDER BY random()) AS rn
+    FROM public.promotions
+    WHERE is_active = true
+      AND now() BETWEEN starts_at AND ends_at
+    LIMIT 5
+  )
+  UPDATE public.promotions p
+     SET is_hero        = true,
+         hero_priority  = priorities[picked.rn::int],
+         hero_image_url = hero_images[picked.rn::int]
+    FROM picked
+   WHERE p.id = picked.id;
+
+  RAISE NOTICE 'Hero promotions tagged: %', (SELECT count(*) FROM public.promotions WHERE is_hero = true);
+END
+$hero$;
+
+-- ============================================================================
 -- ✅ SEED v2 COMPLETO
 -- ============================================================================
 -- Verificar:

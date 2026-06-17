@@ -37,6 +37,33 @@ import { AuthGuard } from '../../common/guards/auth.guard';
 export class PromotionsController {
   constructor(private readonly promotionsService: PromotionsService) {}
 
+  @Get('promotions/hero')
+  @ApiOperation({
+    summary: 'Hero ads rotation for the home slot #1 (public, no auth)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Array of active hero promotions hydrated with place data',
+  })
+  async getHero() {
+    return this.promotionsService.getHero();
+  }
+
+  @Post('promotions/:id/impression')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Record an ad_impression for a hero promotion (public)',
+  })
+  @ApiParam({ name: 'id', description: 'Promotion ID' })
+  @ApiResponse({ status: 204, description: 'Impression recorded' })
+  @ApiResponse({ status: 404, description: 'Promotion not found' })
+  async recordImpression(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: any,
+  ) {
+    await this.promotionsService.recordImpression(id, req?.user?.id);
+  }
+
   @Get('promotions/active')
   @ApiOperation({ summary: 'List all currently active promotions across the directory' })
   @ApiQuery({ name: 'page', required: false })
