@@ -13,6 +13,8 @@ import { RankingModule } from './modules/ranking/ranking.module';
 import { FeaturedModule } from './modules/featured/featured.module';
 import { ExperiencesModule } from './modules/experiences/experiences.module';
 import { LocalPicksModule } from './modules/local-picks/local-picks.module';
+import { ConsentsModule } from './modules/consents/consents.module';
+import { LocationModule } from './modules/location/location.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { LocalPicksModule } from './modules/local-picks/local-picks.module';
     FeaturedModule,
     ExperiencesModule,
     LocalPicksModule,
+    ConsentsModule,
+    LocationModule,
   ],
   controllers: [],
   providers: [],
