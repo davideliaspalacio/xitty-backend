@@ -12,16 +12,17 @@ import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
 import { PlaceListQueryDto, PlaceSortBy } from './dto/place-list-query.dto';
 import { CreatePlacePhotoDto } from './dto/create-place-photo.dto';
+import { localize, DEFAULT_LANG } from '../../common/i18n/localize';
 
 const PLACES_TABLE = 'places';
 const CATEGORIES_TABLE = 'categories';
 const PHOTOS_TABLE = 'place_photos';
 
 const PLACE_CARD_SELECT =
-  'id, name, description, address, latitude, longitude, price_range, average_rating, total_reviews, tags, categories(id, name, slug, icon)';
+  'id, name, description, address, latitude, longitude, price_range, average_rating, total_reviews, tags, translations, categories(id, name, slug, icon)';
 
 const PLACE_DETAIL_SELECT =
-  'id, name, description, address, latitude, longitude, phone, website, price_range, schedule, category_id, categories(id, name, slug, icon), owner_id, tags, average_rating, total_reviews, is_active, slug, cta_phone, cta_whatsapp, reservation_url, is_sponsored, sponsored_until, created_at, updated_at';
+  'id, name, description, address, latitude, longitude, phone, website, price_range, schedule, category_id, categories(id, name, slug, icon), owner_id, tags, translations, average_rating, total_reviews, is_active, slug, cta_phone, cta_whatsapp, reservation_url, is_sponsored, sponsored_until, created_at, updated_at';
 
 @Injectable()
 export class PlacesService {
@@ -90,8 +91,9 @@ export class PlacesService {
     const { data, error, count } = await qb;
     if (error) throw new BadRequestException(error.message);
 
+    const lang = query.lang || DEFAULT_LANG;
     const cards = (data || []).map((p: any) => ({
-      ...p,
+      ...localize(p, lang),
       cover_photo_url: null, // populated below
     }));
 
@@ -207,7 +209,7 @@ export class PlacesService {
     };
   }
 
-  async findById(id: string) {
+  async findById(id: string, lang?: string) {
     const { data, error } = await this.supabase
       .from(PLACES_TABLE)
       .select(PLACE_DETAIL_SELECT)
@@ -224,7 +226,8 @@ export class PlacesService {
       .eq('place_id', id)
       .order('display_order');
 
-    return { ...data, photos: photos || [] };
+    const localized = localize(data as any, lang || DEFAULT_LANG);
+    return { ...localized, photos: photos || [] };
   }
 
   async create(userId: string, userRole: string, dto: CreatePlaceDto) {

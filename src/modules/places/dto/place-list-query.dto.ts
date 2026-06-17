@@ -12,6 +12,13 @@ export enum PlaceSortBy {
   DISTANCE = 'distance',
 }
 
+export enum PlaceLang {
+  ES = 'es',
+  EN = 'en',
+  FR = 'fr',
+  PT = 'pt',
+}
+
 export class PlaceListQueryDto extends PaginationDto {
   @ApiProperty({ description: 'Filter by category ID', required: false })
   @IsOptional()
@@ -66,4 +73,15 @@ export class PlaceListQueryDto extends PaginationDto {
   @IsOptional()
   @IsEnum(TravelerType)
   traveler_type?: TravelerType;
+
+  @ApiProperty({
+    description:
+      'Localize name + description into this language (falls back to es when missing)',
+    enum: PlaceLang,
+    required: false,
+    default: PlaceLang.ES,
+  })
+  @IsOptional()
+  @IsEnum(PlaceLang)
+  lang?: PlaceLang;
 }
