@@ -63,6 +63,9 @@ export class PlacesService {
 
     if (query.category_id) qb = qb.eq('category_id', query.category_id);
     if (query.price_range) qb = qb.eq('price_range', query.price_range);
+    if (query.traveler_type) {
+      qb = qb.contains('tags', [query.traveler_type]);
+    }
 
     if (query.search) {
       qb = qb.ilike('name', `%${query.search}%`);

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PlacesService } from './places.service';
 import { PlaceSortBy } from './dto/place-list-query.dto';
+import { TravelerType } from '../preferences/dto/create-preferences.dto';
 
 // ── Supabase mock ───────────────────────────────────────────────
 // Creates a thenable chain so `await supabase.from(...).select(...)...` works
@@ -11,7 +12,7 @@ function createChain(result: any) {
   const methods = [
     'from', 'select', 'insert', 'update', 'delete',
     'eq', 'neq', 'ilike', 'in', 'not', 'order', 'range',
-    'single', 'maybeSingle', 'textSearch',
+    'single', 'maybeSingle', 'textSearch', 'contains',
   ];
   methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
   // Make the chain awaitable
@@ -108,6 +109,41 @@ describe('PlacesService', () => {
       const chain = supabase._on([], null, 0);
       await service.findAll({ page: 1, limit: 10, category_id: 'cat-uuid' });
       expect(chain.eq).toHaveBeenCalledWith('category_id', 'cat-uuid');
+    });
+
+    // ── traveler_type filter ─────────────────────────────────────
+    it('acepta traveler_type opcional y filtra por tag matching', async () => {
+      const chain = supabase._on(
+        [{ id: 'p1', name: 'Parque Familiar', tags: ['familia'] }],
+        null,
+        1,
+      );
+
+      await service.findAll({
+        page: 1,
+        limit: 10,
+        traveler_type: TravelerType.FAMILIA,
+      });
+
+      expect(chain.contains).toHaveBeenCalledWith('tags', ['familia']);
+    });
+
+    it('no aplica filtro contains cuando traveler_type no se pasa (regresion)', async () => {
+      const chain = supabase._on([], null, 0);
+      await service.findAll({ page: 1, limit: 10 });
+      expect(chain.contains).not.toHaveBeenCalled();
+    });
+
+    it('combina traveler_type con otros filtros (category_id)', async () => {
+      const chain = supabase._on([], null, 0);
+      await service.findAll({
+        page: 1,
+        limit: 10,
+        category_id: 'cat-uuid',
+        traveler_type: TravelerType.PAREJA,
+      });
+      expect(chain.eq).toHaveBeenCalledWith('category_id', 'cat-uuid');
+      expect(chain.contains).toHaveBeenCalledWith('tags', ['pareja']);
     });
   });
 

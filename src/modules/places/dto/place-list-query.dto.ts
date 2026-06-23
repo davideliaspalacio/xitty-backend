@@ -2,6 +2,7 @@ import { IsOptional, IsUUID, IsInt, IsEnum, IsNumber, Min, Max } from 'class-val
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
+import { TravelerType } from '../../preferences/dto/create-preferences.dto';
 
 export enum PlaceSortBy {
   RATING = 'rating',
@@ -55,4 +56,14 @@ export class PlaceListQueryDto extends PaginationDto {
   @Min(-180)
   @Max(180)
   longitude?: number;
+
+  @ApiProperty({
+    description:
+      'Filter by traveler type — matches places with this value in tags[]',
+    enum: TravelerType,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(TravelerType)
+  traveler_type?: TravelerType;
 }
