@@ -18,6 +18,7 @@ import { LocationModule } from './modules/location/location.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 import { SuggestionsModule } from './modules/suggestions/suggestions.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { ScrapingModule } from './modules/scraping/scraping.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { ChatModule } from './modules/chat/chat.module';
     RecommendationsModule,
     SuggestionsModule,
     ChatModule,
+    ScrapingModule,
   ],
   controllers: [],
   providers: [],
