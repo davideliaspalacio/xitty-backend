@@ -77,10 +77,48 @@ def header_footer(canvas, doc):
     canvas.restoreState()
 
 
+# Estilos de celda: envuelven el texto para que NO se desborde / sobreponga.
+cell_style = ParagraphStyle(
+    "CellX", parent=styles["Normal"], fontName="Helvetica",
+    fontSize=9.5, leading=12, alignment=TA_LEFT, textColor=colors.HexColor("#222222"),
+)
+cell_header_style = ParagraphStyle(
+    "CellHeaderX", parent=styles["Normal"], fontName="Helvetica-Bold",
+    fontSize=9.5, leading=12, alignment=TA_LEFT, textColor=colors.white,
+)
+# Badge para marcar secciones lanzadas esta semana.
+badge_style = ParagraphStyle(
+    "BadgeX", parent=styles["Normal"], fontName="Helvetica-Bold",
+    fontSize=9.5, leading=13, textColor=colors.HexColor("#FF5A4E"),
+    spaceBefore=2, spaceAfter=8,
+)
+# Caja de novedades destacada (fondo suave + borde coral).
+newbox_style = ParagraphStyle(
+    "NewBoxX", parent=styles["Normal"], fontName="Helvetica",
+    fontSize=10, leading=15, textColor=colors.HexColor("#222222"),
+    backColor=colors.HexColor("#FFF1EF"), borderColor=colors.HexColor("#FF5A4E"),
+    borderWidth=1, borderPadding=10, spaceBefore=6, spaceAfter=10,
+)
+
+
+def new_badge(text):
+    return Paragraph(f"&#9679; NUEVO &#183; {text}", badge_style)
+
+
+def _wrap_cell(value, is_header):
+    # Ya es un Flowable (Paragraph, etc.) -> dejarlo como está.
+    if not isinstance(value, str):
+        return value
+    return Paragraph(value, cell_header_style if is_header else cell_style)
+
+
 def make_table(rows, col_widths=None, header=True):
-    t = Table(rows, colWidths=col_widths, repeatRows=1 if header else 0)
+    wrapped = [
+        [_wrap_cell(c, header and r == 0) for c in row]
+        for r, row in enumerate(rows)
+    ]
+    t = Table(wrapped, colWidths=col_widths, repeatRows=1 if header else 0)
     style = [
-        ("FONT", (0, 0), (-1, -1), "Helvetica", 10),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#CCCCCC")),
         ("LEFTPADDING", (0, 0), (-1, -1), 6),
@@ -91,27 +129,38 @@ def make_table(rows, col_widths=None, header=True):
     if header:
         style += [
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0E9F8C")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 10),
         ]
     t.setStyle(TableStyle(style))
     return t
 
 
-def add_screenshot(story, path: Path, caption: str, max_w=15 * cm, max_h=10 * cm):
+def add_screenshot(story, path: Path, caption: str, max_w=16.5 * cm, max_h=11 * cm):
+    """Embebe una captura recortando la parte SUPERIOR (lo legible/util) en vez
+    de la pagina completa, que se veria diminuta. Recorta a un ratio ~1.5:1
+    (ancho:alto) y la muestra grande para que sea legible."""
     if not path.exists():
         story.append(Paragraph(f"<i>(falta: {path.name})</i>", caption_style))
         return
     try:
-        pil = PILImage.open(path)
+        from io import BytesIO
+
+        pil = PILImage.open(path).convert("RGB")
         w, h = pil.size
-        ratio = min(max_w / w, max_h / h)
-        new_w, new_h = w * ratio, h * ratio
-        img = Image(str(path), width=new_w, height=new_h)
+        # Recorte a la franja superior: alto objetivo = ancho / 1.5 (vista util).
+        crop_h = min(h, int(w / 1.5))
+        if crop_h < h:
+            pil = pil.crop((0, 0, w, crop_h))
+        buf = BytesIO()
+        pil.save(buf, format="PNG")
+        buf.seek(0)
+
+        cw, ch = pil.size
+        ratio = min(max_w / cw, max_h / ch)
+        img = Image(buf, width=cw * ratio, height=ch * ratio)
         img.hAlign = "CENTER"
         story.append(img)
         story.append(Paragraph(caption, caption_style))
-        story.append(Paragraph(path.name, filename_style))
+        story.append(Paragraph(f"{path.name} (vista superior)", filename_style))
     except Exception as e:
         story.append(Paragraph(f"<i>(error con {path.name}: {e})</i>", caption_style))
 
@@ -136,7 +185,7 @@ def build():
         small_center,
     ))
     story.append(Spacer(1, 1.5 * cm))
-    story.append(Paragraph("v5 - Junio 2026", small_center))
+    story.append(Paragraph("v6 - Junio 2026", small_center))
     story.append(PageBreak())
 
     # ---------- TOC ----------
@@ -196,6 +245,19 @@ def build():
     story.append(Paragraph(
         "- Administrador: gestiona patrocinios, contenido curado por IA y supervisa la plataforma.",
         body_style,
+    ))
+    story.append(Spacer(1, 0.3 * cm))
+    story.append(Paragraph(
+        "<b>&#9733; Novedades de esta semana (junio 2026)</b><br/>"
+        "Esta semana se lanzaron a produccion <b>dos grandes entregas</b>, marcadas en esta "
+        "guia con la etiqueta <font color='#FF5A4E'><b>NUEVO</b></font>:<br/>"
+        "<b>1. Asistente de viajero inteligente</b> (seccion 4bis): 'Vale la pena hoy', chat con IA, "
+        "chips de modalidad, zona segura, selector de idioma, promociones y boton SOS.<br/>"
+        "<b>2. Contenido curado con IA</b> (seccion 4ter): scraper que trae tours y eventos reales, "
+        "los organiza con IA y los publica tras moderacion.<br/>"
+        "El resto de secciones corresponde a funcionalidad ya existente (catalogo, reservas, "
+        "micrositios, etc.).",
+        newbox_style,
     ))
     story.append(PageBreak())
 
@@ -357,6 +419,7 @@ def build():
 
     # ---------- 4bis ----------
     story.append(Paragraph("4bis. Nuevas features del pivot", h1_style))
+    story.append(new_badge("Entrega 1 de 2 lanzada esta semana — asistente de viajero inteligente"))
     story.append(Paragraph(
         "Funcionalidades incorporadas en las fases recientes: personalizacion, promociones destacadas, "
         "sugerencias por ubicacion, asistente conversacional y soporte de idiomas.",
@@ -400,6 +463,7 @@ def build():
 
     # ---------- 4ter (NEW) ----------
     story.append(Paragraph("4ter. Contenido curado con IA", h1_style))
+    story.append(new_badge("Entrega 2 de 2 lanzada esta semana — scraper de contenido con IA"))
     story.append(Paragraph(
         "Nuevo modulo (junio 2026) que automatiza el descubrimiento de actividades en Barranquilla. "
         "Combina ingesta de fuentes externas, normalizacion con LLM y moderacion humana antes de "
