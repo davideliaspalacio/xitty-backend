@@ -136,7 +136,7 @@ def build():
         small_center,
     ))
     story.append(Spacer(1, 1.5 * cm))
-    story.append(Paragraph("v4 - Junio 2026", small_center))
+    story.append(Paragraph("v5 - Junio 2026", small_center))
     story.append(PageBreak())
 
     # ---------- TOC ----------
@@ -656,6 +656,13 @@ def build():
     ))
 
     shots = [
+        # --- Features del pivot (Fases 1-3) ---
+        ("pivot-home.png", "Turista - Home del pivot: 'Vale la pena hoy', chips de modalidad y categorias"),
+        ("pivot-chat.png", "Turista - Chat AI (asistente Xi) con respuestas rapidas"),
+        ("pivot-safety.png", "Turista - Home con ubicacion activa (badge de zona)"),
+        ("pivot-language.png", "Selector de idioma (ES / EN / FR / PT)"),
+        ("pivot-sos.png", "Boton SOS de emergencia"),
+        # --- Contenido curado con IA (scraper) ---
         ("admin-sponsorships.png", "Admin - Gestion de patrocinios"),
         ("admin-scraping-overview.png", "Admin - Contenido curado: vista de runs (nuevo)"),
         ("admin-scraping-moderation.png", "Admin - Contenido curado: moderacion de items (nuevo)"),
