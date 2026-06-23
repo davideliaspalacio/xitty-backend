@@ -16,6 +16,8 @@ import { LocalPicksModule } from './modules/local-picks/local-picks.module';
 import { ConsentsModule } from './modules/consents/consents.module';
 import { LocationModule } from './modules/location/location.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
+import { SuggestionsModule } from './modules/suggestions/suggestions.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
     ConsentsModule,
     LocationModule,
     RecommendationsModule,
+    SuggestionsModule,
+    ChatModule,
   ],
   controllers: [],
   providers: [],
