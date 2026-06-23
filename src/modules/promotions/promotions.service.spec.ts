@@ -148,4 +148,109 @@ describe('PromotionsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
   });
+
+  // ── Hero ads ────────────────────────────────────────────────────
+
+  describe('getHero', () => {
+    it('lee de active_hero_promotions ordenado por hero_priority desc', async () => {
+      const chain = supabase._on(
+        [
+          {
+            id: 'h1',
+            place_id: 'place-1',
+            title: 'Hero 1',
+            description: 'Top hero',
+            discount_percentage: 30,
+            starts_at: '2026-06-01T00:00:00Z',
+            ends_at: '2026-12-01T00:00:00Z',
+            is_active: true,
+            is_hero: true,
+            hero_priority: 90,
+            hero_image_url: 'https://images.unsplash.com/photo-aaa',
+            places: { id: 'place-1', name: 'Trattoria', slug: 'trattoria' },
+          },
+          {
+            id: 'h2',
+            place_id: 'place-2',
+            title: 'Hero 2',
+            description: null,
+            discount_percentage: null,
+            starts_at: '2026-06-01T00:00:00Z',
+            ends_at: '2026-12-01T00:00:00Z',
+            is_active: true,
+            is_hero: true,
+            hero_priority: 50,
+            hero_image_url: 'https://images.unsplash.com/photo-bbb',
+            places: { id: 'place-2', name: 'Bar Caribe', slug: 'bar-caribe' },
+          },
+        ],
+      );
+
+      const result = await service.getHero();
+
+      expect(result).toHaveLength(2);
+      expect(supabase.from).toHaveBeenCalledWith('active_hero_promotions');
+      // first order should be by hero_priority desc
+      expect(chain.order).toHaveBeenCalledWith('hero_priority', { ascending: false });
+      const first: any = result[0];
+      expect(first.id).toBe('h1');
+      expect(first.hero_image_url).toContain('unsplash');
+      expect(first.places.slug).toBe('trattoria');
+    });
+
+    it('retorna array vacio si no hay hero promos', async () => {
+      supabase._on(null);
+
+      const result = await service.getHero();
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(0);
+    });
+
+    it('lanza BadRequest si supabase falla', async () => {
+      supabase._on(null, { message: 'boom' });
+      await expect(service.getHero()).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('recordImpression', () => {
+    it('inserta interaction_type ad_impression con promo_id', async () => {
+      // 1: promo lookup (place_id resolution)
+      supabase._on({ id: 'promo-1', place_id: 'place-1' });
+      // 2: insert
+      const insertChain = supabase._on({ id: 'int-1' });
+
+      await service.recordImpression('promo-1', 'user-1');
+
+      expect(insertChain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interaction_type: 'ad_impression',
+          promo_id: 'promo-1',
+          place_id: 'place-1',
+          user_id: 'user-1',
+        }),
+      );
+    });
+
+    it('acepta user_id null (impresion anonima)', async () => {
+      supabase._on({ id: 'promo-1', place_id: 'place-1' });
+      const insertChain = supabase._on({ id: 'int-2' });
+
+      await service.recordImpression('promo-1');
+
+      expect(insertChain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interaction_type: 'ad_impression',
+          promo_id: 'promo-1',
+          place_id: 'place-1',
+          user_id: null,
+        }),
+      );
+    });
+
+    it('lanza NotFound si la promo no existe', async () => {
+      supabase._on(null);
+      await expect(service.recordImpression('promo-nope')).rejects.toThrow(NotFoundException);
+    });
+  });
 });

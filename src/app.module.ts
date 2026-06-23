@@ -15,6 +15,7 @@ import { ExperiencesModule } from './modules/experiences/experiences.module';
 import { LocalPicksModule } from './modules/local-picks/local-picks.module';
 import { ConsentsModule } from './modules/consents/consents.module';
 import { LocationModule } from './modules/location/location.module';
+import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { LocationModule } from './modules/location/location.module';
     LocalPicksModule,
     ConsentsModule,
     LocationModule,
+    RecommendationsModule,
   ],
   controllers: [],
   providers: [],
