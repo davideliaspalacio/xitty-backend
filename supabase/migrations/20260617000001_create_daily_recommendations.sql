@@ -180,9 +180,9 @@ BEGIN
             + CASE WHEN s.is_open_now    THEN 0.10 ELSE 0 END
             + CASE WHEN s.distance_m IS NOT NULL THEN -0.0001 * s.distance_m ELSE 0 END
           )
-        ),
+        )::numeric,
         4
-      )::numeric AS final_score,
+      ) AS final_score,
       s.base_score,
       s.distance_m,
       s.match_traveler,
