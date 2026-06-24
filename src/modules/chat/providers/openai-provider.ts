@@ -1,5 +1,6 @@
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import {
   ChatProvider,
   ChatProviderMessage,
@@ -7,26 +8,28 @@ import {
 } from './chat-provider.interface';
 
 /**
- * Provider real usando @google/generative-ai con modelo gemini-1.5-flash.
+ * Provider real usando la API de OpenAI (chat.completions).
  *
  * Se inicializa lazy: solo crea el cliente la primera vez que se llama generate.
- * Si GEMINI_API_KEY no esta definida en runtime, tira ServiceUnavailableException.
+ * Si OPENAI_API_KEY no esta definida en runtime, tira ServiceUnavailableException.
+ * Modelo por defecto: gpt-4o-mini (rapido y economico, ideal para respuestas
+ * cortas con RAG). Configurable via OPENAI_MODEL.
  */
 @Injectable()
-export class GeminiChatProvider implements ChatProvider {
-  private readonly logger = new Logger(GeminiChatProvider.name);
-  private client: GoogleGenerativeAI | null = null;
-  private readonly modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+export class OpenAIChatProvider implements ChatProvider {
+  private readonly logger = new Logger(OpenAIChatProvider.name);
+  private client: OpenAI | null = null;
+  private readonly modelName = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
-  private getClient(): GoogleGenerativeAI {
+  private getClient(): OpenAI {
     if (this.client) return this.client;
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       throw new ServiceUnavailableException(
-        'Chat AI provider not configured: missing GEMINI_API_KEY',
+        'Chat AI provider not configured: missing OPENAI_API_KEY',
       );
     }
-    this.client = new GoogleGenerativeAI(apiKey);
+    this.client = new OpenAI({ apiKey });
     return this.client;
   }
 
@@ -36,41 +39,35 @@ export class GeminiChatProvider implements ChatProvider {
   ): Promise<string> {
     const client = this.getClient();
 
-    // System prompt + context — Gemini soporta systemInstruction. Lo armamos a
-    // partir del primer mensaje system si existe, y le agregamos los snippets.
+    // OpenAI usa los roles system/user/assistant directamente. Reemplazamos el
+    // system original por uno enriquecido con los snippets del catalogo (RAG).
     const systemMsg = messages.find((m) => m.role === 'system');
     const systemInstruction = this.buildSystemInstruction(
       systemMsg?.content,
       contextSnippets,
     );
 
-    const model = client.getGenerativeModel({
-      model: this.modelName,
-      systemInstruction,
-    });
-
-    // Gemini chat history: role 'user' o 'model' (no 'assistant')
-    const history = messages
+    const conversation: ChatCompletionMessageParam[] = messages
       .filter((m) => m.role !== 'system')
-      .slice(0, -1) // todos menos el ultimo (que sera el prompt)
-      .map((m) => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }],
-      }));
+      .map((m) => ({ role: m.role, content: m.content }));
 
-    const lastMessage = messages.filter((m) => m.role !== 'system').slice(-1)[0];
-    if (!lastMessage) {
-      throw new ServiceUnavailableException('No user message to respond to');
-    }
+    const oaMessages: ChatCompletionMessageParam[] = [
+      { role: 'system', content: systemInstruction },
+      ...conversation,
+    ];
 
     try {
-      const chat = model.startChat({ history });
-      const result = await chat.sendMessage(lastMessage.content);
-      const text = result.response.text();
+      const completion = await client.chat.completions.create({
+        model: this.modelName,
+        messages: oaMessages,
+        temperature: 0.7,
+        max_tokens: 500,
+      });
+      const text = completion.choices[0]?.message?.content?.trim();
       return text || 'Lo siento, no pude generar una respuesta esta vez.';
     } catch (err: any) {
       this.logger.error(
-        `Gemini generation failed: ${err?.message ?? 'unknown error'}`,
+        `OpenAI generation failed: ${err?.message ?? 'unknown error'}`,
       );
       throw new ServiceUnavailableException(
         'Chat AI temporalmente no disponible. Intenta de nuevo en unos segundos.',

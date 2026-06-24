@@ -6,7 +6,7 @@ import {
 } from './chat-provider.interface';
 
 /**
- * Implementacion mock para tests y para entornos sin GEMINI_API_KEY.
+ * Implementacion mock para tests y para entornos sin OPENAI_API_KEY.
  * Hace keyword matching simple sobre el ultimo mensaje del usuario.
  */
 @Injectable()

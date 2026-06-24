@@ -177,9 +177,9 @@ describe('EnrichmentService', () => {
   // fallback: provider tira → service propaga BadRequest
   // ──────────────────────────────────────────────────────────────────────
   it('fallback: si el provider tira en todos los intentos, propaga BadRequestException', async () => {
-    provider.enqueue(new Error('gemini down'));
-    provider.enqueue(new Error('gemini down 2'));
-    provider.enqueue(new Error('gemini down 3'));
+    provider.enqueue(new Error('openai down'));
+    provider.enqueue(new Error('openai down 2'));
+    provider.enqueue(new Error('openai down 3'));
 
     await expect(service.enrich({}, 'src')).rejects.toThrow(BadRequestException);
     expect(provider.calls).toHaveLength(3);

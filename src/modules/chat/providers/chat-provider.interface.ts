@@ -1,6 +1,6 @@
 /**
- * Token de inyeccion para el provider de chat (Gemini real | Mock).
- * El module decide cual implementacion proveer segun NODE_ENV y GEMINI_API_KEY.
+ * Token de inyeccion para el provider de chat (OpenAI real | Mock).
+ * El module decide cual implementacion proveer segun NODE_ENV y OPENAI_API_KEY.
  */
 export const CHAT_PROVIDER = 'CHAT_PROVIDER';
 
