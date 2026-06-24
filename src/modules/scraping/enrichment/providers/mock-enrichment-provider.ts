@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EnrichmentProvider } from './enrichment-provider.interface';
 
 /**
- * Mock provider para tests y para desarrollo local sin GEMINI_API_KEY.
+ * Mock provider para tests y para desarrollo local sin OPENAI_API_KEY.
  *
  * Devuelve un EnrichedItem "canned" en formato JSON conforme al schema.
  * Se puede configurar el next() para devolver un JSON arbitrario en tests
@@ -31,7 +31,7 @@ export class MockEnrichmentProvider implements EnrichmentProvider {
     return JSON.stringify({
       title: 'Carnaval de Barranquilla (mock)',
       description:
-        'Fiesta tradicional del Caribe colombiano declarada Patrimonio Cultural Inmaterial. Mock generado para tests sin GEMINI_API_KEY configurada.',
+        'Fiesta tradicional del Caribe colombiano declarada Patrimonio Cultural Inmaterial. Mock generado para tests sin OPENAI_API_KEY configurada.',
       category_hint: 'festival',
       location_name: 'Vía 40',
       lat: 10.9685,

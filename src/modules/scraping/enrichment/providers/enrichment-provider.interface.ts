@@ -1,6 +1,6 @@
 /**
  * Token de inyeccion para el provider del LLM de enrichment.
- * El module decide cual implementacion proveer segun NODE_ENV y GEMINI_API_KEY.
+ * El module decide cual implementacion proveer segun NODE_ENV y OPENAI_API_KEY.
  */
 export const ENRICHMENT_PROVIDER = 'ENRICHMENT_PROVIDER';
 

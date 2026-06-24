@@ -68,7 +68,7 @@ export const enrichedItemSchema = llmEnrichedItemSchema.extend({
 export type EnrichedItem = z.infer<typeof enrichedItemSchema>;
 
 /**
- * JSON schema para enviar al modelo via responseSchema (Gemini structured output).
+ * JSON schema para enviar al modelo via JSON mode de OpenAI.
  * Mantenemos sincronizado con llmEnrichedItemSchema arriba — la idea es que el LLM
  * SIEMPRE devuelva esta forma exacta, sin desviarse.
  */

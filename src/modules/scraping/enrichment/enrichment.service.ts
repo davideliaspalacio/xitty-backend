@@ -29,7 +29,7 @@ export interface EnrichmentResult extends EnrichedItem {
  * Orquesta el pipeline:
  *   raw payload → prompt → LLM → JSON parse → zod validate → quality + hash → dedup check.
  *
- * Pluggable: el provider se inyecta via ENRICHMENT_PROVIDER token (mock | gemini).
+ * Pluggable: el provider se inyecta via ENRICHMENT_PROVIDER token (mock | openai).
  */
 @Injectable()
 export class EnrichmentService {
