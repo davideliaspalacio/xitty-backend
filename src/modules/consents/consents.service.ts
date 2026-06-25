@@ -75,6 +75,11 @@ export class ConsentsService {
 
     const now = new Date().toISOString();
 
+    // OJO: NO incluir granted_at en el upsert. Si lo pusiéramos, al revocar un
+    // consent existente sobrescribiríamos la fecha original de otorgamiento con
+    // la de revocación, perdiendo el rastro de auditoría que exige la Ley 1581.
+    // Al omitirlo: en UPDATE (conflict) se preserva el granted_at original; en
+    // INSERT nuevo (revoke idempotente) toma el DEFAULT now() de la columna.
     const { data, error } = await this.supabase
       .from(TABLE)
       .upsert(
@@ -82,7 +87,6 @@ export class ConsentsService {
           user_id: userId,
           consent_type: consentType,
           granted: false,
-          granted_at: now,
           revoked_at: now,
         },
         { onConflict: 'user_id,consent_type' },

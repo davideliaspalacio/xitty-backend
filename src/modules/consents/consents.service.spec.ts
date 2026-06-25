@@ -107,6 +107,10 @@ describe('ConsentsService', () => {
       const upsertArg = chain.upsert.mock.calls[0][0];
       expect(upsertArg.granted).toBe(false);
       expect(upsertArg.revoked_at).toBeTruthy();
+      // Auditoría Ley 1581: revoke NO debe tocar granted_at (preserva la fecha
+      // original de otorgamiento). En UPDATE se conserva; en INSERT nuevo toma
+      // el DEFAULT now() de la columna.
+      expect(upsertArg.granted_at).toBeUndefined();
     });
 
     it('rechaza consent_type inválido en revoke', async () => {
