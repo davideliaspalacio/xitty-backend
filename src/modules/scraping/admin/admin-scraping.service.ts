@@ -139,15 +139,14 @@ export class AdminScrapingService {
   // ── Runs ────────────────────────────────────────────────────────────────
 
   /**
-   * Disparo manual de un run. Delega 100% al RunnerService — el reviewer
-   * (admin) se loguea como `triggered_by` solo a nivel logger; el runner
-   * tiene su propio metadata.
+   * Disparo manual de un run. Delega al RunnerService, que registra el run en
+   * `scraping_runs` con `triggered_by` = el id del admin que lo dispara.
    */
   async runSourceNow(sourceId: string, triggeredBy: string): Promise<RunSummary> {
     this.logger.log(
       `runSourceNow source=${sourceId} triggered_by=${triggeredBy}`,
     );
-    return this.runner.runSource(sourceId);
+    return this.runner.runSource(sourceId, triggeredBy);
   }
 
   async listRuns(query: ListRunsQueryDto): Promise<ScrapingRunRow[]> {
