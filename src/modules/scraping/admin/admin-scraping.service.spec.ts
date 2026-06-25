@@ -8,7 +8,7 @@ import { AdminScrapingService } from './admin-scraping.service';
 import { ScrapingSourcesRepo } from '../storage/scraping-sources.repo';
 import { ScrapingRunsRepo } from '../storage/scraping-runs.repo';
 import { ScrapedItemsRepo } from '../storage/scraped-items.repo';
-import { RunnerService } from '../scheduler/runner.service';
+import { ScrapingExecutorService } from '../executor/scraping-executor.service';
 
 // ── Supabase chain mock (mismo patron usado en el resto del modulo) ──────────
 function createChain(result: any) {
@@ -41,7 +41,7 @@ describe('AdminScrapingService', () => {
   let sourcesRepo: jest.Mocked<ScrapingSourcesRepo>;
   let runsRepo: jest.Mocked<ScrapingRunsRepo>;
   let itemsRepo: jest.Mocked<ScrapedItemsRepo>;
-  let runner: jest.Mocked<RunnerService>;
+  let executor: jest.Mocked<ScrapingExecutorService>;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
@@ -75,9 +75,8 @@ describe('AdminScrapingService', () => {
       computeDedupHash: jest.fn(),
     } as any;
 
-    runner = {
+    executor = {
       runSource: jest.fn(),
-      runAll: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -87,7 +86,7 @@ describe('AdminScrapingService', () => {
         { provide: ScrapingSourcesRepo, useValue: sourcesRepo },
         { provide: ScrapingRunsRepo, useValue: runsRepo },
         { provide: ScrapedItemsRepo, useValue: itemsRepo },
-        { provide: RunnerService, useValue: runner },
+        { provide: ScrapingExecutorService, useValue: executor },
       ],
     }).compile();
 
@@ -245,26 +244,28 @@ describe('AdminScrapingService', () => {
   // runSourceNow — disparar run manual
   // ─────────────────────────────────────────────────────────────────────────
   describe('runSourceNow', () => {
-    it('llama al runner con el source_id y devuelve el summary', async () => {
-      runner.runSource.mockResolvedValue({
+    it('delega en el executor con source_id + triggeredBy y devuelve el run', async () => {
+      executor.runSource.mockResolvedValue({
+        id: 'r1',
         source_id: 's1',
+        status: 'succeeded',
+        triggered_by: 'admin-uid',
         items_found: 3,
         items_enriched: 3,
         items_failed: 0,
-        items_persisted: 2,
-        items_deduped: 1,
-        errored: false,
-        started_at: 't', finished_at: 't', duration_ms: 10,
+        error: null,
+        started_at: 't',
+        finished_at: 't',
       } as any);
 
       const result = await service.runSourceNow('s1', 'admin-uid');
 
-      expect(runner.runSource).toHaveBeenCalledWith('s1');
+      expect(executor.runSource).toHaveBeenCalledWith('s1', 'admin-uid');
       expect(result.items_found).toBe(3);
     });
 
-    it('propaga NotFound si el runner no conoce esa source', async () => {
-      runner.runSource.mockRejectedValue(new NotFoundException('nope'));
+    it('propaga NotFound si la source no existe en la DB', async () => {
+      executor.runSource.mockRejectedValue(new NotFoundException('nope'));
       await expect(service.runSourceNow('missing', 'admin')).rejects.toThrow(
         NotFoundException,
       );
