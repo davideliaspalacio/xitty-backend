@@ -1,6 +1,7 @@
 import { Module, Provider } from '@nestjs/common';
 
 import { DatabaseModule } from '../../../config/database.module';
+import { ScrapingStorageModule } from '../storage/storage.module';
 import {
   ENRICHMENT_SERVICE,
   EnrichmentService,
@@ -73,7 +74,7 @@ const qualityProvider: Provider = {
 };
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, ScrapingStorageModule],
   providers: [
     RunnerService,
     sourcesProvider,

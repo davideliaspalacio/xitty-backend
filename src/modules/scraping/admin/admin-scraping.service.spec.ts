@@ -259,7 +259,8 @@ describe('AdminScrapingService', () => {
 
       const result = await service.runSourceNow('s1', 'admin-uid');
 
-      expect(runner.runSource).toHaveBeenCalledWith('s1');
+      // El triggeredBy se reenvia al runner para quedar en scraping_runs.triggered_by
+      expect(runner.runSource).toHaveBeenCalledWith('s1', 'admin-uid');
       expect(result.items_found).toBe(3);
     });
 
