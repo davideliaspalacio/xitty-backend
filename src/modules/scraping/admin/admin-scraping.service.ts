@@ -24,8 +24,7 @@ import {
   ScrapedItemsRepo,
   ScrapedItemEnriched,
 } from '../storage/scraped-items.repo';
-import { RunnerService } from '../scheduler/runner.service';
-import type { ScrapingRun as RunSummary } from '../scraper-source.interface';
+import { ScrapingExecutorService } from '../executor/scraping-executor.service';
 
 const RAW_TABLE = 'scraped_items_raw';
 const PLACES_TABLE = 'places';
@@ -67,7 +66,7 @@ export class AdminScrapingService {
     private readonly sourcesRepo: ScrapingSourcesRepo,
     private readonly runsRepo: ScrapingRunsRepo,
     private readonly itemsRepo: ScrapedItemsRepo,
-    private readonly runner: RunnerService,
+    private readonly executor: ScrapingExecutorService,
   ) {}
 
   // ── Sources ─────────────────────────────────────────────────────────────
@@ -139,14 +138,15 @@ export class AdminScrapingService {
   // ── Runs ────────────────────────────────────────────────────────────────
 
   /**
-   * Disparo manual de un run. Delega al RunnerService, que registra el run en
-   * `scraping_runs` con `triggered_by` = el id del admin que lo dispara.
+   * Disparo manual de un run. Delega en el ScrapingExecutorService, que corre
+   * el pipeline real contra la DB (sources → runs → raw → enrich → enriched).
+   * El `triggeredBy` (id del admin) queda registrado en la fila de `scraping_runs`.
    */
-  async runSourceNow(sourceId: string, triggeredBy: string): Promise<RunSummary> {
+  async runSourceNow(sourceId: string, triggeredBy: string): Promise<ScrapingRunRow> {
     this.logger.log(
       `runSourceNow source=${sourceId} triggered_by=${triggeredBy}`,
     );
-    return this.runner.runSource(sourceId, triggeredBy);
+    return this.executor.runSource(sourceId, triggeredBy);
   }
 
   async listRuns(query: ListRunsQueryDto): Promise<ScrapingRunRow[]> {
