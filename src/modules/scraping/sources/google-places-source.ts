@@ -82,7 +82,22 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
     'places.types',
     'places.primaryType',
     'places.googleMapsUri',
+    // Fotos + señal de reseñas: deterministas, para imagen y quality/realidad.
+    'places.photos',
+    'places.rating',
+    'places.userRatingCount',
+    'places.priceLevel',
   ].join(',');
+
+  /**
+   * Construye la URL del endpoint de media de Places API (New) para una foto.
+   * NO incluye la API key: el descargador (PhotoStorageService) la agrega como
+   * header `X-Goog-Api-Key` al bajar los bytes, así la key nunca se persiste ni
+   * se expone en una URL pública.
+   */
+  static photoMediaUrl(photoName: string): string {
+    return `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=800&maxWidthPx=1200`;
+  }
 
   constructor(opts: GooglePlacesSourceOptions = {}) {
     this.fetchImpl = opts.fetchImpl ?? (globalThis.fetch as typeof fetch);
@@ -186,6 +201,9 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
       const name = p.displayName?.text;
       if (!id || !name) continue;
 
+      const photoName: string | null =
+        Array.isArray(p.photos) && p.photos[0]?.name ? p.photos[0].name : null;
+
       items.push({
         external_id: String(id),
         name: String(name),
@@ -199,6 +217,13 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
             ? p.location.longitude
             : null,
         source_url: p.googleMapsUri ?? null,
+        // Deterministas de la fuente (no de la IA):
+        image_url: photoName
+          ? GooglePlacesSource.photoMediaUrl(photoName)
+          : null,
+        rating: typeof p.rating === 'number' ? p.rating : null,
+        review_count:
+          typeof p.userRatingCount === 'number' ? p.userRatingCount : null,
         raw_payload: p,
       });
     }
@@ -212,7 +237,7 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
       (m) => m.category === config.type,
     );
     const limit = Math.max(0, Math.min(config.max_results, all.length));
-    return all.slice(0, limit).map((m) => ({
+    return all.slice(0, limit).map((m, i) => ({
       external_id: `mock-google-places-${m.slug}`,
       name: m.name,
       description: m.description,
@@ -221,6 +246,11 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
       latitude: m.latitude,
       longitude: m.longitude,
       source_url: null,
+      // Imagen pública de muestra (estable por slug) para poder ejercitar el
+      // pipeline de re-hospedaje sin API key. Rating/reseñas plausibles.
+      image_url: `https://picsum.photos/seed/${m.slug}/800/600`,
+      rating: Math.round((4.2 + (i % 5) * 0.15) * 10) / 10,
+      review_count: 80 + (i % 7) * 45,
       raw_payload: { mock: true, ...m },
     }));
   }
