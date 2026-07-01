@@ -9,7 +9,10 @@ import {
   type EnrichmentProvider,
   type SourceKind,
 } from './providers/enrichment-provider.interface';
-import { QualityScorerService } from './quality-scorer.service';
+import {
+  QualityScorerService,
+  type QualitySignals,
+} from './quality-scorer.service';
 import { DedupService } from './dedup.service';
 import {
   llmEnrichedItemSchema,
@@ -46,6 +49,7 @@ export class EnrichmentService {
   async enrich(
     rawPayload: unknown,
     sourceKind: SourceKind,
+    signals: QualitySignals = {},
   ): Promise<EnrichmentResult> {
     const prompt = this.buildPrompt(rawPayload, sourceKind);
 
@@ -83,8 +87,8 @@ export class EnrichmentService {
       );
     }
 
-    // Calcular score y hash
-    const quality_score = this.scorer.score(parsed);
+    // Calcular score (texto IA + señales de realidad de la fuente) y hash
+    const quality_score = this.scorer.score(parsed, signals);
     const raw_hash = this.dedup.computeHash(parsed);
 
     // Dedup lookup (best-effort)
@@ -111,21 +115,30 @@ export class EnrichmentService {
         : JSON.stringify(rawPayload, null, 2);
 
     return [
-      'Eres un curador de turismo de Barranquilla. Toma este snippet scrapeado de',
-      `[${sourceKind}] y normalizalo en JSON. Si no puedes inferir un campo,`,
-      'dejalo null. NO inventes precios ni horarios.',
+      'Eres un curador de turismo del Caribe colombiano. Recibes un snippet',
+      `scrapeado de [${sourceKind}]. Tu tarea es SOLO NORMALIZAR el texto a JSON,`,
+      'NO buscar datos nuevos ni inventar imágenes, precios ni horarios.',
       '',
-      'El JSON debe tener exactamente estos campos:',
+      'Reglas:',
+      '  - title: nombre limpio y legible del lugar/evento.',
+      '  - description: 1-2 frases cálidas y útiles en español caribeño, basadas',
+      '    SOLO en el snippet. Si el snippet no da para una descripción real, null.',
+      '  - category_hint: clasifica el segmento en una palabra: "restaurante",',
+      '    "lugar" (atracción/sitio) o "evento". Usa el tipo del snippet si viene.',
+      '  - Si un lugar NO parece real, activo o útil para un turista, devuelve',
+      '    title igual pero description null (el pipeline lo filtrará por calidad).',
+      '  - NO inventes lat/lng/precio/horario: si no están en el snippet, null.',
+      '',
+      'El JSON debe tener EXACTAMENTE estos campos:',
       '  title (string, requerido)',
       '  description (string|null, max 500 chars)',
-      '  category_hint (string|null) — ej: festival, restaurante, museo, playa',
+      '  category_hint (string|null) — "restaurante" | "lugar" | "evento"',
       '  location_name (string|null)',
       '  lat (number|null)',
       '  lng (number|null)',
       '  starts_at (ISO 8601 string|null)',
       '  ends_at (ISO 8601 string|null)',
       '  price_cop (number|null) — en pesos colombianos',
-      '  image_url (string|null)',
       '',
       'Snippet:',
       snippet,

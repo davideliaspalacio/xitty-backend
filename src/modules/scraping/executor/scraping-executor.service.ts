@@ -6,6 +6,7 @@ import {
   ScrapingRunsRepo,
 } from '../storage/scraping-runs.repo';
 import { ScrapedItemsRepo } from '../storage/scraped-items.repo';
+import { PhotoStorageService } from '../storage/photo-storage.service';
 import { EnrichmentService } from '../enrichment/enrichment.service';
 import { ScraperSourceFactory } from '../sources/source.factory';
 import type { RawItem } from '../scraper-source.interface';
@@ -44,6 +45,7 @@ export class ScrapingExecutorService {
     private readonly itemsRepo: ScrapedItemsRepo,
     private readonly enrichment: EnrichmentService,
     private readonly factory: ScraperSourceFactory,
+    private readonly photos: PhotoStorageService,
   ) {}
 
   /**
@@ -80,6 +82,13 @@ export class ScrapingExecutorService {
 
     let itemsEnriched = 0;
     let itemsFailed = 0;
+    let itemsWithImage = 0;
+
+    // Observabilidad: qué se buscó y dónde (config de la source) + cuántos volvieron.
+    this.logger.log(
+      `run=${run.id} source="${source.name}" kind=${source.kind} ` +
+        `config=${JSON.stringify(source.config ?? {})} → fetch trajo ${rawItems.length} items`,
+    );
 
     for (const raw of rawItems) {
       try {
@@ -96,13 +105,31 @@ export class ScrapingExecutorService {
         // null = dedup hit a nivel raw (ya scrapeado antes) → no es failure.
         if (!rawRow) continue;
 
+        // La IA solo normaliza texto; le pasamos las señales DETERMINISTAS de la
+        // fuente (rating, nº reseñas, si hay foto) para el score de "realidad".
         const enriched = await this.enrichment.enrich(
           rawRow.raw_payload,
           source.kind,
+          {
+            rating: raw.rating ?? null,
+            reviewCount: raw.review_count ?? null,
+            hasImage: !!raw.image_url,
+          },
         );
 
         // dedup a nivel enriched: ya existe un item equivalente.
         if (enriched.is_duplicate) continue;
+
+        // Re-hospedamos la foto de la fuente en Storage (URL propia estable, sin
+        // exponer la key). Best-effort: si falla, el item queda sin imagen.
+        let imageUrl: string | null = null;
+        if (raw.image_url) {
+          imageUrl = await this.photos.rehost(
+            raw.image_url,
+            `${source.kind}/${raw.external_id}`,
+          );
+          if (imageUrl) itemsWithImage += 1;
+        }
 
         await this.itemsRepo.insertEnriched({
           rawId: rawRow.id,
@@ -115,7 +142,9 @@ export class ScrapingExecutorService {
           startsAt: enriched.starts_at ?? null,
           endsAt: enriched.ends_at ?? null,
           priceCop: enriched.price_cop ?? null,
-          imageUrl: enriched.image_url ?? null,
+          imageUrl,
+          rating: raw.rating ?? null,
+          reviewCount: raw.review_count ?? null,
           sourceUrl: raw.source_url ?? null,
           qualityScore: enriched.quality_score,
         });
@@ -127,6 +156,11 @@ export class ScrapingExecutorService {
         );
       }
     }
+
+    this.logger.log(
+      `run=${run.id} source="${source.name}" done — found=${rawItems.length} ` +
+        `enriched=${itemsEnriched} conFoto=${itemsWithImage} failed=${itemsFailed}`,
+    );
 
     await this.runsRepo.finish(run.id, {
       status: itemsFailed > 0 ? 'partial' : 'succeeded',

@@ -247,10 +247,39 @@ export class AdminScrapingService {
     const target = this.classify(item.category_hint);
     if (target === 'experience') {
       const expId = await this.insertExperience(item);
+      await this.attachCover('experience_photos', 'experience_id', expId, item);
       return this.itemsRepo.publish(id, { experienceId: expId });
     }
     const placeId = await this.insertPlace(item);
+    await this.attachCover('place_photos', 'place_id', placeId, item);
     return this.itemsRepo.publish(id, { placeId });
+  }
+
+  /**
+   * Adjunta la foto re-hospedada del item (image_url ya es una URL propia de
+   * Storage, puesta en el enrichment) como cover del place/experience recién
+   * creado. Best-effort: si falla, el publish NO se rompe — el lugar queda
+   * publicado sin foto en vez de quedar a medias.
+   */
+  private async attachCover(
+    table: 'place_photos' | 'experience_photos',
+    fkField: 'place_id' | 'experience_id',
+    ownerId: string,
+    item: ScrapedItemEnriched,
+  ): Promise<void> {
+    if (!item.image_url) return;
+    const { error } = await this.supabase.from(table).insert({
+      [fkField]: ownerId,
+      url: item.image_url,
+      alt_text: item.title,
+      is_cover: true,
+      display_order: 0,
+    });
+    if (error) {
+      this.logger.warn(
+        `attachCover ${table}(${ownerId}) falló (ignorado): ${error.message}`,
+      );
+    }
   }
 
   private classify(categoryHint: string | null): 'place' | 'experience' {

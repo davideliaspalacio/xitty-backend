@@ -51,7 +51,9 @@ export const llmEnrichedItemSchema = z.object({
   starts_at: NullableISODate,
   ends_at: NullableISODate,
   price_cop: NullableNumber,
-  image_url: NullableString(),
+  // NOTA: image_url, rating y review_count NO los produce la IA — son datos
+  // deterministas de la fuente (foto de Google, etc.) que el pipeline pasa de
+  // largo. La IA solo normaliza texto/geo; no inventa URLs de imagen.
 });
 
 export type LlmEnrichedItem = z.infer<typeof llmEnrichedItemSchema>;
@@ -84,7 +86,6 @@ export const llmResponseSchema = {
     starts_at: { type: 'string', nullable: true },
     ends_at: { type: 'string', nullable: true },
     price_cop: { type: 'number', nullable: true },
-    image_url: { type: 'string', nullable: true },
   },
   required: ['title'],
 };
