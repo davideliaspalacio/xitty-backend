@@ -78,10 +78,15 @@ describe('EnrichmentService', () => {
   it('happy path: parsea JSON valido y devuelve EnrichedItem con quality_score', async () => {
     provider.enqueue(validPayload);
 
-    const result = await service.enrich({ raw: 'snippet' }, 'instagram');
+    const result = await service.enrich({ raw: 'snippet' }, 'instagram', {
+      hasImage: true,
+      rating: 5,
+      reviewCount: 800,
+    });
 
     expect(result.title).toBe('Carnaval de Barranquilla');
     expect(result.source_kind).toBe('instagram');
+    // texto completo (0.5) + señales fuertes de la fuente → clamp a 1.0
     expect(result.quality_score).toBeCloseTo(1.0, 5);
     expect(result.raw_hash).toMatch(/^[a-f0-9]{64}$/);
     expect(provider.calls).toHaveLength(1);
@@ -93,8 +98,8 @@ describe('EnrichmentService', () => {
 
     const prompt = provider.calls[0];
     expect(prompt).toContain('eventbrite');
-    expect(prompt).toContain('curador de turismo de Barranquilla');
-    expect(prompt).toContain('NO inventes precios ni horarios');
+    expect(prompt).toContain('Caribe colombiano');
+    expect(prompt).toContain('NO inventes');
     expect(prompt).toContain('gran evento');
   });
 
@@ -202,7 +207,8 @@ describe('EnrichmentService', () => {
     provider.enqueue(JSON.stringify({ title: 'Solo titulo' }));
 
     const result = await service.enrich({}, 'src');
-    expect(result.quality_score).toBeCloseTo(0.2, 5);
+    // solo title, sin señales de la fuente → 0.15
+    expect(result.quality_score).toBeCloseTo(0.15, 5);
   });
 
   it('raw_hash es el output de dedup.computeHash(item)', async () => {

@@ -48,6 +48,16 @@ export interface RawItem {
   longitude?: number | null;
   /** URL original de la que se extrajo el item — util para auditoria. */
   source_url?: string | null;
+  /**
+   * Datos DETERMINISTAS que la fuente ya conoce (NO los infiere la IA):
+   *   - image_url:    URL de la foto en la fuente. Se re-hospeda en Storage
+   *                   antes de exponerla (puede llevar la API key / expirar).
+   *   - rating:       calificacion 0..5 de la fuente.
+   *   - review_count: cantidad de resenas — senal de "lugar real y activo".
+   */
+  image_url?: string | null;
+  rating?: number | null;
+  review_count?: number | null;
   /** Payload arbitrario que la source quiera persistir para debug / re-enrich. */
   raw_payload?: Record<string, unknown>;
 }

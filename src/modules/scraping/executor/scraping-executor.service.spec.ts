@@ -18,6 +18,7 @@ describe('ScrapingExecutorService', () => {
   let itemsRepo: jest.Mocked<ScrapedItemsRepo>;
   let enrichment: jest.Mocked<EnrichmentService>;
   let factory: jest.Mocked<ScraperSourceFactory>;
+  let photos: { rehost: jest.Mock };
 
   const ENABLED_SOURCE = {
     id: 's1',
@@ -67,6 +68,7 @@ describe('ScrapingExecutorService', () => {
     itemsRepo = { insertRaw: jest.fn(), insertEnriched: jest.fn() } as any;
     enrichment = { enrich: jest.fn() } as any;
     factory = { build: jest.fn() } as any;
+    photos = { rehost: jest.fn().mockResolvedValue(null) } as any;
 
     service = new ScrapingExecutorService(
       sourcesRepo,
@@ -74,6 +76,7 @@ describe('ScrapingExecutorService', () => {
       itemsRepo,
       enrichment,
       factory,
+      photos,
     );
   });
 
@@ -105,6 +108,48 @@ describe('ScrapingExecutorService', () => {
     expect(result.items_found).toBe(2);
     expect(result.items_enriched).toBe(2);
     expect(result.status).toBe('succeeded');
+  });
+
+  it('re-hospeda la foto de la fuente y persiste imageUrl + rating/reseñas + señales a la IA', async () => {
+    sourcesRepo.findById.mockResolvedValue(ENABLED_SOURCE);
+    const withPhoto = {
+      ...rawItem('a'),
+      image_url: 'https://src.example/photo.jpg',
+      rating: 4.6,
+      review_count: 320,
+    };
+    factory.build.mockReturnValue(makeFetcher([withPhoto]));
+    runsRepo.start.mockResolvedValue(RUN_ROW);
+    itemsRepo.insertRaw.mockResolvedValue({
+      id: 'raw-a',
+      raw_payload: {},
+    } as any);
+    enrichment.enrich.mockResolvedValue({
+      title: 'X',
+      is_duplicate: false,
+      quality_score: 0.9,
+    } as any);
+    photos.rehost.mockResolvedValue('https://cdn.example/scraped-photos/a.jpg');
+    itemsRepo.insertEnriched.mockResolvedValue({} as any);
+
+    await service.runSource('s1', 'admin');
+
+    expect(photos.rehost).toHaveBeenCalledWith(
+      'https://src.example/photo.jpg',
+      'eventbrite/a',
+    );
+    expect(enrichment.enrich).toHaveBeenCalledWith(
+      expect.anything(),
+      'eventbrite',
+      expect.objectContaining({ hasImage: true, rating: 4.6, reviewCount: 320 }),
+    );
+    expect(itemsRepo.insertEnriched).toHaveBeenCalledWith(
+      expect.objectContaining({
+        imageUrl: 'https://cdn.example/scraped-photos/a.jpg',
+        rating: 4.6,
+        reviewCount: 320,
+      }),
+    );
   });
 
   it('tira NotFound y NO arranca run si la source no existe', async () => {
