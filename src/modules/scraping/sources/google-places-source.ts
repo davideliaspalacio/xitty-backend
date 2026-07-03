@@ -87,6 +87,12 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
     'places.rating',
     'places.userRatingCount',
     'places.priceLevel',
+    // Perfil de contacto/negocio (lo que pide un viajero real):
+    'places.nationalPhoneNumber',
+    'places.internationalPhoneNumber',
+    'places.websiteUri',
+    'places.regularOpeningHours',
+    'places.businessStatus',
   ].join(',');
 
   /**
@@ -201,8 +207,16 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
       const name = p.displayName?.text;
       if (!id || !name) continue;
 
+      // Saltamos negocios cerrados permanentemente: no le sirven al viajero.
+      if (p.businessStatus === 'CLOSED_PERMANENTLY') continue;
+
       const photoName: string | null =
         Array.isArray(p.photos) && p.photos[0]?.name ? p.photos[0].name : null;
+      const hours: string[] | null = Array.isArray(
+        p.regularOpeningHours?.weekdayDescriptions,
+      )
+        ? p.regularOpeningHours.weekdayDescriptions
+        : null;
 
       items.push({
         external_id: String(id),
@@ -224,6 +238,11 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
         rating: typeof p.rating === 'number' ? p.rating : null,
         review_count:
           typeof p.userRatingCount === 'number' ? p.userRatingCount : null,
+        phone: p.nationalPhoneNumber ?? p.internationalPhoneNumber ?? null,
+        website: p.websiteUri ?? null,
+        opening_hours: hours,
+        price_level: mapPriceLevel(p.priceLevel),
+        business_status: p.businessStatus ?? null,
         raw_payload: p,
       });
     }
@@ -246,11 +265,22 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
       latitude: m.latitude,
       longitude: m.longitude,
       source_url: null,
-      // Imagen pública de muestra (estable por slug) para poder ejercitar el
-      // pipeline de re-hospedaje sin API key. Rating/reseñas plausibles.
-      image_url: `https://picsum.photos/seed/${m.slug}/800/600`,
-      rating: Math.round((4.2 + (i % 5) * 0.15) * 10) / 10,
-      review_count: 80 + (i % 7) * 45,
+      // MODO DEMO (sin API key): NADA de fotos random — confunden y parecen
+      // basura. Dejamos image_url = null → el frontend pinta un placeholder de
+      // marca. El resto del perfil (teléfono, web, horarios, rating) SÍ va
+      // completo, para ver el pipeline real funcionando de punta a punta.
+      image_url: null,
+      rating: Math.round((4.1 + (i % 5) * 0.15) * 10) / 10,
+      review_count: 60 + (i % 7) * 55,
+      phone: `+57 605 ${300 + i} ${1000 + i * 7}`,
+      website: `https://ejemplo-${m.slug}.co`,
+      opening_hours: [
+        'Lunes a Jueves: 12:00–22:00',
+        'Viernes y Sábado: 12:00–23:30',
+        'Domingo: 12:00–21:00',
+      ],
+      price_level: 2 + (i % 2),
+      business_status: 'OPERATIONAL',
       raw_payload: { mock: true, ...m },
     }));
   }
@@ -263,6 +293,22 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
 function clamp(n: number, min: number, max: number): number {
   if (!Number.isFinite(n)) return min;
   return Math.max(min, Math.min(max, n));
+}
+
+/** Mapea el enum priceLevel de Google Places (New) a price_range 1..4. */
+function mapPriceLevel(pl: unknown): number | null {
+  switch (pl) {
+    case 'PRICE_LEVEL_INEXPENSIVE':
+      return 1;
+    case 'PRICE_LEVEL_MODERATE':
+      return 2;
+    case 'PRICE_LEVEL_EXPENSIVE':
+      return 3;
+    case 'PRICE_LEVEL_VERY_EXPENSIVE':
+      return 4;
+    default:
+      return null; // FREE / UNSPECIFIED / ausente
+  }
 }
 
 async function safeText(resp: any): Promise<string> {

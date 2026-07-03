@@ -295,6 +295,17 @@ export class AdminScrapingService {
       address: item.location_name ?? null,
       latitude: item.lat ?? null,
       longitude: item.lng ?? null,
+      // Perfil completo de la fuente (Google): contacto, horarios, precio.
+      phone: item.phone ?? null,
+      cta_phone: item.phone ?? null,
+      website: item.website ?? null,
+      price_range: item.price_level ?? null,
+      schedule: item.opening_hours
+        ? { weekday_descriptions: item.opening_hours }
+        : null,
+      // Semilla de reputación desde la fuente (luego se recalcula con reseñas propias).
+      average_rating: item.rating ?? 0,
+      total_reviews: item.review_count ?? 0,
       tags: item.category_hint ? [item.category_hint] : [],
       is_active: true,
     };
