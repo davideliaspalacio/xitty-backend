@@ -85,6 +85,77 @@ describe('GooglePlacesSource', () => {
     expect(items[1].external_id).toBe('ChIJdef456');
   });
 
+  it('fetch: extrae perfil completo (foto, teléfono, web, horarios, precio, reseñas)', async () => {
+    const apiPayload = {
+      places: [
+        {
+          id: 'ChIJfull',
+          displayName: { text: 'La Cevichería' },
+          formattedAddress: 'Calle 39 #7-14, Cartagena',
+          location: { latitude: 10.427, longitude: -75.548 },
+          primaryType: 'restaurant',
+          businessStatus: 'OPERATIONAL',
+          photos: [{ name: 'places/ChIJfull/photos/AbC' }],
+          rating: 4.6,
+          userRatingCount: 3200,
+          priceLevel: 'PRICE_LEVEL_EXPENSIVE',
+          nationalPhoneNumber: '+57 605 664 5255',
+          websiteUri: 'https://lacevicheria.co',
+          regularOpeningHours: {
+            weekdayDescriptions: ['Lunes: 12:00–23:00', 'Martes: 12:00–23:00'],
+          },
+        },
+      ],
+    };
+    const fakeFetch = jest.fn().mockResolvedValue(makeResponse(200, apiPayload));
+    const source = new GooglePlacesSource({ fetchImpl: fakeFetch as any });
+    const items = await source.fetch(baseConfig);
+
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({
+      name: 'La Cevichería',
+      rating: 4.6,
+      review_count: 3200,
+      phone: '+57 605 664 5255',
+      website: 'https://lacevicheria.co',
+      price_level: 3,
+      business_status: 'OPERATIONAL',
+    });
+    expect(items[0].opening_hours).toEqual([
+      'Lunes: 12:00–23:00',
+      'Martes: 12:00–23:00',
+    ]);
+    // La foto se convierte en la media URL (sin key), para re-hospedar luego.
+    expect(items[0].image_url).toContain('places/ChIJfull/photos/AbC/media');
+  });
+
+  it('fetch: descarta negocios CLOSED_PERMANENTLY', async () => {
+    const apiPayload = {
+      places: [
+        {
+          id: 'ChIJopen',
+          displayName: { text: 'Abierto' },
+          location: { latitude: 10.4, longitude: -75.5 },
+          primaryType: 'restaurant',
+          businessStatus: 'OPERATIONAL',
+        },
+        {
+          id: 'ChIJclosed',
+          displayName: { text: 'Cerrado para siempre' },
+          location: { latitude: 10.4, longitude: -75.5 },
+          primaryType: 'restaurant',
+          businessStatus: 'CLOSED_PERMANENTLY',
+        },
+      ],
+    };
+    const fakeFetch = jest.fn().mockResolvedValue(makeResponse(200, apiPayload));
+    const source = new GooglePlacesSource({ fetchImpl: fakeFetch as any });
+    const items = await source.fetch(baseConfig);
+
+    expect(items).toHaveLength(1);
+    expect(items[0].external_id).toBe('ChIJopen');
+  });
+
   it('fetch: usa el header X-Goog-Api-Key y POST a places:searchNearby', async () => {
     const fakeFetch = jest.fn().mockResolvedValue(
       makeResponse(200, { places: [] }),

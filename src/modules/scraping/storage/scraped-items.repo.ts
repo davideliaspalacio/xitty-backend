@@ -41,6 +41,10 @@ export interface InsertEnrichedInput {
   imageUrl?: string | null;
   rating?: number | null;
   reviewCount?: number | null;
+  phone?: string | null;
+  website?: string | null;
+  openingHours?: string[] | null;
+  priceLevel?: number | null;
   sourceUrl?: string | null;
   qualityScore?: number | null;
 }
@@ -101,6 +105,10 @@ export interface ScrapedItemEnriched {
   image_url: string | null;
   rating: number | null;
   review_count: number | null;
+  phone: string | null;
+  website: string | null;
+  opening_hours: string[] | null;
+  price_level: number | null;
   source_url: string | null;
   quality_score: number | null;
   status: EnrichedStatus;
@@ -118,7 +126,8 @@ const RAW_COLS =
 
 const ENRICHED_COLS =
   'id, raw_id, title, description, category_hint, location_name, lat, lng, ' +
-  'starts_at, ends_at, price_cop, image_url, rating, review_count, source_url, ' +
+  'starts_at, ends_at, price_cop, image_url, rating, review_count, ' +
+  'phone, website, opening_hours, price_level, source_url, ' +
   'quality_score, status, ' +
   'reviewed_by, reviewed_at, rejection_reason, published_place_id, published_experience_id, ' +
   'created_at, updated_at';
@@ -217,6 +226,10 @@ export class ScrapedItemsRepo {
       image_url: input.imageUrl ?? null,
       rating: input.rating ?? null,
       review_count: input.reviewCount ?? null,
+      phone: input.phone ?? null,
+      website: input.website ?? null,
+      opening_hours: input.openingHours ?? null,
+      price_level: input.priceLevel ?? null,
       source_url: input.sourceUrl ?? null,
       quality_score: input.qualityScore ?? null,
       status: 'pending' as EnrichedStatus,
