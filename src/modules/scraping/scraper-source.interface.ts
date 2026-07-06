@@ -58,6 +58,19 @@ export interface RawItem {
   image_url?: string | null;
   rating?: number | null;
   review_count?: number | null;
+  /**
+   * Perfil de contacto/negocio (Google Places): también deterministas.
+   *   - phone:         teléfono nacional.
+   *   - website:       sitio web oficial.
+   *   - opening_hours: horarios legibles (una línea por día).
+   *   - price_level:   1..4 (barato → caro).
+   *   - business_status: 'OPERATIONAL' | 'CLOSED_TEMPORARILY' | 'CLOSED_PERMANENTLY'.
+   */
+  phone?: string | null;
+  website?: string | null;
+  opening_hours?: string[] | null;
+  price_level?: number | null;
+  business_status?: string | null;
   /** Payload arbitrario que la source quiera persistir para debug / re-enrich. */
   raw_payload?: Record<string, unknown>;
 }

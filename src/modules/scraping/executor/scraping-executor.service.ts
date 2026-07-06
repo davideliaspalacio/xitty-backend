@@ -136,7 +136,9 @@ export class ScrapingExecutorService {
           title: enriched.title,
           description: enriched.description ?? null,
           categoryHint: enriched.category_hint ?? null,
-          locationName: enriched.location_name ?? null,
+          // La dirección REAL viene de la fuente (Google formattedAddress), no
+          // del texto que reescribe la IA — si la fuente la trae, mandamos esa.
+          locationName: raw.address ?? enriched.location_name ?? null,
           lat: enriched.lat ?? null,
           lng: enriched.lng ?? null,
           startsAt: enriched.starts_at ?? null,
@@ -145,6 +147,11 @@ export class ScrapingExecutorService {
           imageUrl,
           rating: raw.rating ?? null,
           reviewCount: raw.review_count ?? null,
+          // Perfil de contacto/negocio, determinista de la fuente:
+          phone: raw.phone ?? null,
+          website: raw.website ?? null,
+          openingHours: raw.opening_hours ?? null,
+          priceLevel: raw.price_level ?? null,
           sourceUrl: raw.source_url ?? null,
           qualityScore: enriched.quality_score,
         });
