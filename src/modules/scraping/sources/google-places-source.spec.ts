@@ -129,6 +129,50 @@ describe('GooglePlacesSource', () => {
     expect(items[0].image_url).toContain('places/ChIJfull/photos/AbC/media');
   });
 
+  it('fetch: parsea las reseñas (autor, estrellas, texto, fecha relativa)', async () => {
+    const apiPayload = {
+      places: [
+        {
+          id: 'ChIJrev',
+          displayName: { text: 'Café del Mar' },
+          location: { latitude: 10.42, longitude: -75.55 },
+          primaryType: 'restaurant',
+          businessStatus: 'OPERATIONAL',
+          reviews: [
+            {
+              rating: 5,
+              text: { text: 'Atardecer espectacular y buenos cócteles.' },
+              relativePublishTimeDescription: 'hace 3 semanas',
+              publishTime: '2026-06-10T00:00:00Z',
+              authorAttribution: { displayName: 'Laura M.' },
+            },
+            {
+              rating: 4,
+              text: { text: 'Vista increíble, precios altos.' },
+              relativePublishTimeDescription: 'hace 2 meses',
+              authorAttribution: { displayName: 'Diego R.' },
+            },
+          ],
+        },
+      ],
+    };
+    const fakeFetch = jest.fn().mockResolvedValue(makeResponse(200, apiPayload));
+    const source = new GooglePlacesSource({ fetchImpl: fakeFetch as any });
+    const items = await source.fetch(baseConfig);
+
+    expect(items[0].reviews).toHaveLength(2);
+    expect(items[0].reviews![0]).toEqual({
+      author: 'Laura M.',
+      rating: 5,
+      text: 'Atardecer espectacular y buenos cócteles.',
+      relative_time: 'hace 3 semanas',
+      publish_time: '2026-06-10T00:00:00Z',
+    });
+    // También incluye el field mask de reviews.
+    const [, init] = fakeFetch.mock.calls[0];
+    expect(init.headers['X-Goog-FieldMask']).toContain('places.reviews');
+  });
+
   it('fetch: descarta negocios CLOSED_PERMANENTLY', async () => {
     const apiPayload = {
       places: [

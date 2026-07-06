@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import type { RawItem } from '../scraper-source.interface';
+import type { RawItem, SourceReview } from '../scraper-source.interface';
 import type { Source } from './source.interface';
 
 /**
@@ -93,6 +93,9 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
     'places.websiteUri',
     'places.regularOpeningHours',
     'places.businessStatus',
+    // Opiniones reales de la gente (campo premium de Google — más caro, pero es
+    // lo que le da alma al perfil). Hasta 5 reseñas por lugar.
+    'places.reviews',
   ].join(',');
 
   /**
@@ -243,6 +246,7 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
         opening_hours: hours,
         price_level: mapPriceLevel(p.priceLevel),
         business_status: p.businessStatus ?? null,
+        reviews: parseReviews(p.reviews),
         raw_payload: p,
       });
     }
@@ -281,6 +285,23 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
       ],
       price_level: 2 + (i % 2),
       business_status: 'OPERATIONAL',
+      // Reseñas de muestra (demo) para ver el bloque de opiniones funcionando.
+      reviews: [
+        {
+          author: 'María C.',
+          rating: 5,
+          text: 'Excelente atención y sabor. Volvería mil veces, un imperdible.',
+          relative_time: 'hace 2 semanas',
+          publish_time: null,
+        },
+        {
+          author: 'Andrés P.',
+          rating: 4,
+          text: 'Muy buen ambiente y platos generosos. El servicio, un poco lento.',
+          relative_time: 'hace 1 mes',
+          publish_time: null,
+        },
+      ],
       raw_payload: { mock: true, ...m },
     }));
   }
@@ -293,6 +314,26 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
 function clamp(n: number, min: number, max: number): number {
   if (!Number.isFinite(n)) return min;
   return Math.max(min, Math.min(max, n));
+}
+
+/** Convierte las reseñas de Google (Places New) a nuestro SourceReview[]. */
+function parseReviews(reviews: unknown): SourceReview[] | null {
+  if (!Array.isArray(reviews) || reviews.length === 0) return null;
+  const out: SourceReview[] = [];
+  for (const r of reviews.slice(0, 5)) {
+    if (!r || typeof r !== 'object') continue;
+    const text = r.text?.text ?? r.originalText?.text ?? null;
+    const author = r.authorAttribution?.displayName ?? null;
+    if (!text && !author) continue;
+    out.push({
+      author,
+      rating: typeof r.rating === 'number' ? r.rating : null,
+      text,
+      relative_time: r.relativePublishTimeDescription ?? null,
+      publish_time: r.publishTime ?? null,
+    });
+  }
+  return out.length > 0 ? out : null;
 }
 
 /** Mapea el enum priceLevel de Google Places (New) a price_range 1..4. */

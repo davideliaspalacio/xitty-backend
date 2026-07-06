@@ -37,6 +37,16 @@ export const QUALITY_SERVICE = 'QUALITY_SERVICE';
  * funcione (nombre, lat/lng aproximados). El resto es opcional y se rellena
  * en enrichment.
  */
+/** Reseña/opinión importada de la fuente (Google). Display-only, con atribución. */
+export interface SourceReview {
+  author: string | null;
+  rating: number | null;
+  text: string | null;
+  /** "hace 2 meses" — descripción relativa de la fuente. */
+  relative_time: string | null;
+  publish_time: string | null;
+}
+
 export interface RawItem {
   /** Identificador estable dentro del source (slug, id externo, hash de url). */
   external_id: string;
@@ -71,6 +81,8 @@ export interface RawItem {
   opening_hours?: string[] | null;
   price_level?: number | null;
   business_status?: string | null;
+  /** Opiniones reales de la fuente (Google), para mostrar en el detalle. */
+  reviews?: SourceReview[] | null;
   /** Payload arbitrario que la source quiera persistir para debug / re-enrich. */
   raw_payload?: Record<string, unknown>;
 }

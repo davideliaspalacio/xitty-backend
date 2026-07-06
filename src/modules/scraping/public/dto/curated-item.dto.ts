@@ -28,9 +28,23 @@ export class CuratedItemCardDto {
  * Detalle de un item curado. Incluye `source_url` y `scraped_at` (de la
  * tabla `scraped_items_raw`) para auditoria y atribucion.
  */
+export class SourceReviewDto {
+  @ApiProperty({ nullable: true }) author: string | null;
+  @ApiProperty({ nullable: true }) rating: number | null;
+  @ApiProperty({ nullable: true }) text: string | null;
+  @ApiProperty({ nullable: true }) relative_time: string | null;
+  @ApiProperty({ nullable: true }) publish_time: string | null;
+}
+
 export class CuratedItemDetailDto extends CuratedItemCardDto {
   @ApiProperty({ nullable: true, description: 'URL original de la fuente' })
   source_url: string | null;
   @ApiProperty({ description: 'Timestamp ISO en que se scrapeo originalmente' })
   scraped_at: string;
+  @ApiProperty({
+    type: [SourceReviewDto],
+    nullable: true,
+    description: 'Reseñas importadas de la fuente (Google): display-only.',
+  })
+  source_reviews: SourceReviewDto[] | null;
 }

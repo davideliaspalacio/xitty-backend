@@ -9,6 +9,8 @@ import {
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 
+import type { SourceReview } from '../scraper-source.interface';
+
 const RAW_TABLE = 'scraped_items_raw';
 const ENRICHED_TABLE = 'scraped_items_enriched';
 
@@ -45,6 +47,7 @@ export interface InsertEnrichedInput {
   website?: string | null;
   openingHours?: string[] | null;
   priceLevel?: number | null;
+  sourceReviews?: SourceReview[] | null;
   sourceUrl?: string | null;
   qualityScore?: number | null;
 }
@@ -109,6 +112,7 @@ export interface ScrapedItemEnriched {
   website: string | null;
   opening_hours: string[] | null;
   price_level: number | null;
+  source_reviews: SourceReview[] | null;
   source_url: string | null;
   quality_score: number | null;
   status: EnrichedStatus;
@@ -127,7 +131,7 @@ const RAW_COLS =
 const ENRICHED_COLS =
   'id, raw_id, title, description, category_hint, location_name, lat, lng, ' +
   'starts_at, ends_at, price_cop, image_url, rating, review_count, ' +
-  'phone, website, opening_hours, price_level, source_url, ' +
+  'phone, website, opening_hours, price_level, source_reviews, source_url, ' +
   'quality_score, status, ' +
   'reviewed_by, reviewed_at, rejection_reason, published_place_id, published_experience_id, ' +
   'created_at, updated_at';
@@ -230,6 +234,7 @@ export class ScrapedItemsRepo {
       website: input.website ?? null,
       opening_hours: input.openingHours ?? null,
       price_level: input.priceLevel ?? null,
+      source_reviews: input.sourceReviews ?? null,
       source_url: input.sourceUrl ?? null,
       quality_score: input.qualityScore ?? null,
       status: 'pending' as EnrichedStatus,
