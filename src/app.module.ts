@@ -19,6 +19,7 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
 import { SuggestionsModule } from './modules/suggestions/suggestions.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { ScrapingModule } from './modules/scraping/scraping.module';
+import { AudioToursModule } from './modules/audio-tours/audio-tours.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ScrapingModule } from './modules/scraping/scraping.module';
     SuggestionsModule,
     ChatModule,
     ScrapingModule,
+    AudioToursModule,
   ],
   controllers: [],
   providers: [],
