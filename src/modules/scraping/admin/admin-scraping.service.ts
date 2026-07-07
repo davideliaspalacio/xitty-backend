@@ -306,6 +306,8 @@ export class AdminScrapingService {
       // Semilla de reputación desde la fuente (luego se recalcula con reseñas propias).
       average_rating: item.rating ?? 0,
       total_reviews: item.review_count ?? 0,
+      // Opiniones reales de la fuente (Google), display-only con atribución.
+      source_reviews: item.source_reviews ?? null,
       tags: item.category_hint ? [item.category_hint] : [],
       is_active: true,
     };

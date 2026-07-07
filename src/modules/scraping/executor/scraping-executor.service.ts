@@ -152,6 +152,7 @@ export class ScrapingExecutorService {
           website: raw.website ?? null,
           openingHours: raw.opening_hours ?? null,
           priceLevel: raw.price_level ?? null,
+          sourceReviews: raw.reviews ?? null,
           sourceUrl: raw.source_url ?? null,
           qualityScore: enriched.quality_score,
         });

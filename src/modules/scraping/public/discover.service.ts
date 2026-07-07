@@ -25,7 +25,7 @@ const CARD_SELECT =
 const DETAIL_SELECT =
   'id, title, description, category_hint, location_name, lat, lng, ' +
   'price_cop, image_url, starts_at, ends_at, quality_score, source_url, ' +
-  'created_at, scraped_items_raw(scraped_at)';
+  'source_reviews, created_at, scraped_items_raw(scraped_at)';
 
 export interface FindCuratedOptions {
   limit?: number;
@@ -136,6 +136,7 @@ export class DiscoverService {
       ...this.toCard(row),
       source_url: row.source_url ?? null,
       scraped_at: scrapedAt,
+      source_reviews: row.source_reviews ?? null,
     };
   }
 }
