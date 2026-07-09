@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 56.
-- Errores: 188.
+- Archivos con problemas: 55.
+- Errores: 177.
 - Warnings: 46.
-- Errores auto-fixables: 101.
+- Errores auto-fixables: 98.
 
 Avance aplicado:
 
@@ -141,17 +141,20 @@ Avance aplicado:
 - PR tecnico #69 `chore/backend-lint-auth-guard`:
   `auth.guard.ts` queda con payload JWT tipado, request autenticado tipado,
   validacion de `sub`, asignacion de usuario sin `any` y lint dirigido limpio.
-- Reduccion neta acumulada: -62 archivos con problemas, -2522 errores y -201 warnings.
+- PR tecnico #70 `chore/backend-lint-chat-rate-limit-spec`:
+  `chat/rate-limit.service.spec.ts` queda con mock Supabase RPC tipado,
+  expectativas formateadas por Prettier y lint dirigido limpio.
+- Reduccion neta acumulada: -63 archivos con problemas, -2533 errores y -201 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 101 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 50 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `prettier/prettier` | 98 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-member-access` | 46 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/no-unsafe-argument` | 0 | 45 | Argumentos `any` en tests/servicios. |
-| `@typescript-eslint/no-unsafe-assignment` | 16 | 0 | Asignaciones desde `any`. |
-| `@typescript-eslint/no-unsafe-call` | 8 | 0 | Llamadas sobre valores `any`. |
+| `@typescript-eslint/no-unsafe-assignment` | 15 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-call` | 5 | 0 | Llamadas sobre valores `any`. |
 | `@typescript-eslint/require-await` | 5 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unsafe-return` | 4 | 0 | Retornos `any` sin tipar. |
 | `@typescript-eslint/no-unused-vars` | 2 | 0 | Variables/imports historicos sin usar. |
@@ -164,9 +167,9 @@ Avance aplicado:
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
 | `src/common/i18n/__tests__/localize.spec.ts` | 0 | 11 |
-| `src/modules/chat/rate-limit.service.spec.ts` | 11 | 0 |
 | `src/modules/scraping/admin/admin-scraping.controller.ts` | 8 | 3 |
 | `src/modules/notification-settings/notification-settings.controller.ts` | 6 | 4 |
+| `src/main.ts` | 7 | 2 |
 
 ## Impacto en Features v2
 
