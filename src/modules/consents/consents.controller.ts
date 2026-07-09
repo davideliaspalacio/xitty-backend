@@ -24,6 +24,12 @@ import { GrantConsentDto, ConsentType } from './dto/grant-consent.dto';
 import { ConsentResponseDto } from './dto/consent-response.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
+interface AuthenticatedConsentRequest {
+  user: {
+    id: string;
+  };
+}
+
 @ApiTags('consents')
 @ApiBearerAuth()
 @Controller('consents')
@@ -33,8 +39,7 @@ export class ConsentsController {
 
   @Get('me')
   @ApiOperation({
-    summary:
-      'Lista los consentimientos del usuario actual (Ley 1581 Colombia)',
+    summary: 'Lista los consentimientos del usuario actual (Ley 1581 Colombia)',
   })
   @ApiResponse({
     status: 200,
@@ -42,7 +47,9 @@ export class ConsentsController {
     type: [ConsentResponseDto],
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getMe(@Request() req: any): Promise<ConsentResponseDto[]> {
+  async getMe(
+    @Request() req: AuthenticatedConsentRequest,
+  ): Promise<ConsentResponseDto[]> {
     return this.consentsService.getByUser(req.user.id);
   }
 
@@ -60,7 +67,7 @@ export class ConsentsController {
   @ApiResponse({ status: 400, description: 'consent_type inválido' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async grant(
-    @Request() req: any,
+    @Request() req: AuthenticatedConsentRequest,
     @Body() dto: GrantConsentDto,
   ): Promise<ConsentResponseDto> {
     return this.consentsService.grant(req.user.id, dto);
@@ -85,7 +92,7 @@ export class ConsentsController {
   @ApiResponse({ status: 400, description: 'consent_type inválido' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async revoke(
-    @Request() req: any,
+    @Request() req: AuthenticatedConsentRequest,
     @Param('type') type: ConsentType,
   ): Promise<ConsentResponseDto> {
     return this.consentsService.revoke(req.user.id, type);
