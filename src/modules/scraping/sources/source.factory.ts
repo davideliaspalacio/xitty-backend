@@ -6,8 +6,14 @@ import {
 
 import { ScraperSource } from '../scraper-source.interface';
 import type { ScrapingSource } from '../storage/scraping-sources.repo';
-import { EventbriteSource } from './eventbrite-source';
-import { TavilySearchSource } from './tavily-search-source';
+import {
+  EventbriteSource,
+  type EventbriteSourceConfig,
+} from './eventbrite-source';
+import {
+  TavilySearchSource,
+  type TavilySearchSourceConfig,
+} from './tavily-search-source';
 import {
   GooglePlacesSource,
   GooglePlacesConfig,
@@ -21,6 +27,58 @@ const GOOGLE_PLACES_TYPES: GooglePlacesType[] = [
   'tourist_attraction',
   'event_venue',
 ];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function stringArray(value: unknown): string[] | undefined {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string')
+    ? value
+    : undefined;
+}
+
+function isGooglePlacesType(value: unknown): value is GooglePlacesType {
+  return (
+    typeof value === 'string' &&
+    (GOOGLE_PLACES_TYPES as readonly string[]).includes(value)
+  );
+}
+
+function eventbriteConfigFrom(
+  config: Record<string, unknown>,
+): EventbriteSourceConfig {
+  const result: EventbriteSourceConfig = {};
+  if (typeof config.location_address === 'string') {
+    result.location_address = config.location_address;
+  }
+  if (typeof config.location_within_km === 'number') {
+    result.location_within_km = config.location_within_km;
+  }
+  const categories = stringArray(config.categories);
+  if (categories) result.categories = categories;
+  if (typeof config.max_results === 'number') {
+    result.max_results = config.max_results;
+  }
+  if (typeof config.enabled === 'boolean') result.enabled = config.enabled;
+  return result;
+}
+
+function tavilyConfigFrom(
+  config: Record<string, unknown>,
+  query: string,
+  sourceName: string,
+): TavilySearchSourceConfig {
+  const result: TavilySearchSourceConfig = { query, name: sourceName };
+  if (typeof config.id === 'string') result.id = config.id;
+  if (typeof config.enabled === 'boolean') result.enabled = config.enabled;
+  if (typeof config.max_results === 'number') {
+    result.max_results = config.max_results;
+  }
+  const includeDomains = stringArray(config.include_domains);
+  if (includeDomains) result.include_domains = includeDomains;
+  return result;
+}
 
 /**
  * Construye la implementacion concreta de `ScraperSource` que corresponde a una
@@ -40,21 +98,26 @@ const GOOGLE_PLACES_TYPES: GooglePlacesType[] = [
  */
 @Injectable()
 export class ScraperSourceFactory {
-  build(source: Pick<ScrapingSource, 'kind' | 'config' | 'name'>): ScraperSource {
-    const config = source.config ?? {};
+  build(
+    source: Pick<ScrapingSource, 'kind' | 'config' | 'name'>,
+  ): ScraperSource {
+    const config = isRecord(source.config) ? source.config : {};
 
     switch (source.kind) {
       case 'eventbrite':
-        return new EventbriteSource(config);
+        return new EventbriteSource(eventbriteConfigFrom(config));
 
       case 'tavily': {
-        const query = typeof config.query === 'string' ? config.query.trim() : '';
+        const query =
+          typeof config.query === 'string' ? config.query.trim() : '';
         if (!query) {
           throw new BadRequestException(
             `La source "${source.name}" (tavily) requiere "query" en su config`,
           );
         }
-        return new TavilySearchSource({ ...config, query, name: source.name });
+        return new TavilySearchSource(
+          tavilyConfigFrom(config, query, source.name),
+        );
       }
 
       case 'google_places': {
@@ -62,7 +125,7 @@ export class ScraperSourceFactory {
         // la config como argumento), no `ScraperSource`. Lo adaptamos a un
         // ScraperSource cuyo fetch() ya tiene la config bindeada.
         const gp = new GooglePlacesSource();
-        const type: GooglePlacesType = GOOGLE_PLACES_TYPES.includes(config.type)
+        const type: GooglePlacesType = isGooglePlacesType(config.type)
           ? config.type
           : 'tourist_attraction';
         const gpConfig: GooglePlacesConfig = {
@@ -89,10 +152,10 @@ export class ScraperSourceFactory {
             `(disponibles: eventbrite, tavily, google_places)`,
         );
 
-      default:
-        throw new BadRequestException(
-          `Kind de source desconocido: "${source.kind}"`,
-        );
+      default: {
+        const kind = String(source.kind);
+        throw new BadRequestException(`Kind de source desconocido: "${kind}"`);
+      }
     }
   }
 }

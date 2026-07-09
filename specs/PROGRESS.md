@@ -108,6 +108,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #85 abierto: `chore/backend-lint-create-featured-dto`; create featured dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #86 abierto: `chore/backend-lint-scraping-runs-repo`; scraping runs repo queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #87 abierto: `chore/backend-lint-preferences-service`; preferences service queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico preparado: `chore/backend-lint-source-factory`; source factory queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -281,7 +282,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend preferences service lint: `npx eslint src/modules/preferences/preferences.service.ts` -> OK.
 - Backend preferences service tests: no existe spec de `PreferencesService`/`PreferencesController` en `src/**/*.spec.ts`; verificado con build.
 - Backend build tras preferences service lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 38 archivos / 84 errores / 5 warnings.
+- Backend source factory lint: `npx eslint src/modules/scraping/sources/source.factory.ts` -> OK.
+- Backend source factory tests: `npm test -- --runInBand src/modules/scraping/sources/source.factory.spec.ts` -> 1 suite / 8 tests OK.
+- Backend build tras source factory lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 37 archivos / 80 errores / 4 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
