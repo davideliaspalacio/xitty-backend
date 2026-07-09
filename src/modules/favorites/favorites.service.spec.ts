@@ -1,25 +1,86 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { FavoritesService } from './favorites.service';
 
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  message?: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+  count?: number | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  insert: ChainMethod;
+  delete: ChainMethod;
+  eq: ChainMethod;
+  in: ChainMethod;
+  order: ChainMethod;
+  range: ChainMethod;
+  single: ChainMethod;
+  maybeSingle: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  _on: (
+    data: unknown,
+    error?: MockDbError | null,
+    count?: number | null,
+  ) => MockChain;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
-    'from', 'select', 'insert', 'delete',
-    'eq', 'in', 'order', 'range', 'single', 'maybeSingle',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+    'from',
+    'select',
+    'insert',
+    'delete',
+    'eq',
+    'in',
+    'order',
+    'range',
+    'single',
+    'maybeSingle',
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn() };
-  mock._on = (data: any, error?: any, count?: number) => {
-    const c = createChain({ data, error: error || null, count: count ?? null });
-    mock.from.mockReturnValueOnce(c);
-    return c;
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    _on: (data: unknown, error?: MockDbError | null, count?: number | null) => {
+      const c = createChain({
+        data,
+        error: error ?? null,
+        count: count ?? null,
+      });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
   };
   mock.from.mockImplementation(() =>
     createChain({ data: null, error: null, count: null }),
@@ -29,14 +90,17 @@ function createMockSupabase() {
 
 describe('FavoritesService', () => {
   let service: FavoritesService;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FavoritesService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
       ],
     }).compile();
     service = module.get<FavoritesService>(FavoritesService);
@@ -44,18 +108,18 @@ describe('FavoritesService', () => {
 
   describe('toggle', () => {
     it('agrega a favoritos si no existia', async () => {
-      supabase._on({ id: 'place-1' });  // place exists
-      supabase._on(null);               // not favorited
-      supabase._on(null);               // insert ok
+      supabase._on({ id: 'place-1' }); // place exists
+      supabase._on(null); // not favorited
+      supabase._on(null); // insert ok
 
       const result = await service.toggle('place-1', 'u1');
       expect(result).toEqual({ place_id: 'place-1', is_favorite: true });
     });
 
     it('quita de favoritos si ya existia', async () => {
-      supabase._on({ id: 'place-1' });         // place exists
-      supabase._on({ user_id: 'u1' });          // already favorited
-      supabase._on(null);                        // delete ok
+      supabase._on({ id: 'place-1' }); // place exists
+      supabase._on({ user_id: 'u1' }); // already favorited
+      supabase._on(null); // delete ok
 
       const result = await service.toggle('place-1', 'u1');
       expect(result).toEqual({ place_id: 'place-1', is_favorite: false });
@@ -63,23 +127,37 @@ describe('FavoritesService', () => {
 
     it('lanza 404 si el lugar no existe', async () => {
       supabase._on(null);
-      await expect(service.toggle('x', 'u1')).rejects.toThrow(NotFoundException);
+      await expect(service.toggle('x', 'u1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('findByUserId', () => {
     it('devuelve favoritos paginados con cover photo', async () => {
-      supabase._on([
-        {
-          place_id: 'p1',
-          created_at: '2026-04-13T00:00:00Z',
-          places: {
-            id: 'p1', name: 'La Trattoria', average_rating: 4.5,
-            total_reviews: 10, price_range: 2,
-            categories: { id: 'c1', name: 'Restaurantes', slug: 'restaurantes', icon: 'utensils' },
+      supabase._on(
+        [
+          {
+            place_id: 'p1',
+            created_at: '2026-04-13T00:00:00Z',
+            places: {
+              id: 'p1',
+              name: 'La Trattoria',
+              average_rating: 4.5,
+              total_reviews: 10,
+              price_range: 2,
+              categories: {
+                id: 'c1',
+                name: 'Restaurantes',
+                slug: 'restaurantes',
+                icon: 'utensils',
+              },
+            },
           },
-        },
-      ], null, 1);
+        ],
+        null,
+        1,
+      );
       supabase._on([{ place_id: 'p1', url: 'https://cover.jpg' }]); // covers
 
       const result = await service.findByUserId('u1', 1, 10);
