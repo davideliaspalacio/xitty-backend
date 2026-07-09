@@ -231,7 +231,7 @@ Avance aplicado:
 - PR tecnico #99 `chore/backend-lint-place-list-query-dto`:
   `place-list-query.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-recommendation-item-dto`:
+- PR tecnico #100 `chore/backend-lint-recommendation-item-dto`:
   `recommendation-item.dto.ts` queda formateado por Prettier y con lint
   dirigido limpio.
 - Reduccion neta acumulada: -94 archivos con problemas, -2673 errores y -246 warnings.
