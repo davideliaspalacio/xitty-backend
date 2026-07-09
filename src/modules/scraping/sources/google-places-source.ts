@@ -41,6 +41,8 @@ export interface GooglePlacesSourceOptions {
   baseBackoffMs?: number;
 }
 
+type JsonRecord = Record<string, unknown>;
+
 /**
  * Source que consulta Google Places API (New) v1 — endpoint `places:searchNearby`.
  *
@@ -109,7 +111,7 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
   }
 
   constructor(opts: GooglePlacesSourceOptions = {}) {
-    this.fetchImpl = opts.fetchImpl ?? (globalThis.fetch as typeof fetch);
+    this.fetchImpl = opts.fetchImpl ?? globalThis.fetch;
     this.sleepFn =
       opts.sleepFn ??
       ((ms: number) => new Promise((resolve) => setTimeout(resolve, ms)));
@@ -129,9 +131,9 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
     try {
       const raw = await this.fetchWithRetry(config, apiKey);
       return this.parsePlacesResponse(raw);
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.logger.warn(
-        `GooglePlacesSource fetch fallo (best-effort, devolviendo []): ${err?.message ?? err}`,
+        `GooglePlacesSource fetch fallo (best-effort, devolviendo []): ${errorMessage(err)}`,
       );
       return [];
     }
@@ -154,7 +156,7 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
       },
     });
 
-    const init = {
+    const init: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -167,13 +169,10 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
     // 1 intento inicial + N retries SOLO en 429
     let attempt = 0;
     while (true) {
-      const resp = await this.fetchImpl(
-        GooglePlacesSource.ENDPOINT,
-        init as any,
-      );
+      const resp = await this.fetchImpl(GooglePlacesSource.ENDPOINT, init);
 
       if (resp.ok) {
-        return await resp.json();
+        return (await resp.json()) as unknown;
       }
 
       if (resp.status === 429 && attempt < this.maxRetries) {
@@ -200,54 +199,50 @@ export class GooglePlacesSource implements Source<GooglePlacesConfig> {
   // ── parseo de la respuesta Places API (New) v1 ─────────────────────
 
   private parsePlacesResponse(raw: unknown): RawItem[] {
-    const places = (raw as any)?.places;
+    const rawRecord = isRecord(raw) ? raw : null;
+    const places = rawRecord?.places;
     if (!Array.isArray(places)) return [];
 
     const items: RawItem[] = [];
-    for (const p of places) {
-      if (!p || typeof p !== 'object') continue;
-      const id = p.id;
-      const name = p.displayName?.text;
+    for (const place of places) {
+      if (!isRecord(place)) continue;
+      const id = stringField(place, 'id');
+      const name = textObjectField(place, 'displayName');
       if (!id || !name) continue;
 
       // Saltamos negocios cerrados permanentemente: no le sirven al viajero.
-      if (p.businessStatus === 'CLOSED_PERMANENTLY') continue;
+      const businessStatus = stringField(place, 'businessStatus');
+      if (businessStatus === 'CLOSED_PERMANENTLY') continue;
 
-      const photoName: string | null =
-        Array.isArray(p.photos) && p.photos[0]?.name ? p.photos[0].name : null;
-      const hours: string[] | null = Array.isArray(
-        p.regularOpeningHours?.weekdayDescriptions,
-      )
-        ? p.regularOpeningHours.weekdayDescriptions
-        : null;
+      const photoName = firstPhotoName(place);
+      const hours = weekdayDescriptions(place);
+      const location = recordField(place, 'location');
+      const types = stringArrayField(place, 'types');
 
       items.push({
         external_id: String(id),
         name: String(name),
-        description: p.editorialSummary?.text ?? null,
-        category: p.primaryType ?? (Array.isArray(p.types) ? p.types[0] : null),
-        address: p.formattedAddress ?? null,
-        latitude:
-          typeof p.location?.latitude === 'number' ? p.location.latitude : null,
-        longitude:
-          typeof p.location?.longitude === 'number'
-            ? p.location.longitude
-            : null,
-        source_url: p.googleMapsUri ?? null,
+        description: textObjectField(place, 'editorialSummary'),
+        category: stringField(place, 'primaryType') ?? types?.[0] ?? null,
+        address: stringField(place, 'formattedAddress'),
+        latitude: location ? numberField(location, 'latitude') : null,
+        longitude: location ? numberField(location, 'longitude') : null,
+        source_url: stringField(place, 'googleMapsUri'),
         // Deterministas de la fuente (no de la IA):
         image_url: photoName
           ? GooglePlacesSource.photoMediaUrl(photoName)
           : null,
-        rating: typeof p.rating === 'number' ? p.rating : null,
-        review_count:
-          typeof p.userRatingCount === 'number' ? p.userRatingCount : null,
-        phone: p.nationalPhoneNumber ?? p.internationalPhoneNumber ?? null,
-        website: p.websiteUri ?? null,
+        rating: numberField(place, 'rating'),
+        review_count: numberField(place, 'userRatingCount'),
+        phone:
+          stringField(place, 'nationalPhoneNumber') ??
+          stringField(place, 'internationalPhoneNumber'),
+        website: stringField(place, 'websiteUri'),
         opening_hours: hours,
-        price_level: mapPriceLevel(p.priceLevel),
-        business_status: p.businessStatus ?? null,
-        reviews: parseReviews(p.reviews),
-        raw_payload: p,
+        price_level: mapPriceLevel(place.priceLevel),
+        business_status: businessStatus,
+        reviews: parseReviews(place.reviews),
+        raw_payload: place,
       });
     }
     return items;
@@ -320,17 +315,19 @@ function clamp(n: number, min: number, max: number): number {
 function parseReviews(reviews: unknown): SourceReview[] | null {
   if (!Array.isArray(reviews) || reviews.length === 0) return null;
   const out: SourceReview[] = [];
-  for (const r of reviews.slice(0, 5)) {
-    if (!r || typeof r !== 'object') continue;
-    const text = r.text?.text ?? r.originalText?.text ?? null;
-    const author = r.authorAttribution?.displayName ?? null;
+  for (const review of reviews.slice(0, 5)) {
+    if (!isRecord(review)) continue;
+    const text =
+      textObjectField(review, 'text') ??
+      textObjectField(review, 'originalText');
+    const author = recordTextField(review, 'authorAttribution', 'displayName');
     if (!text && !author) continue;
     out.push({
       author,
-      rating: typeof r.rating === 'number' ? r.rating : null,
+      rating: numberField(review, 'rating'),
       text,
-      relative_time: r.relativePublishTimeDescription ?? null,
-      publish_time: r.publishTime ?? null,
+      relative_time: stringField(review, 'relativePublishTimeDescription'),
+      publish_time: stringField(review, 'publishTime'),
     });
   }
   return out.length > 0 ? out : null;
@@ -352,12 +349,72 @@ function mapPriceLevel(pl: unknown): number | null {
   }
 }
 
-async function safeText(resp: any): Promise<string> {
+async function safeText(resp: Pick<Response, 'text'>): Promise<string> {
   try {
     return await resp.text();
   } catch {
     return '';
   }
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+function isRecord(value: unknown): value is JsonRecord {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function recordField(record: JsonRecord, key: string): JsonRecord | null {
+  const value = record[key];
+  return isRecord(value) ? value : null;
+}
+
+function stringField(record: JsonRecord, key: string): string | null {
+  const value = record[key];
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function numberField(record: JsonRecord, key: string): number | null {
+  const value = record[key];
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function stringArrayField(record: JsonRecord, key: string): string[] | null {
+  const value = record[key];
+  if (!Array.isArray(value)) return null;
+  const strings = value.filter(
+    (item): item is string => typeof item === 'string',
+  );
+  return strings.length > 0 ? strings : null;
+}
+
+function textObjectField(record: JsonRecord, key: string): string | null {
+  const value = recordField(record, key);
+  return value ? stringField(value, 'text') : null;
+}
+
+function recordTextField(
+  record: JsonRecord,
+  recordKey: string,
+  textKey: string,
+): string | null {
+  const value = recordField(record, recordKey);
+  return value ? stringField(value, textKey) : null;
+}
+
+function firstPhotoName(place: JsonRecord): string | null {
+  const photos = place.photos;
+  if (!Array.isArray(photos)) return null;
+  const first = photos.find(isRecord);
+  return first ? stringField(first, 'name') : null;
+}
+
+function weekdayDescriptions(place: JsonRecord): string[] | null {
+  const openingHours = recordField(place, 'regularOpeningHours');
+  return openingHours
+    ? stringArrayField(openingHours, 'weekdayDescriptions')
+    : null;
 }
 
 /**
@@ -465,7 +522,8 @@ const MOCK_BARRANQUILLA_PLACES: Array<{
   {
     slug: 'museo-del-caribe',
     name: 'Museo del Caribe',
-    description: 'Museo interactivo dedicado a la cultura del Caribe colombiano.',
+    description:
+      'Museo interactivo dedicado a la cultura del Caribe colombiano.',
     category: 'tourist_attraction',
     address: 'Calle 36 #46-66, Barranquilla',
     latitude: 10.9759,
@@ -493,7 +551,8 @@ const MOCK_BARRANQUILLA_PLACES: Array<{
   {
     slug: 'parque-cultural-del-caribe',
     name: 'Parque Cultural del Caribe',
-    description: 'Complejo cultural que incluye el Museo del Caribe y biblioteca.',
+    description:
+      'Complejo cultural que incluye el Museo del Caribe y biblioteca.',
     category: 'tourist_attraction',
     address: 'Calle 36 #46-66, Barranquilla',
     latitude: 10.9763,
@@ -541,7 +600,8 @@ const MOCK_BARRANQUILLA_PLACES: Array<{
   {
     slug: 'coliseo-elias-chegwin',
     name: 'Coliseo Elias Chegwin',
-    description: 'Coliseo cubierto multipropósito, conciertos y eventos deportivos.',
+    description:
+      'Coliseo cubierto multipropósito, conciertos y eventos deportivos.',
     category: 'event_venue',
     address: 'Calle 72 #38-15, Barranquilla',
     latitude: 11.0001,
@@ -559,7 +619,8 @@ const MOCK_BARRANQUILLA_PLACES: Array<{
   {
     slug: 'teatro-amira-de-la-rosa',
     name: 'Teatro Amira de la Rosa',
-    description: 'Principal teatro de la ciudad para artes escenicas y conciertos.',
+    description:
+      'Principal teatro de la ciudad para artes escenicas y conciertos.',
     category: 'event_venue',
     address: 'Carrera 54 #52-258, Barranquilla',
     latitude: 10.9866,

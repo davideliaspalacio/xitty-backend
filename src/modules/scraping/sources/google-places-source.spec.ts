@@ -1,5 +1,7 @@
 import { GooglePlacesSource, GooglePlacesConfig } from './google-places-source';
 
+type FetchMock = jest.MockedFunction<typeof fetch>;
+
 /**
  * Tests para GooglePlacesSource.
  *
@@ -63,11 +65,10 @@ describe('GooglePlacesSource', () => {
       ],
     };
 
-    const fakeFetch = jest.fn().mockResolvedValue(
-      makeResponse(200, apiPayload),
-    );
+    const fakeFetch = mockFetch();
+    fakeFetch.mockResolvedValue(makeResponse(200, apiPayload));
 
-    const source = new GooglePlacesSource({ fetchImpl: fakeFetch as any });
+    const source = new GooglePlacesSource({ fetchImpl: fakeFetch });
     const items = await source.fetch(baseConfig);
 
     expect(items).toHaveLength(2);
@@ -107,8 +108,9 @@ describe('GooglePlacesSource', () => {
         },
       ],
     };
-    const fakeFetch = jest.fn().mockResolvedValue(makeResponse(200, apiPayload));
-    const source = new GooglePlacesSource({ fetchImpl: fakeFetch as any });
+    const fakeFetch = mockFetch();
+    fakeFetch.mockResolvedValue(makeResponse(200, apiPayload));
+    const source = new GooglePlacesSource({ fetchImpl: fakeFetch });
     const items = await source.fetch(baseConfig);
 
     expect(items).toHaveLength(1);
@@ -156,8 +158,9 @@ describe('GooglePlacesSource', () => {
         },
       ],
     };
-    const fakeFetch = jest.fn().mockResolvedValue(makeResponse(200, apiPayload));
-    const source = new GooglePlacesSource({ fetchImpl: fakeFetch as any });
+    const fakeFetch = mockFetch();
+    fakeFetch.mockResolvedValue(makeResponse(200, apiPayload));
+    const source = new GooglePlacesSource({ fetchImpl: fakeFetch });
     const items = await source.fetch(baseConfig);
 
     expect(items[0].reviews).toHaveLength(2);
@@ -169,8 +172,8 @@ describe('GooglePlacesSource', () => {
       publish_time: '2026-06-10T00:00:00Z',
     });
     // También incluye el field mask de reviews.
-    const [, init] = fakeFetch.mock.calls[0];
-    expect(init.headers['X-Goog-FieldMask']).toContain('places.reviews');
+    const init = requestInitFor(fakeFetch);
+    expect(headerValue(init, 'X-Goog-FieldMask')).toContain('places.reviews');
   });
 
   it('fetch: descarta negocios CLOSED_PERMANENTLY', async () => {
@@ -192,8 +195,9 @@ describe('GooglePlacesSource', () => {
         },
       ],
     };
-    const fakeFetch = jest.fn().mockResolvedValue(makeResponse(200, apiPayload));
-    const source = new GooglePlacesSource({ fetchImpl: fakeFetch as any });
+    const fakeFetch = mockFetch();
+    fakeFetch.mockResolvedValue(makeResponse(200, apiPayload));
+    const source = new GooglePlacesSource({ fetchImpl: fakeFetch });
     const items = await source.fetch(baseConfig);
 
     expect(items).toHaveLength(1);
@@ -201,23 +205,23 @@ describe('GooglePlacesSource', () => {
   });
 
   it('fetch: usa el header X-Goog-Api-Key y POST a places:searchNearby', async () => {
-    const fakeFetch = jest.fn().mockResolvedValue(
-      makeResponse(200, { places: [] }),
-    );
+    const fakeFetch = mockFetch();
+    fakeFetch.mockResolvedValue(makeResponse(200, { places: [] }));
 
-    const source = new GooglePlacesSource({ fetchImpl: fakeFetch as any });
+    const source = new GooglePlacesSource({ fetchImpl: fakeFetch });
     await source.fetch(baseConfig);
 
     expect(fakeFetch).toHaveBeenCalledTimes(1);
-    const [url, init] = fakeFetch.mock.calls[0];
+    const url = requestUrlFor(fakeFetch);
+    const init = requestInitFor(fakeFetch);
     expect(url).toContain('places.googleapis.com');
     expect(url).toContain('places:searchNearby');
     expect(init.method).toBe('POST');
-    expect(init.headers['X-Goog-Api-Key']).toBe('fake-key-for-tests');
-    expect(init.headers['X-Goog-FieldMask']).toBeDefined();
-    expect(init.headers['Content-Type']).toBe('application/json');
+    expect(headerValue(init, 'X-Goog-Api-Key')).toBe('fake-key-for-tests');
+    expect(headerValue(init, 'X-Goog-FieldMask')).toBeDefined();
+    expect(headerValue(init, 'Content-Type')).toBe('application/json');
 
-    const body = JSON.parse(init.body);
+    const body = requestBodyFor(init);
     expect(body.includedTypes).toEqual(['restaurant']);
     expect(body.maxResultCount).toBe(10);
     expect(body.locationRestriction.circle.center.latitude).toBe(10.9685);
@@ -226,8 +230,9 @@ describe('GooglePlacesSource', () => {
   });
 
   it('fetch: respuesta vacia (sin places) retorna []', async () => {
-    const fakeFetch = jest.fn().mockResolvedValue(makeResponse(200, {}));
-    const source = new GooglePlacesSource({ fetchImpl: fakeFetch as any });
+    const fakeFetch = mockFetch();
+    fakeFetch.mockResolvedValue(makeResponse(200, {}));
+    const source = new GooglePlacesSource({ fetchImpl: fakeFetch });
     const items = await source.fetch(baseConfig);
     expect(items).toEqual([]);
   });
@@ -243,8 +248,8 @@ describe('GooglePlacesSource', () => {
   it('fetch: sin GOOGLE_MAPS_API_KEY retorna mock data plausible (8 lugares)', async () => {
     delete process.env.GOOGLE_MAPS_API_KEY;
 
-    const fakeFetch = jest.fn();
-    const source = new GooglePlacesSource({ fetchImpl: fakeFetch as any });
+    const fakeFetch = mockFetch();
+    const source = new GooglePlacesSource({ fetchImpl: fakeFetch });
     const items = await source.fetch(baseConfig);
 
     expect(fakeFetch).not.toHaveBeenCalled();
@@ -297,8 +302,7 @@ describe('GooglePlacesSource', () => {
       ],
     };
 
-    const fakeFetch = jest
-      .fn()
+    const fakeFetch = mockFetch()
       .mockResolvedValueOnce(makeResponse(429, { error: 'rate limited' }))
       .mockResolvedValueOnce(makeResponse(429, { error: 'rate limited' }))
       .mockResolvedValueOnce(makeResponse(200, okPayload));
@@ -310,7 +314,7 @@ describe('GooglePlacesSource', () => {
     });
 
     const source = new GooglePlacesSource({
-      fetchImpl: fakeFetch as any,
+      fetchImpl: fakeFetch,
       sleepFn,
       maxRetries: 3,
       baseBackoffMs: 100,
@@ -331,14 +335,13 @@ describe('GooglePlacesSource', () => {
   });
 
   it('fetch: en 429 persistente agota retries y retorna [] (no rompe pipeline)', async () => {
-    const fakeFetch = jest
-      .fn()
-      .mockResolvedValue(makeResponse(429, { error: 'rate limited' }));
+    const fakeFetch = mockFetch();
+    fakeFetch.mockResolvedValue(makeResponse(429, { error: 'rate limited' }));
 
     const sleepFn = jest.fn().mockResolvedValue(undefined);
 
     const source = new GooglePlacesSource({
-      fetchImpl: fakeFetch as any,
+      fetchImpl: fakeFetch,
       sleepFn,
       maxRetries: 3,
       baseBackoffMs: 50,
@@ -352,12 +355,11 @@ describe('GooglePlacesSource', () => {
   });
 
   it('fetch: en 500 NO hace retry y retorna [] (best-effort)', async () => {
-    const fakeFetch = jest
-      .fn()
-      .mockResolvedValue(makeResponse(500, { error: 'server' }));
+    const fakeFetch = mockFetch();
+    fakeFetch.mockResolvedValue(makeResponse(500, { error: 'server' }));
 
     const source = new GooglePlacesSource({
-      fetchImpl: fakeFetch as any,
+      fetchImpl: fakeFetch,
       sleepFn: jest.fn().mockResolvedValue(undefined),
       maxRetries: 3,
       baseBackoffMs: 10,
@@ -369,10 +371,11 @@ describe('GooglePlacesSource', () => {
   });
 
   it('fetch: si fetch tira (network error) retorna [] (no rompe pipeline)', async () => {
-    const fakeFetch = jest.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+    const fakeFetch = mockFetch();
+    fakeFetch.mockRejectedValue(new Error('ECONNREFUSED'));
 
     const source = new GooglePlacesSource({
-      fetchImpl: fakeFetch as any,
+      fetchImpl: fakeFetch,
       sleepFn: jest.fn().mockResolvedValue(undefined),
       maxRetries: 1,
       baseBackoffMs: 10,
@@ -386,11 +389,77 @@ describe('GooglePlacesSource', () => {
 // ──────────────────────────────────────────────────────────────────────
 // helpers
 // ──────────────────────────────────────────────────────────────────────
-function makeResponse(status: number, body: any): any {
+interface NearbyRequestBody {
+  includedTypes: string[];
+  maxResultCount: number;
+  locationRestriction: {
+    circle: {
+      center: { latitude: number; longitude: number };
+      radius: number;
+    };
+  };
+}
+
+function mockFetch(): FetchMock {
+  return jest.fn<typeof fetch>();
+}
+
+function makeResponse(status: number, body: unknown): Response {
   return {
     ok: status >= 200 && status < 300,
     status,
-    json: async () => body,
-    text: async () => JSON.stringify(body),
-  };
+    json: () => Promise.resolve(body),
+    text: () => Promise.resolve(JSON.stringify(body)),
+  } as Response;
+}
+
+function requestInitFor(fetchMock: FetchMock): RequestInit {
+  const init = fetchMock.mock.calls[0]?.[1];
+  if (!init || typeof init !== 'object') {
+    throw new Error('Expected fetch init');
+  }
+  return init;
+}
+
+function requestUrlFor(fetchMock: FetchMock): string {
+  const input = fetchMock.mock.calls[0]?.[0];
+  if (typeof input === 'string') return input;
+  if (input instanceof URL) return input.toString();
+  return input?.url ?? '';
+}
+
+function headerValue(init: RequestInit, name: string): string | undefined {
+  const headers = init.headers;
+  if (headers instanceof Headers) return headers.get(name) ?? undefined;
+  if (Array.isArray(headers)) {
+    return headers.find(
+      ([key]) => key.toLowerCase() === name.toLowerCase(),
+    )?.[1];
+  }
+  if (!headers) return undefined;
+  return headers[name];
+}
+
+function requestBodyFor(init: RequestInit): NearbyRequestBody {
+  if (typeof init.body !== 'string') {
+    throw new Error('Expected string body');
+  }
+  const parsed: unknown = JSON.parse(init.body);
+  if (!isNearbyRequestBody(parsed)) {
+    throw new Error('Invalid nearby request body');
+  }
+  return parsed;
+}
+
+function isNearbyRequestBody(value: unknown): value is NearbyRequestBody {
+  if (!value || typeof value !== 'object') return false;
+  const body = value as Partial<NearbyRequestBody>;
+  const circle = body.locationRestriction?.circle;
+  return (
+    Array.isArray(body.includedTypes) &&
+    typeof body.maxResultCount === 'number' &&
+    typeof circle?.center.latitude === 'number' &&
+    typeof circle.center.longitude === 'number' &&
+    typeof circle.radius === 'number'
+  );
 }
