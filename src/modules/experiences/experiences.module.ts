@@ -8,7 +8,11 @@ import { DatabaseModule } from '../../config/database.module';
 @Module({
   imports: [DatabaseModule],
   controllers: [ExperiencesController],
-  providers: [ExperiencesService, ReservationsService, ExperienceReviewsService],
+  providers: [
+    ExperiencesService,
+    ReservationsService,
+    ExperienceReviewsService,
+  ],
   exports: [ExperiencesService, ReservationsService, ExperienceReviewsService],
 })
 export class ExperiencesModule {}
