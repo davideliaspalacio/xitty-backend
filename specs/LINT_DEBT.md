@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 41.
-- Errores: 101.
+- Archivos con problemas: 40.
+- Errores: 95.
 - Warnings: 5.
-- Errores auto-fixables: 67.
+- Errores auto-fixables: 61.
 
 Avance aplicado:
 
@@ -186,31 +186,33 @@ Avance aplicado:
 - PR tecnico #84 `chore/backend-lint-create-experience-dto`:
   `create-experience.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- Reduccion neta acumulada: -77 archivos con problemas, -2609 errores y -242 warnings.
+- PR tecnico #85 `chore/backend-lint-create-featured-dto`:
+  `create-featured.dto.ts` queda formateado por Prettier y con lint dirigido
+  limpio.
+- Reduccion neta acumulada: -78 archivos con problemas, -2615 errores y -242 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 67 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 61 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-assignment` | 13 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-member-access` | 12 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/no-unsafe-argument` | 0 | 5 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/require-await` | 5 | 0 | Funciones async sin await. |
-| `@typescript-eslint/no-unsafe-return` | 3 | 0 | Retornos `any` sin tipar. |
-| `@typescript-eslint/no-unused-vars` | 2 | 0 | Variables/imports historicos sin usar. |
-| `@typescript-eslint/no-unsafe-call` | 2 | 0 | Llamadas sobre valores `any`. |
 | `@typescript-eslint/no-redundant-type-constituents` | 1 | 0 | Union de tipos redundante. |
+| `@typescript-eslint/no-unused-vars` | 1 | 0 | Variables/imports historicos sin usar. |
 | `@typescript-eslint/restrict-template-expressions` | 1 | 0 | Template string con valor no string. |
+| `@typescript-eslint/no-unsafe-call` | 1 | 0 | Llamadas sobre valores `any`. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/featured/dto/create-featured.dto.ts` | 6 | 0 |
 | `src/modules/scraping/storage/scraping-runs.repo.ts` | 6 | 0 |
 | `src/modules/preferences/preferences.service.ts` | 5 | 0 |
 | `src/modules/scraping/sources/source.factory.ts` | 4 | 1 |
+| `src/modules/chat/providers/mock-provider.ts` | 4 | 0 |
 
 ## Impacto en Features v2
 

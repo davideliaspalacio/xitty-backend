@@ -15,7 +15,10 @@ import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateFeaturedDto {
-  @ApiProperty({ description: 'Place to feature', example: '0d6b5c1c-3f2a-4b22-9d77-aeff6e3b1c00' })
+  @ApiProperty({
+    description: 'Place to feature',
+    example: '0d6b5c1c-3f2a-4b22-9d77-aeff6e3b1c00',
+  })
   @IsUUID()
   place_id: string;
 
@@ -28,21 +31,31 @@ export class CreateFeaturedDto {
   @MaxLength(100)
   curator_name: string;
 
-  @ApiProperty({ description: 'Week start (ISO 8601)', example: '2026-04-27T00:00:00Z' })
+  @ApiProperty({
+    description: 'Week start (ISO 8601)',
+    example: '2026-04-27T00:00:00Z',
+  })
   @IsDateString()
   week_starts_at: string;
 
-  @ApiProperty({ description: 'Week end (ISO 8601)', example: '2026-05-03T23:59:59Z' })
+  @ApiProperty({
+    description: 'Week end (ISO 8601)',
+    example: '2026-05-03T23:59:59Z',
+  })
   @IsDateString()
   week_ends_at: string;
 
-  @ApiPropertyOptional({ description: 'Override the place name on the feature card' })
+  @ApiPropertyOptional({
+    description: 'Override the place name on the feature card',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(200)
   custom_title?: string;
 
-  @ApiPropertyOptional({ description: 'Curator pitch / personal recommendation' })
+  @ApiPropertyOptional({
+    description: 'Curator pitch / personal recommendation',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(2000)
@@ -53,7 +66,10 @@ export class CreateFeaturedDto {
   @IsUrl()
   hero_image_url?: string;
 
-  @ApiPropertyOptional({ description: 'Display order within the week (lower = first)', default: 0 })
+  @ApiPropertyOptional({
+    description: 'Display order within the week (lower = first)',
+    default: 0,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
