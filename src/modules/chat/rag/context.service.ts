@@ -30,6 +30,31 @@ export const CHAT_KEYWORD_TO_CATEGORY_SLUG: Record<string, string> = {
   experiencias: 'experiencias',
 };
 
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+interface CategoryRow {
+  id: string;
+  slug: string;
+  name: string;
+}
+
+interface PlaceContextRow {
+  id: string;
+  name: string;
+  description: string | null;
+  address: string | null;
+  category_id: string;
+  average_rating: number | null;
+  price_range: number | null;
+}
+
 @Injectable()
 export class ContextService {
   private readonly logger = new Logger(ContextService.name);
@@ -47,9 +72,14 @@ export class ContextService {
     if (!text) return [];
     const lower = text.toLowerCase();
     const slugs = new Set<string>();
-    for (const [keyword, slug] of Object.entries(CHAT_KEYWORD_TO_CATEGORY_SLUG)) {
+    for (const [keyword, slug] of Object.entries(
+      CHAT_KEYWORD_TO_CATEGORY_SLUG,
+    )) {
       // Word boundary simple: o esta solo o rodeado por non-letters (incluye acentos).
-      const pattern = new RegExp(`(^|[^a-záéíóúñ])${keyword}([^a-záéíóúñ]|$)`, 'i');
+      const pattern = new RegExp(
+        `(^|[^a-záéíóúñ])${keyword}([^a-záéíóúñ]|$)`,
+        'i',
+      );
       if (pattern.test(lower)) {
         slugs.add(slug);
       }
@@ -67,26 +97,26 @@ export class ContextService {
 
     try {
       // 1) buscar ids de categoria por slug
-      const { data: cats, error: catErr } = await this.supabase
+      const { data: cats, error: catErr } = (await this.supabase
         .from('categories')
         .select('id, slug, name')
-        .in('slug', slugs);
+        .in('slug', slugs)) as unknown as SupabaseResult<CategoryRow[]>;
 
       if (catErr || !cats || cats.length === 0) {
-        if (catErr) this.logger.warn(`Categories lookup failed: ${catErr.message}`);
+        if (catErr) {
+          this.logger.warn(`Categories lookup failed: ${catErr.message}`);
+        }
         return [];
       }
 
-      const categoryIds = cats.map((c: any) => c.id);
-      const catBySlug: Record<string, string> = {};
+      const categoryIds = cats.map((category) => category.id);
       const catNameById: Record<string, string> = {};
-      for (const c of cats as any[]) {
-        catBySlug[c.slug] = c.id;
-        catNameById[c.id] = c.name;
+      for (const category of cats) {
+        catNameById[category.id] = category.name;
       }
 
       // 2) buscar top places en esas categorias por average_rating DESC
-      const { data: places, error: placeErr } = await this.supabase
+      const { data: places, error: placeErr } = (await this.supabase
         .from('places')
         .select(
           'id, name, description, address, category_id, average_rating, price_range',
@@ -94,24 +124,27 @@ export class ContextService {
         .in('category_id', categoryIds)
         .eq('is_active', true)
         .order('average_rating', { ascending: false })
-        .limit(limit);
+        .limit(limit)) as unknown as SupabaseResult<PlaceContextRow[]>;
 
       if (placeErr || !places) {
-        if (placeErr) this.logger.warn(`Places lookup failed: ${placeErr.message}`);
+        if (placeErr) {
+          this.logger.warn(`Places lookup failed: ${placeErr.message}`);
+        }
         return [];
       }
 
-      return (places as any[]).map((p) => ({
-        id: p.id,
-        name: p.name,
-        description: p.description ?? null,
-        category: catNameById[p.category_id] ?? null,
-        address: p.address ?? null,
-        average_rating: p.average_rating ?? null,
-        price_range: p.price_range ?? null,
+      return places.map((place) => ({
+        id: place.id,
+        name: place.name,
+        description: place.description ?? null,
+        category: catNameById[place.category_id] ?? null,
+        address: place.address ?? null,
+        average_rating: place.average_rating ?? null,
+        price_range: place.price_range ?? null,
       }));
-    } catch (err: any) {
-      this.logger.warn(`getSnippetsFor error: ${err?.message ?? 'unknown'}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'unknown';
+      this.logger.warn(`getSnippetsFor error: ${message}`);
       return [];
     }
   }
