@@ -77,7 +77,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 69. #90 - PR tecnico favorites controller lint/typing, base #89.
 70. #91 - PR tecnico enrichment service lint/typing, base #90.
 71. #92 - PR tecnico runner service lint/typing, base #91.
-72. Pendiente - PR tecnico source factory spec lint/typing, base #92.
+72. #93 - PR tecnico source factory spec lint/typing, base #92.
 
 ### Frontend
 

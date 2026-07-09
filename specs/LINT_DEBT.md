@@ -210,7 +210,7 @@ Avance aplicado:
 - PR tecnico #92 `chore/backend-lint-runner-service`:
   `runner.service.ts` queda con errores `unknown`, helper de mensaje seguro y
   lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-source-factory-spec`:
+- PR tecnico #93 `chore/backend-lint-source-factory-spec`:
   `source.factory.spec.ts` queda con fixture tipada, sin casts `any`, formato
   Prettier y lint dirigido limpio.
 - Reduccion neta acumulada: -87 archivos con problemas, -2652 errores y -245 warnings.
