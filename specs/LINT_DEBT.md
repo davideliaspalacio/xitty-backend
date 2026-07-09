@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 42.
-- Errores: 107.
+- Archivos con problemas: 41.
+- Errores: 101.
 - Warnings: 5.
-- Errores auto-fixables: 73.
+- Errores auto-fixables: 67.
 
 Avance aplicado:
 
@@ -183,13 +183,16 @@ Avance aplicado:
 - PR tecnico #83 `chore/backend-lint-supabase-config`:
   `supabase.config.ts` queda con tipo real de `createClient`, formato Prettier
   y lint dirigido limpio.
-- Reduccion neta acumulada: -76 archivos con problemas, -2603 errores y -242 warnings.
+- PR tecnico #84 `chore/backend-lint-create-experience-dto`:
+  `create-experience.dto.ts` queda formateado por Prettier y con lint dirigido
+  limpio.
+- Reduccion neta acumulada: -77 archivos con problemas, -2609 errores y -242 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 73 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 67 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-assignment` | 13 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-member-access` | 12 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/no-unsafe-argument` | 0 | 5 | Argumentos `any` en tests/servicios. |
@@ -204,10 +207,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/experiences/dto/create-experience.dto.ts` | 6 | 0 |
 | `src/modules/featured/dto/create-featured.dto.ts` | 6 | 0 |
 | `src/modules/scraping/storage/scraping-runs.repo.ts` | 6 | 0 |
 | `src/modules/preferences/preferences.service.ts` | 5 | 0 |
+| `src/modules/scraping/sources/source.factory.ts` | 4 | 1 |
 
 ## Impacto en Features v2
 

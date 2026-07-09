@@ -68,6 +68,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 60. #81 - PR tecnico scraping sources repo lint/typing, base #80.
 61. #82 - PR tecnico experience list query dto lint/typing, base #81.
 62. #83 - PR tecnico supabase config lint/typing, base #82.
+63. #84 - PR tecnico create experience dto lint/typing, base #83.
 
 ### Frontend
 

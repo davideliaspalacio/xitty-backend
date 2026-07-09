@@ -104,6 +104,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #81 abierto: `chore/backend-lint-scraping-sources-repo`; scraping sources repo queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #82 abierto: `chore/backend-lint-experience-list-query-dto`; experience list query dto queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #83 abierto: `chore/backend-lint-supabase-config`; supabase config queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #84 abierto: `chore/backend-lint-create-experience-dto`; create experience dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -265,7 +266,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend build tras experience list query dto lint: `npm run build` -> OK.
 - Backend Supabase config lint: `npx eslint src/config/supabase.config.ts` -> OK.
 - Backend build tras Supabase config lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 42 archivos / 107 errores / 5 warnings.
+- Backend create experience dto lint: `npx eslint src/modules/experiences/dto/create-experience.dto.ts` -> OK.
+- Backend create experience dto smoke tests: `npm test -- --runInBand src/modules/experiences/experiences.service.spec.ts` -> 1 suite / 12 tests OK.
+- Backend build tras create experience dto lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 41 archivos / 101 errores / 5 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
