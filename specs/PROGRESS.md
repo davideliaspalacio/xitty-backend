@@ -84,7 +84,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #61 abierto: `chore/backend-lint-tavily-search-source-spec`; Tavily source/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #62 abierto: `chore/backend-lint-auth-service`; auth service queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #63 abierto: `chore/backend-lint-photo-storage-service-spec`; photo storage service/spec quedan tipados y con lint dirigido limpio.
-- 2026-07-09: PR tecnico #64 preparado: `chore/backend-lint-metrics-controller`; metrics controller queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #64 abierto: `chore/backend-lint-metrics-controller`; metrics controller queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
