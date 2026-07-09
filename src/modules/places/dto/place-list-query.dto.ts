@@ -1,4 +1,12 @@
-import { IsOptional, IsUUID, IsInt, IsEnum, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsOptional,
+  IsUUID,
+  IsInt,
+  IsEnum,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
@@ -48,7 +56,10 @@ export class PlaceListQueryDto extends PaginationDto {
   @IsEnum(PlaceSortBy)
   sort_by?: PlaceSortBy;
 
-  @ApiProperty({ description: 'User latitude (for distance sort)', required: false })
+  @ApiProperty({
+    description: 'User latitude (for distance sort)',
+    required: false,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -56,7 +67,10 @@ export class PlaceListQueryDto extends PaginationDto {
   @Max(90)
   latitude?: number;
 
-  @ApiProperty({ description: 'User longitude (for distance sort)', required: false })
+  @ApiProperty({
+    description: 'User longitude (for distance sort)',
+    required: false,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()

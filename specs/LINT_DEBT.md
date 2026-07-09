@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 26.
-- Errores: 43.
+- Archivos con problemas: 25.
+- Errores: 40.
 - Warnings: 1.
-- Errores auto-fixables: 35.
+- Errores auto-fixables: 32.
 
 Avance aplicado:
 
@@ -228,13 +228,16 @@ Avance aplicado:
 - PR tecnico #98 `chore/backend-lint-microsites-service`:
   `microsites.service.ts` queda con resultado Supabase tipado, sin casts `any`,
   y lint dirigido limpio.
-- Reduccion neta acumulada: -92 archivos con problemas, -2667 errores y -246 warnings.
+- PR tecnico #99 `chore/backend-lint-place-list-query-dto`:
+  `place-list-query.dto.ts` queda formateado por Prettier y con lint dirigido
+  limpio.
+- Reduccion neta acumulada: -93 archivos con problemas, -2670 errores y -246 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 35 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 32 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-member-access` | 3 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/require-await` | 3 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unsafe-assignment` | 1 | 0 | Asignaciones desde `any`. |
@@ -245,10 +248,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/places/dto/place-list-query.dto.ts` | 3 | 0 |
 | `src/modules/recommendations/dto/recommendation-item.dto.ts` | 3 | 0 |
 | `src/modules/recommendations/recommendations.controller.ts` | 2 | 1 |
 | `src/modules/scraping/enrichment/quality-scorer.spec.ts` | 3 | 0 |
+| `src/modules/chat/providers/openai-provider.ts` | 2 | 0 |
 
 ## Impacto en Features v2
 
