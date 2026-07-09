@@ -20,6 +20,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 12. #33 - PR tecnico Google Places lint/typing, base #32.
 13. #34 - PR tecnico scraped-items repo spec lint/typing, base #33.
 14. #35 - PR tecnico scraping storage specs lint/typing, base #34.
+15. #36 - PR tecnico scraping executor spec lint/typing, base #35.
 
 ### Frontend
 
