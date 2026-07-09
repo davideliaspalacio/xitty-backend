@@ -134,7 +134,7 @@ Verificacion post-merge local:
 8. `fdd97ad` - ciudad operativa por defecto para discovery.
 9. `<post-merge>` - UI admin de destacados semanales en `/admin/featured`.
 10. Backend #125 / Frontend #25 - reporte admin F1 de calidad/completitud en `/admin/scraping`.
-11. Backend/Frontend `feat/f7-ranking-config-admin` - configuracion admin del ranking en `/admin/ranking`.
+11. Backend #126 / Frontend #26 - configuracion admin del ranking en `/admin/ranking`.
 
 ## Migraciones backend nuevas
 
