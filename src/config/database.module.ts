@@ -10,7 +10,8 @@ import {
   providers: [
     {
       provide: 'SUPABASE_CLIENT',
-      useFactory: (configService: ConfigService) => createSupabaseClient(configService),
+      useFactory: (configService: ConfigService) =>
+        createSupabaseClient(configService),
       inject: [ConfigService],
     },
     {

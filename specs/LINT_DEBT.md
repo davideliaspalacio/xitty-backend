@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 12.
-- Errores: 12.
+- Archivos con problemas: 11.
+- Errores: 11.
 - Warnings: 0.
-- Errores auto-fixables: 12.
+- Errores auto-fixables: 11.
 
 Avance aplicado:
 
@@ -269,22 +269,25 @@ Avance aplicado:
 - PR tecnico #112 `chore/backend-lint-scheduler-module`:
   `scheduler.module.ts` queda sin `async` innecesario en servicios NOOP y con
   lint dirigido limpio.
-- Reduccion neta acumulada: -106 archivos con problemas, -2698 errores y -247 warnings.
+- PR tecnico #113 `chore/backend-lint-database-module`:
+  `database.module.ts` queda formateado por Prettier y con lint dirigido
+  limpio.
+- Reduccion neta acumulada: -107 archivos con problemas, -2699 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 12 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 11 | 0 | Formato historico fuera de Prettier. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/config/database.module.ts` | 1 | 0 |
 | `src/modules/auth/dto/refresh-token.dto.ts` | 1 | 0 |
 | `src/modules/chat/dto/create-conversation.dto.ts` | 1 | 0 |
 | `src/modules/experiences/dto/create-experience-review.dto.ts` | 1 | 0 |
+| `src/modules/experiences/dto/experience-review-response.dto.ts` | 1 | 0 |
 
 ## Impacto en Features v2
 
