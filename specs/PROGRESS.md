@@ -2,6 +2,8 @@
 
 Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo specs, planes, pruebas y trazabilidad por feature.
 
+Runbook de release: `specs/RELEASE_RUNBOOK_FEATURES_V2.md`.
+
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
 | ------------------------------ | ------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------- |
 | F1 Poblacion de lugares        | PRs abiertos, pendiente review/merge | Backend #30 / Backend #31         | Mergear #30 despues de F6 backend #29; luego #31. Aplicar `GOOGLE_MAPS_API_KEY` en backend antes de correr scraper. Fotos/licencias quedan pendientes. |

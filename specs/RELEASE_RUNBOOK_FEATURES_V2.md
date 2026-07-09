@@ -1,0 +1,102 @@
+# Runbook de release - Features v2
+
+Este runbook ordena los PRs, migraciones y checks operativos para subir el paquete Features v2 sin mezclar pasos. No reemplaza la revision de PR; Xitty mergea manualmente.
+
+## Orden de merge
+
+### Backend
+
+1. #22 - F4 tracking anti-inflado, base `main`.
+2. #23 - F5 metricas comparativas, base #22.
+3. #24 - F2 slugs/microsites publicos, base #23.
+4. #25 - F3 promociones con timezone y visibilidad publica, base #24.
+5. #26 - F7 ranking inteligente, base #25.
+6. #27 - F8 patrocinios, base #26.
+7. #28 - F9 destacados semanales, base #27.
+8. #29 - F6 notification outbox, base #28.
+9. #30 - F1 proveniencia y reporte de completitud, base #29.
+10. #31 - F1 fuentes Cartagena ampliadas, base #30.
+11. #32 - F7 rankings por ciudad/zona, base #31.
+
+### Frontend
+
+1. #18 - F4 tracking anonimo, base `main`.
+2. #19 - F5 dashboard de metricas, base #18.
+3. #20 - F2 URL corta de microsites, base #19.
+4. #21 - F3 gestion de promociones, base #20.
+5. #22 - F7 movimiento semanal de ranking, base #21.
+6. #23 - F8 gestion/visual de patrocinios, base #22.
+7. #24 - F6 copy de notificaciones y tokens verdes, base #23.
+
+## Migraciones backend nuevas
+
+Aplicar en orden cronologico despues de mergear cada PR backend correspondiente:
+
+1. `20260709000001_harden_microsite_interactions.sql`
+2. `20260709000002_improve_metrics_summary_timeseries.sql`
+3. `20260709000003_harden_place_slugs.sql`
+4. `20260709000004_harden_promotions_public_visibility.sql`
+5. `20260709000005_improve_place_rankings.sql`
+6. `20260709000006_harden_sponsored_placements.sql`
+7. `20260709000007_harden_featured_content.sql`
+8. `20260709000008_create_notification_outbox.sql`
+9. `20260709000009_place_source_provenance_report.sql`
+10. `20260709000010_expand_cartagena_scraping_sources.sql`
+11. `20260709000011_city_scoped_rankings.sql`
+
+Despues de `20260709000011`, correr:
+
+```sql
+SELECT public.refresh_place_rankings();
+```
+
+## Variables de entorno
+
+Backend runtime:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `JWT_SECRET`
+- `FRONTEND_URL`
+- `CORS_ORIGIN`
+- `GOOGLE_MAPS_API_KEY` para que el scraper use Google Places real. Si falta, el scraper cae a mock data.
+- `OPENAI_API_KEY` opcional para enrichment/chat real. Si falta, se usan respuestas mock donde aplica.
+
+Frontend runtime:
+
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_APP_URL`
+- Feature flags: por defecto quedan encendidas; usar `NEXT_PUBLIC_DISABLED_FEATURES` y `NEXT_PUBLIC_DISABLED_LANDING_SECTIONS` solo para apagar algo puntual.
+
+## Post-merge operativo
+
+1. Confirmar que backend y frontend despliegan contra la misma rama/base ya mergeada.
+2. Aplicar migraciones en orden y verificar que no quedan migraciones pendientes.
+3. Confirmar `GOOGLE_MAPS_API_KEY` en el backend antes de ejecutar fuentes reales.
+4. Entrar como admin a `/admin/scraping` y ejecutar fuentes Cartagena de forma gradual.
+5. Revisar items enriquecidos antes de publicar; no publicar fotos masivamente hasta tener politica/licencia aprobada.
+6. Publicar una muestra controlada y consultar `place_data_completeness` para faltantes.
+7. Correr `SELECT public.refresh_place_rankings();` despues de publicar lugares relevantes.
+8. Validar rankings por ciudad: `/ranking?city=Cartagena`.
+9. Validar perfiles publicos, promociones, tracking, metricas, patrocinios y destacados con datos reales.
+
+## Checks de QA
+
+- Landing publica carga con secciones activadas y marca verde.
+- Perfil publico por slug muestra CTA reales y Open Graph basico.
+- Promociones activas respetan fechas Colombia.
+- Tracking anonimo no rompe UX y deduplica doble click.
+- Dashboard del dueno muestra dias sin eventos en cero.
+- Notificaciones respetan preferencias y escriben en outbox/pending.
+- Ranking general y por categoria no muestra lugares desactivados.
+- Patrocinados siempre muestran sello "Patrocinado".
+- Destacados semanales tienen fallback si no hay programacion.
+- Reporte F1 lista faltantes sin inventar datos.
+
+## Pendientes explicitamente no cerrados
+
+- Definir politica legal/fuente de fotos antes de subir fotos masivamente.
+- Definir proveedor/canal real para notificaciones externas.
+- Cargar mas audiotours fuera del piloto inicial.
+- Crear datos reales de promociones con negocios o marcarlas claramente como demo.
+- Completar QA mobile/desktop contra datos reales de produccion.
