@@ -129,7 +129,9 @@ export interface EnrichmentService {
  * Servicio que asigna un score de calidad y decide si el item pasa el threshold.
  */
 export interface QualityService {
-  score(item: EnrichedItem): Promise<{ score: number; reason: string; passes: boolean }>;
+  score(
+    item: EnrichedItem,
+  ): Promise<{ score: number; reason: string; passes: boolean }>;
 }
 
 /**
