@@ -162,7 +162,7 @@ Avance aplicado:
 - PR tecnico #76 `chore/backend-lint-local-picks-controller`:
   `local-picks.controller.ts` queda con request autenticado tipado, formato
   Prettier y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-reviews-controller`:
+- PR tecnico #77 `chore/backend-lint-reviews-controller`:
   `reviews.controller.ts` queda con request autenticado tipado, formato
   Prettier y lint dirigido limpio.
 - Reduccion neta acumulada: -70 archivos con problemas, -2570 errores y -232 warnings.
