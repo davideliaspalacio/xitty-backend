@@ -10,7 +10,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 | F4 Tracking de eventos         | Implementado, pendiente PR/QA amplio | `feature/f4-tracking-anti-inflado` | Abrir PR coordinado backend/frontend y correr suite amplia si el tiempo lo permite. |
 | F5 Dashboard metricas          | Implementado, pendiente PR/QA amplio | `feature/f5-metrics-comparativas`  | Abrir PR apilado despues de F4.                                                     |
 | F6 Preferencias notificaciones | PR abierto, pendiente review/merge   | Backend #29 / Frontend #24         | Mergear despues de F9 backend #28 y F8 frontend #23.                                |
-| F7 Ranking inteligente         | PR abierto, pendiente review/merge   | Backend #26 / Frontend #22         | Mergear despues de F3 backend #25 y frontend #21.                                   |
+| F7 Ranking inteligente         | PRs abiertos, pendiente review/merge | Backend #26 / Frontend #22 / Backend #32 | Mergear #26/#22 en orden; #32 despues de backend #31 por city/zone.                 |
 | F8 Patrocinios                 | PR abierto, pendiente review/merge   | Backend #27 / Frontend #23         | Mergear despues de F7 backend #26 y frontend #22.                                   |
 | F9 Destacado semanal           | PR abierto, pendiente review/merge   | Backend #28                        | Mergear despues de F8 backend #27.                                                  |
 
@@ -44,6 +44,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: F1 datos iniciado con seed ampliado de fuentes Cartagena por zonas, sin publicar fotos/lugares automaticamente.
 - 2026-07-09: F1 datos PR abierto: backend #31.
 - 2026-07-09: F7 gap ciudad implementado: `places.city/zone`, ranking filtrable por ciudad y snapshots city/city_category.
+- 2026-07-09: F7 city PR abierto: backend #32.
 
 ## Evidencia F4
 
@@ -90,6 +91,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - Backend city tests: `npm test -- --runInBand src/modules/ranking/ranking.service.spec.ts src/modules/scraping/admin/admin-scraping.service.spec.ts src/modules/scraping/executor/scraping-executor.service.spec.ts src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 4 suites / 73 tests OK.
 - Backend city build: `npm run build` -> OK.
 - Backend city lint dirigido: `npx eslint src/modules/ranking/ranking.service.ts src/modules/ranking/ranking.controller.ts src/modules/ranking/dto/ranking-query.dto.ts src/modules/ranking/dto/ranking-response.dto.ts src/modules/scraping/admin/admin-scraping.service.ts src/modules/scraping/executor/scraping-executor.service.ts src/modules/scraping/storage/scraped-items.repo.ts` -> OK.
+- PR city: backend <https://github.com/davideliaspalacio/xitty-backend/pull/32>.
 
 ## Evidencia F8
 
