@@ -110,6 +110,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #87 abierto: `chore/backend-lint-preferences-service`; preferences service queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #88 abierto: `chore/backend-lint-source-factory`; source factory queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #89 abierto: `chore/backend-lint-mock-chat-provider`; mock chat provider queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #90 abierto: `chore/backend-lint-favorites-controller`; favorites controller queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -289,7 +290,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend mock chat provider lint: `npx eslint src/modules/chat/providers/mock-provider.ts` -> OK.
 - Backend mock chat provider tests: `npm test -- --runInBand src/modules/chat/providers/mock-provider.spec.ts` -> 1 suite / 9 tests OK.
 - Backend build tras mock chat provider lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 36 archivos / 76 errores / 4 warnings.
+- Backend favorites controller lint: `npx eslint src/modules/favorites/favorites.controller.ts` -> OK.
+- Backend favorites smoke tests: `npm test -- --runInBand src/modules/favorites/favorites.service.spec.ts` -> 1 suite / 5 tests OK.
+- Backend build tras favorites controller lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 35 archivos / 74 errores / 2 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

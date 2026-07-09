@@ -10,9 +10,9 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 36.
-- Errores: 76.
-- Warnings: 4.
+- Archivos con problemas: 35.
+- Errores: 74.
+- Warnings: 2.
 - Errores auto-fixables: 54.
 
 Avance aplicado:
@@ -201,17 +201,20 @@ Avance aplicado:
 - PR tecnico #89 `chore/backend-lint-mock-chat-provider`:
   `mock-provider.ts` queda sin `async` innecesario, con formato Prettier y lint
   dirigido limpio.
-- Reduccion neta acumulada: -82 archivos con problemas, -2634 errores y -243 warnings.
+- PR tecnico #90 `chore/backend-lint-favorites-controller`:
+  `favorites.controller.ts` queda con request autenticado tipado y lint dirigido
+  limpio.
+- Reduccion neta acumulada: -83 archivos con problemas, -2636 errores y -245 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
 | `prettier/prettier` | 54 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 10 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `@typescript-eslint/no-unsafe-member-access` | 8 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/no-unsafe-assignment` | 6 | 0 | Asignaciones desde `any`. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 4 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/require-await` | 4 | 0 | Funciones async sin await. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 2 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/no-redundant-type-constituents` | 1 | 0 | Union de tipos redundante. |
 | `@typescript-eslint/no-unused-vars` | 1 | 0 | Variables/imports historicos sin usar. |
 
@@ -219,10 +222,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/favorites/favorites.controller.ts` | 2 | 2 |
 | `src/modules/scraping/enrichment/enrichment.service.spec.ts` | 4 | 0 |
 | `src/modules/scraping/enrichment/enrichment.service.ts` | 4 | 0 |
 | `src/modules/scraping/scheduler/runner.service.ts` | 4 | 0 |
+| `src/modules/scraping/scraping.module.spec.ts` | 4 | 0 |
 
 ## Impacto en Features v2
 
