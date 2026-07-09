@@ -34,6 +34,26 @@ const SYSTEM_PROMPT_BASE =
 
 const RECENT_MESSAGES_LIMIT = 10;
 
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseSingleResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+interface SupabaseListResult<T> {
+  data: T[] | null;
+  error: SupabaseError | null;
+}
+
+interface ConversationIdRow {
+  id: string;
+}
+
+type MessageMetadata = Record<string, unknown> | null;
+
 @Injectable()
 export class ChatService {
   private readonly logger = new Logger(ChatService.name);
@@ -52,14 +72,16 @@ export class ChatService {
   // ────────────────────────────────────────────────────────────────────────
 
   async listConversations(userId: string): Promise<ConversationResponseDto[]> {
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(CONVERSATIONS_TABLE)
       .select('id, user_id, title, created_at, updated_at')
       .eq('user_id', userId)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', {
+        ascending: false,
+      })) as unknown as SupabaseListResult<ConversationResponseDto>;
 
     if (error) throw new BadRequestException(error.message);
-    return (data ?? []) as ConversationResponseDto[];
+    return data ?? [];
   }
 
   async getConversation(
@@ -68,17 +90,19 @@ export class ChatService {
   ): Promise<ConversationWithMessagesDto> {
     const conv = await this.fetchOwnedConversation(userId, conversationId);
 
-    const { data: msgs, error: msgErr } = await this.supabase
+    const { data: msgs, error: msgErr } = (await this.supabase
       .from(MESSAGES_TABLE)
       .select('id, conversation_id, role, content, metadata, created_at')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .order('created_at', {
+        ascending: true,
+      })) as unknown as SupabaseListResult<MessageResponseDto>;
 
     if (msgErr) throw new BadRequestException(msgErr.message);
 
     return {
       ...conv,
-      messages: (msgs ?? []) as MessageResponseDto[],
+      messages: msgs ?? [],
     };
   }
 
@@ -90,11 +114,11 @@ export class ChatService {
     userId: string,
     dto: CreateConversationDto,
   ): Promise<CreateConversationResponseDto> {
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(CONVERSATIONS_TABLE)
       .insert({ user_id: userId, title: dto.title ?? null })
       .select('id')
-      .single();
+      .single()) as unknown as SupabaseSingleResult<ConversationIdRow>;
 
     if (error || !data) {
       throw new BadRequestException(
@@ -102,7 +126,7 @@ export class ChatService {
       );
     }
 
-    const conversationId = (data as any).id as string;
+    const conversationId = data.id;
 
     let firstMessageId: string | null = null;
     if (dto.first_message && dto.first_message.trim().length > 0) {
@@ -166,12 +190,7 @@ export class ChatService {
     await this.rateLimit.checkAndIncrement(userId);
 
     // b) persist user message ──────────────────────────────────────────────
-    const userMessage = await this.insertMessage(
-      conversationId,
-      'user',
-      content,
-      null,
-    );
+    await this.insertMessage(conversationId, 'user', content, null);
 
     // c) cargar recent messages (incluye el que acabamos de insertar) ──────
     const recentMessages = await this.fetchRecentMessages(conversationId);
@@ -180,8 +199,10 @@ export class ChatService {
     let snippets: PlaceSnippet[] = [];
     try {
       snippets = await this.contextService.getSnippetsFor(content);
-    } catch (err: any) {
-      this.logger.warn(`RAG fetch failed, continuing without context: ${err?.message}`);
+    } catch (err: unknown) {
+      this.logger.warn(
+        `RAG fetch failed, continuing without context: ${errorMessage(err)}`,
+      );
       snippets = [];
     }
 
@@ -226,32 +247,34 @@ export class ChatService {
     userId: string,
     conversationId: string,
   ): Promise<ConversationResponseDto> {
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(CONVERSATIONS_TABLE)
       .select('id, user_id, title, created_at, updated_at')
       .eq('id', conversationId)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseSingleResult<ConversationResponseDto>;
 
     if (error) throw new BadRequestException(error.message);
     if (!data) throw new NotFoundException('Conversation not found');
-    if ((data as any).user_id !== userId) {
+    if (data.user_id !== userId) {
       throw new ForbiddenException('No tienes acceso a esta conversacion');
     }
-    return data as ConversationResponseDto;
+    return data;
   }
 
   private async fetchRecentMessages(
     conversationId: string,
   ): Promise<MessageResponseDto[]> {
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(MESSAGES_TABLE)
       .select('id, conversation_id, role, content, metadata, created_at')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: false })
-      .limit(RECENT_MESSAGES_LIMIT);
+      .limit(
+        RECENT_MESSAGES_LIMIT,
+      )) as unknown as SupabaseListResult<MessageResponseDto>;
 
     if (error) throw new BadRequestException(error.message);
-    const rows = (data ?? []) as MessageResponseDto[];
+    const rows = data ?? [];
     // Reverse to chronological order
     return rows.reverse();
   }
@@ -260,9 +283,9 @@ export class ChatService {
     conversationId: string,
     role: 'user' | 'assistant' | 'system',
     content: string,
-    metadata: Record<string, any> | null,
+    metadata: MessageMetadata,
   ): Promise<MessageResponseDto> {
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(MESSAGES_TABLE)
       .insert({
         conversation_id: conversationId,
@@ -271,13 +294,19 @@ export class ChatService {
         metadata,
       })
       .select('id, conversation_id, role, content, metadata, created_at')
-      .single();
+      .single()) as unknown as SupabaseSingleResult<MessageResponseDto>;
 
     if (error || !data) {
       throw new BadRequestException(
         error?.message ?? 'No se pudo guardar el mensaje',
       );
     }
-    return data as MessageResponseDto;
+    return data;
   }
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'unknown';
 }

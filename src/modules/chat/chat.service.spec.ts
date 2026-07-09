@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { ChatService } from './chat.service';
 import { ContextService } from './rag/context.service';
@@ -16,25 +17,104 @@ import {
 } from './providers/chat-provider.interface';
 
 // ── Supabase chain mock ─────────────────────────────────────────────────────
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  message: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+  count: number | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  insert: ChainMethod;
+  update: ChainMethod;
+  delete: ChainMethod;
+  eq: ChainMethod;
+  neq: ChainMethod;
+  in: ChainMethod;
+  order: ChainMethod;
+  range: ChainMethod;
+  limit: ChainMethod;
+  single: ChainMethod;
+  maybeSingle: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  rpc: jest.MockedFunction<(...args: unknown[]) => unknown>;
+  _on: (data: unknown, error?: MockDbError | null, count?: number) => MockChain;
+}
+
+interface MockContextService {
+  extractEntities: jest.MockedFunction<(text: string) => string[]>;
+  getSnippetsFor: jest.MockedFunction<
+    (text: string, limit?: number) => Promise<PlaceSnippet[]>
+  >;
+}
+
+interface MockRateLimitService {
+  checkAndIncrement: jest.MockedFunction<(userId: string) => Promise<number>>;
+  limit: number;
+}
+
+interface InsertedAssistantRow {
+  role?: unknown;
+  metadata?: unknown;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
-    'from', 'select', 'insert', 'update', 'delete',
-    'eq', 'neq', 'in', 'order', 'range', 'limit',
-    'single', 'maybeSingle',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+    'from',
+    'select',
+    'insert',
+    'update',
+    'delete',
+    'eq',
+    'neq',
+    'in',
+    'order',
+    'range',
+    'limit',
+    'single',
+    'maybeSingle',
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn(), rpc: jest.fn() };
-  mock._on = (data: any, error?: any, count?: number) => {
-    const c = createChain({ data, error: error || null, count: count ?? null });
-    mock.from.mockReturnValueOnce(c);
-    return c;
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    rpc: jest.fn<(...args: unknown[]) => unknown>(),
+    _on: (data: unknown, error?: MockDbError | null, count?: number) => {
+      const c = createChain({
+        data,
+        error: error ?? null,
+        count: count ?? null,
+      });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
   };
   mock.from.mockImplementation(() =>
     createChain({ data: null, error: null, count: null }),
@@ -42,26 +122,30 @@ function createMockSupabase() {
   return mock;
 }
 
+function firstArg<T>(method: ChainMethod): T {
+  return method.mock.calls[0]?.[0] as T;
+}
+
 // ── Trackable fake provider ─────────────────────────────────────────────────
 class FakeProvider implements ChatProvider {
   calls: { messages: ChatProviderMessage[]; snippets: PlaceSnippet[] }[] = [];
   reply = 'respuesta canned del fake provider';
 
-  async generate(
+  generate(
     messages: ChatProviderMessage[],
     snippets: PlaceSnippet[],
   ): Promise<string> {
     this.calls.push({ messages, snippets });
-    return this.reply;
+    return Promise.resolve(this.reply);
   }
 }
 
 describe('ChatService', () => {
   let service: ChatService;
-  let supabase: any;
+  let supabase: MockSupabase;
   let provider: FakeProvider;
-  let context: jest.Mocked<ContextService>;
-  let rateLimit: jest.Mocked<ChatRateLimitService>;
+  let context: MockContextService;
+  let rateLimit: MockRateLimitService;
 
   const USER_ID = 'user-1';
   const CONV_ID = 'conv-1';
@@ -73,20 +157,29 @@ describe('ChatService', () => {
     context = {
       extractEntities: jest.fn().mockReturnValue([]),
       getSnippetsFor: jest.fn().mockResolvedValue([]),
-    } as any;
+    };
 
     rateLimit = {
       checkAndIncrement: jest.fn().mockResolvedValue(1),
       limit: 30,
-    } as any;
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ChatService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
         { provide: CHAT_PROVIDER, useValue: provider },
-        { provide: ContextService, useValue: context },
-        { provide: ChatRateLimitService, useValue: rateLimit },
+        {
+          provide: ContextService,
+          useValue: context as unknown as ContextService,
+        },
+        {
+          provide: ChatRateLimitService,
+          useValue: rateLimit as unknown as ChatRateLimitService,
+        },
       ],
     }).compile();
 
@@ -165,7 +258,13 @@ describe('ChatService', () => {
   describe('listConversations', () => {
     it('devuelve lista ordenada del usuario', async () => {
       supabase._on([
-        { id: 'c1', user_id: USER_ID, title: 'A', created_at: 'x', updated_at: 'y' },
+        {
+          id: 'c1',
+          user_id: USER_ID,
+          title: 'A',
+          created_at: 'x',
+          updated_at: 'y',
+        },
       ]);
       const result = await service.listConversations(USER_ID);
       expect(result).toHaveLength(1);
@@ -186,8 +285,22 @@ describe('ChatService', () => {
         updated_at: 'b',
       });
       supabase._on([
-        { id: 'm1', conversation_id: CONV_ID, role: 'user', content: 'hola', metadata: null, created_at: 't1' },
-        { id: 'm2', conversation_id: CONV_ID, role: 'assistant', content: 'hi', metadata: null, created_at: 't2' },
+        {
+          id: 'm1',
+          conversation_id: CONV_ID,
+          role: 'user',
+          content: 'hola',
+          metadata: null,
+          created_at: 't1',
+        },
+        {
+          id: 'm2',
+          conversation_id: CONV_ID,
+          role: 'assistant',
+          content: 'hi',
+          metadata: null,
+          created_at: 't2',
+        },
       ]);
 
       const result = await service.getConversation(USER_ID, CONV_ID);
@@ -203,7 +316,13 @@ describe('ChatService', () => {
     });
 
     it('tira 403 si la conversation pertenece a otro user', async () => {
-      supabase._on({ id: CONV_ID, user_id: 'OTRO', title: null, created_at: 'a', updated_at: 'b' });
+      supabase._on({
+        id: CONV_ID,
+        user_id: 'OTRO',
+        title: null,
+        created_at: 'a',
+        updated_at: 'b',
+      });
       await expect(service.getConversation(USER_ID, CONV_ID)).rejects.toThrow(
         ForbiddenException,
       );
@@ -214,13 +333,21 @@ describe('ChatService', () => {
   // sendMessage
   // ────────────────────────────────────────────────────────────────────────
   describe('sendMessage', () => {
-    function mockHappyPath(opts: {
-      recentMessages?: any[];
-      snippets?: PlaceSnippet[];
-      assistantMessage?: any;
-    } = {}) {
+    function mockHappyPath(
+      opts: {
+        recentMessages?: unknown[];
+        snippets?: PlaceSnippet[];
+        assistantMessage?: unknown;
+      } = {},
+    ) {
       // a) fetchOwnedConversation
-      supabase._on({ id: CONV_ID, user_id: USER_ID, title: null, created_at: 'a', updated_at: 'b' });
+      supabase._on({
+        id: CONV_ID,
+        user_id: USER_ID,
+        title: null,
+        created_at: 'a',
+        updated_at: 'b',
+      });
       // b) insert user message
       supabase._on({
         id: 'm-user',
@@ -232,7 +359,14 @@ describe('ChatService', () => {
       });
       // c) fetch recent
       const recent = opts.recentMessages ?? [
-        { id: 'm-user', conversation_id: CONV_ID, role: 'user', content: 'hola', metadata: null, created_at: 'now' },
+        {
+          id: 'm-user',
+          conversation_id: CONV_ID,
+          role: 'user',
+          content: 'hola',
+          metadata: null,
+          created_at: 'now',
+        },
       ];
       supabase._on(recent);
       // d) insert assistant message
@@ -242,7 +376,10 @@ describe('ChatService', () => {
           conversation_id: CONV_ID,
           role: 'assistant',
           content: provider.reply,
-          metadata: opts.snippets && opts.snippets.length ? { context_place_ids: opts.snippets.map(s => s.id) } : null,
+          metadata:
+            opts.snippets && opts.snippets.length
+              ? { context_place_ids: opts.snippets.map((s) => s.id) }
+              : null,
           created_at: 'now',
         },
       );
@@ -272,7 +409,7 @@ describe('ChatService', () => {
       const result = await service.sendMessage(USER_ID, CONV_ID, 'hola');
 
       // Verificar inserts: from() llamada 5 veces (own, insert user, recent, insert assistant, bump)
-      const fromCalls = (supabase.from as jest.Mock).mock.calls.map(c => c[0]);
+      const fromCalls = supabase.from.mock.calls.map(([table]) => table);
       expect(fromCalls).toEqual([
         'chat_conversations',
         'chat_messages',
@@ -286,35 +423,47 @@ describe('ChatService', () => {
 
     it('rechaza con ForbiddenException si rate limit excede', async () => {
       // ownership ok
-      supabase._on({ id: CONV_ID, user_id: USER_ID, title: null, created_at: 'a', updated_at: 'b' });
+      supabase._on({
+        id: CONV_ID,
+        user_id: USER_ID,
+        title: null,
+        created_at: 'a',
+        updated_at: 'b',
+      });
       rateLimit.checkAndIncrement.mockRejectedValueOnce(
         new ForbiddenException('limit excedido'),
       );
-      await expect(service.sendMessage(USER_ID, CONV_ID, 'hola')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.sendMessage(USER_ID, CONV_ID, 'hola'),
+      ).rejects.toThrow(ForbiddenException);
       // provider no debe haberse llamado
       expect(provider.calls).toHaveLength(0);
     });
 
     it('rechaza con 404 si la conversation no existe', async () => {
       supabase._on(null);
-      await expect(service.sendMessage(USER_ID, CONV_ID, 'hola')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.sendMessage(USER_ID, CONV_ID, 'hola'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('rechaza con 403 si la conversation es de otro user', async () => {
-      supabase._on({ id: CONV_ID, user_id: 'OTRO', title: null, created_at: 'a', updated_at: 'b' });
-      await expect(service.sendMessage(USER_ID, CONV_ID, 'hola')).rejects.toThrow(
-        ForbiddenException,
-      );
+      supabase._on({
+        id: CONV_ID,
+        user_id: 'OTRO',
+        title: null,
+        created_at: 'a',
+        updated_at: 'b',
+      });
+      await expect(
+        service.sendMessage(USER_ID, CONV_ID, 'hola'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('rechaza con BadRequest si el content esta vacio', async () => {
-      await expect(service.sendMessage(USER_ID, CONV_ID, '   ')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.sendMessage(USER_ID, CONV_ID, '   '),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('incluye context snippets cuando el mensaje matchea keyword', async () => {
@@ -324,17 +473,32 @@ describe('ChatService', () => {
       ];
       mockHappyPath({ snippets });
 
-      const result = await service.sendMessage(USER_ID, CONV_ID, 'quiero ir a la playa');
+      const result = await service.sendMessage(
+        USER_ID,
+        CONV_ID,
+        'quiero ir a la playa',
+      );
 
       expect(provider.calls[0].snippets).toEqual(snippets);
       // metadata del assistant message persistido (chequeable via insertCall args)
-      const insertCalls = (supabase.from as jest.Mock).mock.results
-        .map((r: any, i: number) => ({ name: (supabase.from as jest.Mock).mock.calls[i][0], chain: r.value }))
-        .filter((x: any) => x.name === 'chat_messages');
+      const chatMessageChains: MockChain[] = [];
+      supabase.from.mock.results.forEach((result, index) => {
+        if (
+          result.type === 'return' &&
+          supabase.from.mock.calls[index]?.[0] === 'chat_messages'
+        ) {
+          chatMessageChains.push(result.value);
+        }
+      });
       // hay 3 calls a chat_messages: insert user, select recent, insert assistant
-      const assistantInsertChain = insertCalls[2].chain;
+      const assistantInsertChain = chatMessageChains[2];
+      if (assistantInsertChain === undefined) {
+        throw new Error('Expected assistant insert chain');
+      }
       expect(assistantInsertChain.insert).toHaveBeenCalled();
-      const insertedRow = assistantInsertChain.insert.mock.calls[0][0];
+      const insertedRow = firstArg<InsertedAssistantRow>(
+        assistantInsertChain.insert,
+      );
       expect(insertedRow.role).toBe('assistant');
       expect(insertedRow.metadata).toEqual({
         context_place_ids: ['place-1', 'place-2'],
@@ -358,7 +522,13 @@ describe('ChatService', () => {
   // ────────────────────────────────────────────────────────────────────────
   describe('deleteConversation', () => {
     it('elimina si es del user', async () => {
-      supabase._on({ id: CONV_ID, user_id: USER_ID, title: null, created_at: 'a', updated_at: 'b' });
+      supabase._on({
+        id: CONV_ID,
+        user_id: USER_ID,
+        title: null,
+        created_at: 'a',
+        updated_at: 'b',
+      });
       supabase._on(null);
       await expect(
         service.deleteConversation(USER_ID, CONV_ID),
@@ -366,7 +536,13 @@ describe('ChatService', () => {
     });
 
     it('tira 403 si no es del user', async () => {
-      supabase._on({ id: CONV_ID, user_id: 'OTRO', title: null, created_at: 'a', updated_at: 'b' });
+      supabase._on({
+        id: CONV_ID,
+        user_id: 'OTRO',
+        title: null,
+        created_at: 'a',
+        updated_at: 'b',
+      });
       await expect(
         service.deleteConversation(USER_ID, CONV_ID),
       ).rejects.toThrow(ForbiddenException);
