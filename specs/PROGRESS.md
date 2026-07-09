@@ -71,6 +71,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #48 abierto: `chore/backend-lint-recommendations-service-spec`; recommendations service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #49 abierto: `chore/backend-lint-experience-reviews-service-spec`; experience reviews service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #50 abierto: `chore/backend-lint-favorites-service-spec`; favorites service/spec quedan tipados y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #51 preparado: `chore/backend-lint-local-picks-service-spec`; local picks service/spec quedan tipados y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -134,7 +135,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend favorites lint: `npx eslint src/modules/favorites/favorites.service.ts src/modules/favorites/favorites.service.spec.ts` -> OK.
 - Backend favorites tests: `npm test -- --runInBand src/modules/favorites/favorites.service.spec.ts` -> 1 suite / 5 tests OK.
 - Backend build tras favorites lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 88 archivos / 867 errores / 135 warnings.
+- Backend local picks lint: `npx eslint src/modules/local-picks/local-picks.service.ts src/modules/local-picks/local-picks.service.spec.ts` -> OK.
+- Backend local picks tests: `npm test -- --runInBand src/modules/local-picks/local-picks.service.spec.ts` -> 1 suite / 11 tests OK.
+- Backend build tras local picks lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 86 archivos / 772 errores / 133 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 88.
-- Errores: 867.
-- Warnings: 135.
-- Errores auto-fixables: 235.
+- Archivos con problemas: 86.
+- Errores: 772.
+- Warnings: 133.
+- Errores auto-fixables: 213.
 
 Avance aplicado:
 
@@ -73,35 +73,37 @@ Avance aplicado:
   `favorites.service.ts` y `favorites.service.spec.ts` quedan con filas de
   favoritos/lugares/covers tipadas, mocks Supabase tipados y lint dirigido
   limpio.
-- Reduccion neta acumulada: -30 archivos con problemas, -1843 errores y -112 warnings.
+- PR tecnico #51 `chore/backend-lint-local-picks-service-spec`:
+  `local-picks.service.ts` y `local-picks.service.spec.ts` quedan con filas de
+  picks/lugares/fotos tipadas, updates parciales sin `any`, mocks Supabase
+  tipados y lint dirigido limpio.
+- Reduccion neta acumulada: -32 archivos con problemas, -1938 errores y -114 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `@typescript-eslint/no-unsafe-member-access` | 327 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `prettier/prettier` | 234 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-assignment` | 143 | 0 | Asignaciones desde `any`. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 134 | Argumentos `any` en tests/servicios. |
-| `@typescript-eslint/no-unsafe-call` | 81 | 0 | Llamadas sobre valores `any`. |
-| `@typescript-eslint/no-unsafe-return` | 58 | 0 | Retornos `any` sin tipar. |
+| `@typescript-eslint/no-unsafe-member-access` | 298 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `prettier/prettier` | 212 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 132 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-assignment` | 122 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-call` | 72 | 0 | Llamadas sobre valores `any`. |
+| `@typescript-eslint/no-unsafe-return` | 45 | 0 | Retornos `any` sin tipar. |
 | `@typescript-eslint/require-await` | 9 | 0 | Funciones async sin await. |
-| `@typescript-eslint/no-unused-vars` | 5 | 0 | Variables/imports historicos sin usar. |
 | `@typescript-eslint/unbound-method` | 4 | 0 | Metodos usados sin bind, principalmente mocks. |
+| `@typescript-eslint/no-unused-vars` | 4 | 0 | Variables/imports historicos sin usar. |
 | `@typescript-eslint/no-base-to-string` | 3 | 0 | Conversion implicita a string. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/local-picks/local-picks.service.spec.ts` | 54 | 2 |
 | `src/modules/featured/featured.service.spec.ts` | 53 | 2 |
 | `src/modules/experiences/experiences.controller.ts` | 26 | 19 |
 | `src/modules/reviews/reviews.service.spec.ts` | 46 | 2 |
 | `src/modules/consents/consents.service.spec.ts` | 43 | 3 |
 | `src/modules/featured/featured.service.ts` | 42 | 0 |
 | `src/modules/chat/rag/context.service.spec.ts` | 39 | 2 |
-| `src/modules/local-picks/local-picks.service.ts` | 39 | 0 |
 | `src/modules/location/location.service.spec.ts` | 36 | 2 |
 | `src/modules/chat/chat.controller.spec.ts` | 17 | 14 |
 | `src/modules/suggestions/suggestions.service.spec.ts` | 28 | 2 |
@@ -109,6 +111,8 @@ Avance aplicado:
 | `src/modules/notification-settings/notification-settings.service.spec.ts` | 24 | 2 |
 | `src/modules/scraping/sources/tavily-search-source.spec.ts` | 26 | 0 |
 | `src/modules/auth/auth.service.ts` | 23 | 2 |
+| `src/modules/scraping/storage/photo-storage.service.spec.ts` | 18 | 6 |
+| `src/modules/metrics/metrics.controller.ts` | 17 | 5 |
 
 ## Impacto en Features v2
 
