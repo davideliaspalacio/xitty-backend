@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -16,6 +10,12 @@ import { RecommendationsService } from './recommendations.service';
 import { TodayQueryDto } from './dto/today-query.dto';
 import { TodayRecommendationsResponseDto } from './dto/recommendation-item.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
+
+interface AuthenticatedRecommendationRequest {
+  user: {
+    id: string;
+  };
+}
 
 @ApiTags('recommendations')
 @ApiBearerAuth()
@@ -40,7 +40,7 @@ export class RecommendationsController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async today(
-    @Request() req: any,
+    @Request() req: AuthenticatedRecommendationRequest,
     @Query() query: TodayQueryDto,
   ): Promise<TodayRecommendationsResponseDto> {
     return this.recommendationsService.today(req.user.id, query);
