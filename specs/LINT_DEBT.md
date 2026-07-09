@@ -177,7 +177,7 @@ Avance aplicado:
 - PR tecnico #81 `chore/backend-lint-scraping-sources-repo`:
   `scraping-sources.repo.ts` queda con resultados Supabase tipados, query
   condicional sin `any`, errores de patch tipados y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-experience-list-query-dto`:
+- PR tecnico #82 `chore/backend-lint-experience-list-query-dto`:
   `experience-list-query.dto.ts` queda con transform de tags tipado, import
   sin usar removido, formato Prettier y lint dirigido limpio.
 - Reduccion neta acumulada: -75 archivos con problemas, -2597 errores y -242 warnings.
