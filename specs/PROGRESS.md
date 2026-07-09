@@ -66,6 +66,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #43 abierto: `chore/backend-lint-reservations-spec`; reservations service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #44 abierto: `chore/backend-lint-experiences-service-spec`; experiences service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #45 abierto: `chore/backend-lint-ranking-spec`; ranking spec queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #46 preparado: `chore/backend-lint-places-spec`; places service/spec quedan tipados y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -114,7 +115,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend ranking lint: `npx eslint src/modules/ranking/ranking.service.ts src/modules/ranking/ranking.service.spec.ts` -> OK.
 - Backend ranking tests: `npm test -- --runInBand src/modules/ranking/ranking.service.spec.ts` -> 1 suite / 14 tests OK.
 - Backend build tras ranking lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 97 archivos / 1378 errores / 154 warnings.
+- Backend places lint: `npx eslint src/modules/places/places.service.ts src/modules/places/places.service.spec.ts` -> OK.
+- Backend places tests: `npm test -- --runInBand src/modules/places/places.service.spec.ts` -> 1 suite / 19 tests OK.
+- Backend build tras places lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 95 archivos / 1245 errores / 152 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

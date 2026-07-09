@@ -12,6 +12,14 @@ import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
 import { PlaceListQueryDto, PlaceSortBy } from './dto/place-list-query.dto';
 import { CreatePlacePhotoDto } from './dto/create-place-photo.dto';
+import { CategoryResponseDto } from './dto/category-response.dto';
+import {
+  PlaceCardDto,
+  PlaceDetailDto,
+  PlacePhotoDto,
+  PlaceListResponseDto,
+} from './dto/place-response.dto';
+import { OgResponseDto } from './dto/og-response.dto';
 import { localize, DEFAULT_LANG } from '../../common/i18n/localize';
 
 const PLACES_TABLE = 'places';
@@ -24,6 +32,76 @@ const PLACE_CARD_SELECT =
 const PLACE_DETAIL_SELECT =
   'id, name, description, address, latitude, longitude, phone, website, price_range, schedule, source_reviews, category_id, categories(id, name, slug, icon), owner_id, tags, translations, average_rating, total_reviews, is_active, slug, cta_phone, cta_whatsapp, reservation_url, is_sponsored, sponsored_until, created_at, updated_at';
 
+interface SupabaseError {
+  message: string;
+  code?: string;
+}
+
+interface SupabaseSingleResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+interface SupabaseListResult<T> {
+  data: T[] | null;
+  error: SupabaseError | null;
+  count?: number | null;
+}
+
+type TranslationEntry = Partial<
+  Record<'description' | 'title' | 'name', string>
+>;
+
+type PlaceTranslations = Record<string, TranslationEntry>;
+
+type PlaceCardRow = Omit<PlaceCardDto, 'cover_photo_url'> & {
+  translations?: PlaceTranslations | null;
+};
+
+type PlaceDetailRow = Omit<PlaceDetailDto, 'photos'> & {
+  translations?: PlaceTranslations | null;
+  source_reviews?: unknown;
+};
+
+interface CoverPhotoRow {
+  place_id: string;
+  url: string;
+}
+
+interface PlaceOwnerRow {
+  owner_id: string | null;
+}
+
+interface PlaceUpdates {
+  name?: string;
+  description?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  phone?: string;
+  website?: string;
+  price_range?: number;
+  schedule?: CreatePlaceDto['schedule'];
+  category_id?: string;
+  tags?: string[];
+  is_active?: boolean;
+  slug?: string;
+  cta_phone?: string;
+  cta_whatsapp?: string;
+  reservation_url?: string;
+}
+
+interface OgPlaceRow {
+  id: string;
+  name: string;
+  description: string | null;
+  average_rating: number | string | null;
+}
+
+interface OgCoverRow {
+  url: string;
+}
+
 @Injectable()
 export class PlacesService {
   constructor(
@@ -32,17 +110,17 @@ export class PlacesService {
     private readonly configService: ConfigService,
   ) {}
 
-  async findAllCategories() {
-    const { data, error } = await this.supabase
+  async findAllCategories(): Promise<CategoryResponseDto[]> {
+    const { data, error } = (await this.supabase
       .from(CATEGORIES_TABLE)
       .select('id, name, slug, icon, description')
-      .order('name');
+      .order('name')) as unknown as SupabaseListResult<CategoryResponseDto>;
 
     if (error) throw new BadRequestException(error.message);
-    return data;
+    return data || [];
   }
 
-  async findAll(query: PlaceListQueryDto) {
+  async findAll(query: PlaceListQueryDto): Promise<PlaceListResponseDto> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const offset = (page - 1) * limit;
@@ -88,29 +166,32 @@ export class PlacesService {
 
     qb = qb.range(offset, offset + limit - 1);
 
-    const { data, error, count } = await qb;
+    const { data, error, count } =
+      (await qb) as unknown as SupabaseListResult<PlaceCardRow>;
     if (error) throw new BadRequestException(error.message);
 
     const lang = query.lang || DEFAULT_LANG;
-    const cards = (data || []).map((p: any) => ({
-      ...localize(p, lang),
+    const cards: PlaceCardDto[] = (data || []).map((place) => ({
+      ...localize(place, lang),
       cover_photo_url: null, // populated below
     }));
 
     // Fetch cover photos for the returned places
     if (cards.length > 0) {
-      const placeIds = cards.map((c: any) => c.id);
-      const { data: covers } = await this.supabase
+      const placeIds = cards.map((card) => card.id);
+      const { data: covers } = (await this.supabase
         .from(PHOTOS_TABLE)
         .select('place_id, url')
         .in('place_id', placeIds)
-        .eq('is_cover', true);
+        .eq('is_cover', true)) as unknown as SupabaseListResult<CoverPhotoRow>;
 
       if (covers) {
-        const coverMap = new Map(covers.map((c: any) => [c.place_id, c.url]));
-        cards.forEach((c: any) => {
-          c.cover_photo_url = coverMap.get(c.id) || null;
-        });
+        const coverMap = new Map(
+          covers.map((cover) => [cover.place_id, cover.url]),
+        );
+        for (const card of cards) {
+          card.cover_photo_url = coverMap.get(card.id) || null;
+        }
       }
     }
 
@@ -128,15 +209,15 @@ export class PlacesService {
     page: number,
     limit: number,
     offset: number,
-  ) {
-    const { data, error } = await this.supabase.rpc('list_places_near', {
+  ): Promise<PlaceListResponseDto> {
+    const { data, error } = (await this.supabase.rpc('list_places_near', {
       user_lat: query.latitude,
       user_lng: query.longitude,
       p_category_id: query.category_id || null,
       p_price_range: query.price_range || null,
       p_limit: limit,
       p_offset: offset,
-    });
+    })) as unknown as SupabaseListResult<PlaceCardDto>;
 
     if (error) throw new BadRequestException(error.message);
 
@@ -148,10 +229,16 @@ export class PlacesService {
       .not('latitude', 'is', null)
       .not('longitude', 'is', null);
 
-    if (query.category_id) countQb = countQb.eq('category_id', query.category_id);
-    if (query.price_range) countQb = countQb.eq('price_range', query.price_range);
+    if (query.category_id) {
+      countQb = countQb.eq('category_id', query.category_id);
+    }
+    if (query.price_range) {
+      countQb = countQb.eq('price_range', query.price_range);
+    }
 
-    const { count } = await countQb;
+    const { count } = (await countQb) as unknown as SupabaseListResult<{
+      id: string;
+    }>;
 
     return {
       data: data || [],
@@ -162,7 +249,12 @@ export class PlacesService {
     };
   }
 
-  async search(q: string, page = 1, limit = 10, categoryId?: string) {
+  async search(
+    q: string,
+    page = 1,
+    limit = 10,
+    categoryId?: string,
+  ): Promise<PlaceListResponseDto> {
     const offset = (page - 1) * limit;
 
     // Use full-text search with Spanish config
@@ -176,27 +268,30 @@ export class PlacesService {
 
     qb = qb.range(offset, offset + limit - 1);
 
-    const { data, error, count } = await qb;
+    const { data, error, count } =
+      (await qb) as unknown as SupabaseListResult<PlaceCardRow>;
     if (error) throw new BadRequestException(error.message);
 
-    const cards = (data || []).map((p: any) => ({
-      ...p,
+    const cards: PlaceCardDto[] = (data || []).map((place) => ({
+      ...place,
       cover_photo_url: null,
     }));
 
     if (cards.length > 0) {
-      const placeIds = cards.map((c: any) => c.id);
-      const { data: covers } = await this.supabase
+      const placeIds = cards.map((card) => card.id);
+      const { data: covers } = (await this.supabase
         .from(PHOTOS_TABLE)
         .select('place_id, url')
         .in('place_id', placeIds)
-        .eq('is_cover', true);
+        .eq('is_cover', true)) as unknown as SupabaseListResult<CoverPhotoRow>;
 
       if (covers) {
-        const coverMap = new Map(covers.map((c: any) => [c.place_id, c.url]));
-        cards.forEach((c: any) => {
-          c.cover_photo_url = coverMap.get(c.id) || null;
-        });
+        const coverMap = new Map(
+          covers.map((cover) => [cover.place_id, cover.url]),
+        );
+        for (const card of cards) {
+          card.cover_photo_url = coverMap.get(card.id) || null;
+        }
       }
     }
 
@@ -209,33 +304,39 @@ export class PlacesService {
     };
   }
 
-  async findById(id: string, lang?: string) {
-    const { data, error } = await this.supabase
+  async findById(id: string, lang?: string): Promise<PlaceDetailDto> {
+    const { data, error } = (await this.supabase
       .from(PLACES_TABLE)
       .select(PLACE_DETAIL_SELECT)
       .eq('id', id)
       .eq('is_active', true)
-      .single();
+      .single()) as unknown as SupabaseSingleResult<PlaceDetailRow>;
 
     if (error || !data) throw new NotFoundException('Place not found');
 
     // Fetch photos
-    const { data: photos } = await this.supabase
+    const { data: photos } = (await this.supabase
       .from(PHOTOS_TABLE)
       .select('id, url, alt_text, is_cover, display_order')
       .eq('place_id', id)
-      .order('display_order');
+      .order('display_order')) as unknown as SupabaseListResult<PlacePhotoDto>;
 
-    const localized = localize(data as any, lang || DEFAULT_LANG);
+    const localized = localize(data, lang || DEFAULT_LANG);
     return { ...localized, photos: photos || [] };
   }
 
-  async create(userId: string, userRole: string, dto: CreatePlaceDto) {
+  async create(
+    userId: string,
+    userRole: string,
+    dto: CreatePlaceDto,
+  ): Promise<PlaceDetailDto> {
     if (userRole !== 'business' && userRole !== 'admin') {
-      throw new ForbiddenException('Only business owners or admins can create places');
+      throw new ForbiddenException(
+        'Only business owners or admins can create places',
+      );
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(PLACES_TABLE)
       .insert({
         name: dto.name,
@@ -256,9 +357,10 @@ export class PlacesService {
         reservation_url: dto.reservation_url,
       })
       .select(PLACE_DETAIL_SELECT)
-      .single();
+      .single()) as unknown as SupabaseSingleResult<PlaceDetailRow>;
 
     if (error) throw new BadRequestException(error.message);
+    if (!data) throw new BadRequestException('Could not create place');
     return { ...data, photos: [] };
   }
 
@@ -267,13 +369,13 @@ export class PlacesService {
     userId: string,
     userRole: string,
     dto: UpdatePlaceDto,
-  ) {
+  ): Promise<PlaceDetailDto> {
     // Verify ownership
-    const { data: existing, error: fetchError } = await this.supabase
+    const { data: existing, error: fetchError } = (await this.supabase
       .from(PLACES_TABLE)
       .select('owner_id')
       .eq('id', id)
-      .single();
+      .single()) as unknown as SupabaseSingleResult<PlaceOwnerRow>;
 
     if (fetchError || !existing) throw new NotFoundException('Place not found');
 
@@ -286,41 +388,52 @@ export class PlacesService {
       throw new ForbiddenException('Only admins can change active status');
     }
 
-    const updates: Record<string, any> = {};
-    const fields = [
-      'name', 'description', 'address', 'latitude', 'longitude',
-      'phone', 'website', 'price_range', 'schedule', 'category_id',
-      'tags', 'is_active',
-      'slug', 'cta_phone', 'cta_whatsapp', 'reservation_url',
-    ] as const;
-
-    for (const key of fields) {
-      if ((dto as any)[key] !== undefined) updates[key] = (dto as any)[key];
+    const updates: PlaceUpdates = {};
+    if (dto.name !== undefined) updates.name = dto.name;
+    if (dto.description !== undefined) updates.description = dto.description;
+    if (dto.address !== undefined) updates.address = dto.address;
+    if (dto.latitude !== undefined) updates.latitude = dto.latitude;
+    if (dto.longitude !== undefined) updates.longitude = dto.longitude;
+    if (dto.phone !== undefined) updates.phone = dto.phone;
+    if (dto.website !== undefined) updates.website = dto.website;
+    if (dto.price_range !== undefined) updates.price_range = dto.price_range;
+    if (dto.schedule !== undefined) updates.schedule = dto.schedule;
+    if (dto.category_id !== undefined) updates.category_id = dto.category_id;
+    if (dto.tags !== undefined) updates.tags = dto.tags;
+    if (dto.is_active !== undefined) updates.is_active = dto.is_active;
+    if (dto.slug !== undefined) updates.slug = dto.slug;
+    if (dto.cta_phone !== undefined) updates.cta_phone = dto.cta_phone;
+    if (dto.cta_whatsapp !== undefined) {
+      updates.cta_whatsapp = dto.cta_whatsapp;
+    }
+    if (dto.reservation_url !== undefined) {
+      updates.reservation_url = dto.reservation_url;
     }
 
     if (Object.keys(updates).length === 0) {
       throw new BadRequestException('At least one field is required');
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(PLACES_TABLE)
       .update(updates)
       .eq('id', id)
       .select(PLACE_DETAIL_SELECT)
-      .single();
+      .single()) as unknown as SupabaseSingleResult<PlaceDetailRow>;
 
     if (error) throw new BadRequestException(error.message);
+    if (!data) throw new NotFoundException('Place not found');
 
-    const { data: photos } = await this.supabase
+    const { data: photos } = (await this.supabase
       .from(PHOTOS_TABLE)
       .select('id, url, alt_text, is_cover, display_order')
       .eq('place_id', id)
-      .order('display_order');
+      .order('display_order')) as unknown as SupabaseListResult<PlacePhotoDto>;
 
     return { ...data, photos: photos || [] };
   }
 
-  async softDelete(id: string, userRole: string) {
+  async softDelete(id: string, userRole: string): Promise<void> {
     if (userRole !== 'admin') {
       throw new ForbiddenException('Admin access required');
     }
@@ -338,21 +451,23 @@ export class PlacesService {
     userId: string,
     userRole: string,
     dto: CreatePlacePhotoDto,
-  ) {
+  ): Promise<PlacePhotoDto> {
     // Verify ownership
-    const { data: place } = await this.supabase
+    const { data: place } = (await this.supabase
       .from(PLACES_TABLE)
       .select('owner_id')
       .eq('id', placeId)
-      .single();
+      .single()) as unknown as SupabaseSingleResult<PlaceOwnerRow>;
 
     if (!place) throw new NotFoundException('Place not found');
 
     if (place.owner_id !== userId && userRole !== 'admin') {
-      throw new ForbiddenException('You can only add photos to your own places');
+      throw new ForbiddenException(
+        'You can only add photos to your own places',
+      );
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(PHOTOS_TABLE)
       .insert({
         place_id: placeId,
@@ -362,31 +477,33 @@ export class PlacesService {
         display_order: dto.display_order ?? 0,
       })
       .select('*')
-      .single();
+      .single()) as unknown as SupabaseSingleResult<PlacePhotoDto>;
 
     if (error) throw new BadRequestException(error.message);
+    if (!data) throw new BadRequestException('Could not add photo');
     return data;
   }
 
-  async getOgMetadata(id: string) {
-    const { data, error } = await this.supabase
+  async getOgMetadata(id: string): Promise<OgResponseDto> {
+    const { data, error } = (await this.supabase
       .from(PLACES_TABLE)
       .select('id, name, description, average_rating')
       .eq('id', id)
       .eq('is_active', true)
-      .single();
+      .single()) as unknown as SupabaseSingleResult<OgPlaceRow>;
 
     if (error || !data) throw new NotFoundException('Place not found');
 
     // Get cover photo
-    const { data: cover } = await this.supabase
+    const { data: cover } = (await this.supabase
       .from(PHOTOS_TABLE)
       .select('url')
       .eq('place_id', id)
       .eq('is_cover', true)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseSingleResult<OgCoverRow>;
 
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://xitty.co';
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'https://xitty.co';
 
     return {
       title: data.name,
