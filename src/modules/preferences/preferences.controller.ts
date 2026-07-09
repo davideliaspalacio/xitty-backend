@@ -23,6 +23,12 @@ import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 import { PreferencesResponseDto } from './dto/preferences-response.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
+interface AuthenticatedPreferencesRequest {
+  user: {
+    id: string;
+  };
+}
+
 @ApiTags('preferences')
 @ApiBearerAuth()
 @Controller('preferences')
@@ -44,7 +50,7 @@ export class PreferencesController {
   @ApiResponse({ status: 400, description: 'Validation error' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async create(
-    @Request() req: any,
+    @Request() req: AuthenticatedPreferencesRequest,
     @Body() dto: CreatePreferencesDto,
   ): Promise<PreferencesResponseDto> {
     return this.preferencesService.upsert(req.user.id, dto);
@@ -56,7 +62,9 @@ export class PreferencesController {
   })
   @ApiResponse({ status: 200, type: PreferencesResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getMe(@Request() req: any): Promise<PreferencesResponseDto> {
+  async getMe(
+    @Request() req: AuthenticatedPreferencesRequest,
+  ): Promise<PreferencesResponseDto> {
     return this.preferencesService.getByUserId(req.user.id);
   }
 
@@ -71,7 +79,7 @@ export class PreferencesController {
     description: 'Preferences not found — create them first',
   })
   async updateMe(
-    @Request() req: any,
+    @Request() req: AuthenticatedPreferencesRequest,
     @Body() dto: UpdatePreferencesDto,
   ): Promise<PreferencesResponseDto> {
     return this.preferencesService.update(req.user.id, dto);
@@ -84,7 +92,9 @@ export class PreferencesController {
   })
   @ApiResponse({ status: 200, type: PreferencesResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async skip(@Request() req: any): Promise<PreferencesResponseDto> {
+  async skip(
+    @Request() req: AuthenticatedPreferencesRequest,
+  ): Promise<PreferencesResponseDto> {
     return this.preferencesService.skip(req.user.id);
   }
 }
