@@ -86,6 +86,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 78. #99 - PR tecnico place list query dto lint/typing, base #98.
 79. #100 - PR tecnico recommendation item dto lint/typing, base #99.
 80. #101 - PR tecnico recommendations controller lint/typing, base #100.
+81. Pendiente - PR tecnico quality scorer spec lint/typing, base #101.
 
 ### Frontend
 

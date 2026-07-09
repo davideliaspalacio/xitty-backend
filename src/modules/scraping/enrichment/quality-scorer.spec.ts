@@ -67,7 +67,11 @@ describe('QualityScorerService', () => {
     // fecha + precio no suman doble: sigue siendo un solo bucket de 0.10
     expect(
       scorer.score(
-        makeItem({ title: 'x', starts_at: '2026-07-15T20:00:00Z', price_cop: 1 }),
+        makeItem({
+          title: 'x',
+          starts_at: '2026-07-15T20:00:00Z',
+          price_cop: 1,
+        }),
       ),
     ).toBeCloseTo(0.25, 5);
   });
@@ -113,7 +117,11 @@ describe('QualityScorerService', () => {
       starts_at: '2026-02-20T08:00:00Z',
       price_cop: 80000,
     });
-    const s = scorer.score(item, { hasImage: true, rating: 5, reviewCount: 800 });
+    const s = scorer.score(item, {
+      hasImage: true,
+      rating: 5,
+      reviewCount: 800,
+    });
     expect(s).toBeCloseTo(1.0, 5);
   });
 
@@ -125,7 +133,11 @@ describe('QualityScorerService', () => {
       starts_at: '2026-01-01T00:00:00Z',
       price_cop: 1,
     });
-    const s = scorer.score(item, { hasImage: true, rating: 5, reviewCount: 9999 });
+    const s = scorer.score(item, {
+      hasImage: true,
+      rating: 5,
+      reviewCount: 9999,
+    });
     expect(s).toBeGreaterThanOrEqual(0);
     expect(s).toBeLessThanOrEqual(1);
   });
