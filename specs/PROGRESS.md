@@ -126,6 +126,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #103 abierto: `chore/backend-lint-openai-chat-provider`; openai chat provider queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #104 abierto: `chore/backend-lint-chat-rate-limit-service`; chat rate limit service queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #105 abierto: `chore/backend-lint-create-slot-dto`; create slot dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico pendiente: `chore/backend-lint-create-local-pick-dto`; create local pick dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -138,6 +139,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend lint Google Places: `npx eslint src/modules/scraping/sources/google-places-source.ts src/modules/scraping/sources/google-places-source.spec.ts` -> OK.
 - Backend Google Places tests: `npm test -- --runInBand src/modules/scraping/sources/google-places-source.spec.ts` -> 1 suite / 14 tests OK.
 - Backend build tras Google Places lint: `npm run build` -> OK.
+- Backend create local pick dto lint: `npx eslint src/modules/local-picks/dto/create-local-pick.dto.ts` -> OK.
+- Backend local picks smoke tests: `npm test -- --runInBand src/modules/local-picks/local-picks.service.spec.ts` -> 1 suite / 11 tests OK.
+- Backend build tras create local pick dto lint: `npm run build` -> OK.
+- Backend full lint tras create local pick dto: 18 archivos / 24 errores / 0 warnings; baja deuda historica, no queda aun en verde global.
 - Backend scraped-items repo spec lint: `npx eslint src/modules/scraping/storage/scraped-items.repo.spec.ts` -> OK.
 - Backend scraped-items repo spec tests: `npm test -- --runInBand src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 1 suite / 20 tests OK.
 - Backend build tras scraped-items lint: `npm run build` -> OK.
