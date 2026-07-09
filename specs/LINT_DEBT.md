@@ -275,7 +275,7 @@ Avance aplicado:
 - PR tecnico #114 `chore/backend-lint-refresh-token-dto`:
   `refresh-token.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-create-conversation-dto`:
+- PR tecnico #115 `chore/backend-lint-create-conversation-dto`:
   `create-conversation.dto.ts` queda formateado por Prettier y con lint
   dirigido limpio.
 - Reduccion neta acumulada: -109 archivos con problemas, -2701 errores y -247 warnings.
