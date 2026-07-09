@@ -41,6 +41,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: iniciado F1 poblacion de lugares.
 - 2026-07-09: F1 avance implementado con proveniencia de fuente, publicacion idempotente por source y reporte SQL de completitud/faltantes.
 - 2026-07-09: F1 PR abierto: backend #30.
+- 2026-07-09: F1 datos iniciado con seed ampliado de fuentes Cartagena por zonas, sin publicar fotos/lugares automaticamente.
 
 ## Evidencia F4
 

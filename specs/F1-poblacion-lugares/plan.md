@@ -8,6 +8,7 @@
 - [x] Pasar identidad externa desde executor a enriched.
 - [x] Publicar lugares de forma idempotente por fuente/source URL.
 - [x] Agregar tests de publicacion idempotente y proveniencia.
+- [x] Agregar seed versionado de fuentes ampliadas para Cartagena.
 - [x] Correr tests, build y lint dirigido.
 - [x] Abrir PR apilado.
 
@@ -18,6 +19,15 @@ Archivo: `supabase/migrations/20260709000009_place_source_provenance_report.sql`
 - Agrega campos de fuente a `places` y `scraped_items_enriched`.
 - Agrega indices unicos parciales para evitar duplicados por fuente.
 - Crea vista `place_data_completeness` con `missing_fields` y `completeness_score`.
+
+Archivo: `supabase/migrations/20260709000010_expand_cartagena_scraping_sources.sql`
+
+- Amplia fuentes de Cartagena por zonas: Centro Historico, Getsemani, San Diego,
+  Bocagrande, Castillogrande/El Laguito, Manga, Crespo/Marbella,
+  La Boquilla/Zona Norte, Baru/Pasacaballos e Islas del Rosario.
+- Mantiene `ON CONFLICT (name) DO UPDATE` para que correr la migracion dos veces
+  no duplique fuentes y si actualice configs.
+- No publica lugares automaticamente ni re-hospeda fotos.
 
 ## Tests
 
@@ -38,3 +48,5 @@ Archivo: `supabase/migrations/20260709000009_place_source_provenance_report.sql`
 - Backend build: `npm run build` -> OK.
 - Backend lint dirigido: `npx eslint src/modules/scraping/admin/admin-scraping.service.ts src/modules/scraping/executor/scraping-executor.service.ts src/modules/scraping/storage/scraped-items.repo.ts` -> OK.
 - Backend PR: <https://github.com/davideliaspalacio/xitty-backend/pull/30>.
+- Seed Cartagena: validacion local de 27 configs JSON -> OK.
+- Backend build tras seed: `npm run build` -> OK.
