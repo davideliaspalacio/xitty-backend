@@ -6,6 +6,7 @@ Estado probado localmente:
 
 - Codigo backend y frontend mergeado en `main`.
 - `supabase db reset` OK en una DB limpia temporal, aplicando todas las migraciones hasta `20260709000013_harden_backend_service_role_and_place_rpc.sql`.
+- Migracion adicional pendiente de aplicar en el siguiente cutover: `20260709000014_extend_place_data_completeness_report.sql`, que no toca datos y solo amplia el reporte F1.
 - Backend contra DB migrada respondio 200 en `/categories`, `/places?city=Cartagena`, `/places?sort_by=distance&city=Cartagena` y `/ranking?city=Cartagena`.
 
 ## 1. Pre-check obligatorio
@@ -34,7 +35,7 @@ Si el equipo no puede usar el CLI y necesita SQL Editor, generar un bundle local
 awk 'FNR == 1 { print "\n-- >>> " FILENAME "\n" } { print }' supabase/migrations/202607090000*.sql > /tmp/xitty-features-v2-migrations.sql
 ```
 
-Luego pegar `/tmp/xitty-features-v2-migrations.sql` completo en el SQL Editor del proyecto correcto y ejecutarlo una sola vez. Si el SQL Editor corta por timeout, ejecutar los archivos en orden cronologico, uno por uno, desde `20260709000001...` hasta `20260709000013...`.
+Luego pegar `/tmp/xitty-features-v2-migrations.sql` completo en el SQL Editor del proyecto correcto y ejecutarlo una sola vez. Si el SQL Editor corta por timeout, ejecutar los archivos en orden cronologico, uno por uno, desde `20260709000001...` hasta `20260709000014...`.
 
 Despues de aplicar:
 
@@ -68,7 +69,13 @@ WITH required_columns(table_name, column_name) AS (
     ('scraped_items_enriched', 'source_kind'),
     ('scraped_items_enriched', 'source_external_id'),
     ('scraped_items_enriched', 'city'),
-    ('scraped_items_enriched', 'zone')
+    ('scraped_items_enriched', 'zone'),
+    ('place_data_completeness', 'city'),
+    ('place_data_completeness', 'zone'),
+    ('place_data_completeness', 'category_id'),
+    ('place_data_completeness', 'category_name'),
+    ('place_data_completeness', 'category_slug'),
+    ('place_data_completeness', 'missing_count')
 )
 SELECT *
 FROM required_columns rc
@@ -121,7 +128,7 @@ Checks esperados:
 - `places.city` y `place_rankings.city` existen.
 - `list_places_near` tiene la firma nueva con `p_city` y `p_zone`.
 - `business_notification_outbox` existe para F6.
-- `place_data_completeness` existe para reporte F1.
+- `place_data_completeness` existe para reporte F1 y expone ciudad/zona/categoria/missing_count.
 - `refresh_place_rankings()` corre sin error.
 
 ## 4. Smoke HTTP post-migracion
@@ -162,7 +169,7 @@ Despues de migrar y verificar envs:
 2. Ejecutar fuentes de Cartagena por tandas chicas.
 3. Revisar cola de moderacion antes de publicar.
 4. Publicar una muestra controlada.
-5. Revisar completitud:
+5. Revisar completitud desde `/admin/scraping` > "Calidad de datos" y, si hace falta, confirmar por SQL:
 
 ```sql
 SELECT
@@ -183,6 +190,15 @@ FROM public.place_data_completeness
 WHERE COALESCE(cardinality(missing_fields), 0) > 0
 ORDER BY cardinality(missing_fields) DESC NULLS LAST, name
 LIMIT 50;
+
+SELECT
+  COALESCE(category_name, 'Sin categoria') AS category_name,
+  COUNT(*) AS total_places,
+  COUNT(*) FILTER (WHERE COALESCE(cardinality(missing_fields), 0) > 0) AS incomplete_places,
+  ROUND(AVG(completeness_score) * 100, 1) AS average_complete_percent
+FROM public.place_data_completeness
+GROUP BY category_name
+ORDER BY incomplete_places DESC, total_places DESC;
 ```
 
 No publicar fotos masivamente hasta tener politica/licencia aprobada.
@@ -201,6 +217,7 @@ Validar con datos reales:
 - Ranking por ciudad/categoria.
 - Sello "Patrocinado" visible.
 - Destacados semanales y fallback.
+- Reporte admin de calidad de datos en `/admin/scraping`.
 
 ## 7. Pendientes que no bloquean el deploy tecnico
 

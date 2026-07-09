@@ -38,6 +38,7 @@ interface MockChain extends PromiseLike<MockDbResult> {
   order: ChainMethod;
   range: ChainMethod;
   limit: ChainMethod;
+  gt: ChainMethod;
   single: ChainMethod;
   maybeSingle: ChainMethod;
 }
@@ -106,6 +107,7 @@ function createChain(result: MockDbResult): MockChain {
     'order',
     'range',
     'limit',
+    'gt',
     'single',
     'maybeSingle',
   ] satisfies Array<keyof Omit<MockChain, 'then'>>;
@@ -432,6 +434,76 @@ describe('AdminScrapingService', () => {
       await expect(service.findItem('missing')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('listPlaceCompleteness', () => {
+    it('devuelve reporte paginado con resumen y desglose por categoria', async () => {
+      const summaryRows = [
+        completenessRow({
+          id: 'p1',
+          name: 'Castillo',
+          category_id: 'cat-1',
+          category_name: 'Sitios Turisticos',
+          missing_fields: [],
+          missing_count: 0,
+          completeness_score: 1,
+        }),
+        completenessRow({
+          id: 'p2',
+          name: 'Cafe',
+          category_id: 'cat-2',
+          category_name: 'Restaurantes',
+          missing_fields: ['website', 'photos'],
+          missing_count: 2,
+          completeness_score: 0.8,
+        }),
+      ];
+      supabase._on(summaryRows);
+      const listChain = supabase._on([summaryRows[1]], undefined, 2);
+
+      const result = await service.listPlaceCompleteness({
+        city: 'Cartagena',
+        missing_only: true,
+        page: 1,
+        limit: 10,
+      });
+
+      expect(supabase.from).toHaveBeenCalledWith('place_data_completeness');
+      expect(listChain.eq).toHaveBeenCalledWith('city', 'Cartagena');
+      expect(listChain.gt).toHaveBeenCalledWith('missing_count', 0);
+      expect(result.data).toHaveLength(1);
+      expect(result.total).toBe(2);
+      expect(result.summary.total_places).toBe(2);
+      expect(result.summary.complete_places).toBe(1);
+      expect(result.summary.incomplete_places).toBe(1);
+      expect(result.summary.by_category).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            category_name: 'Restaurantes',
+            incomplete_places: 1,
+          }),
+          expect.objectContaining({
+            category_name: 'Sitios Turisticos',
+            complete_places: 1,
+          }),
+        ]),
+      );
+      expect(result.summary.fields).toContainEqual(
+        expect.objectContaining({
+          field: 'photos',
+          missing_places: 1,
+          completeness_percent: 50,
+        }),
+      );
+    });
+
+    it('aplica filtro category_id y propaga errores de la vista', async () => {
+      supabase._on(null, { message: 'view missing' });
+
+      await expect(
+        service.listPlaceCompleteness({ category_id: 'cat-uuid' }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -926,5 +998,36 @@ function enrichedItem(
     created_at: 't',
     updated_at: 't',
     ...overrides,
+  };
+}
+
+function completenessRow(
+  overrides: Partial<ReturnType<typeof completenessRowBase>> = {},
+): ReturnType<typeof completenessRowBase> {
+  return {
+    ...completenessRowBase(),
+    ...overrides,
+  };
+}
+
+function completenessRowBase() {
+  return {
+    id: 'p1',
+    name: 'Lugar',
+    city: 'Cartagena',
+    zone: 'Centro',
+    category_id: 'cat-1',
+    category_name: 'Restaurantes',
+    category_slug: 'restaurantes',
+    source_kind: 'google_places',
+    source_external_id: 'g-1',
+    source_url: 'https://maps.google.com/?cid=1',
+    photos_count: 1,
+    cover_photos_count: 1,
+    missing_fields: [] as string[],
+    missing_count: 0,
+    completeness_score: 1,
+    created_at: 't',
+    updated_at: 't',
   };
 }
