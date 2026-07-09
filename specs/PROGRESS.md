@@ -129,7 +129,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #106 abierto: `chore/backend-lint-create-local-pick-dto`; create local pick dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #107 abierto: `chore/backend-lint-mock-enrichment-provider`; mock enrichment provider queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #108 abierto: `chore/backend-lint-openai-enrichment-provider`; openai enrichment provider queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico pendiente: `chore/backend-lint-quality-scorer-service`; quality scorer service queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #109 abierto: `chore/backend-lint-quality-scorer-service`; quality scorer service queda con lint dirigido limpio.
 
 ## Evidencia transversal
 

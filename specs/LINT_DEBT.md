@@ -257,7 +257,7 @@ Avance aplicado:
 - PR tecnico #108 `chore/backend-lint-openai-enrichment-provider`:
   `openai-enrichment-provider.ts` queda con errores `unknown`, helper de
   mensaje seguro, formato Prettier y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-quality-scorer-service`:
+- PR tecnico #109 `chore/backend-lint-quality-scorer-service`:
   `quality-scorer.service.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -103 archivos con problemas, -2692 errores y -247 warnings.
