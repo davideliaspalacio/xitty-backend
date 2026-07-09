@@ -117,7 +117,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #94 abierto: `chore/backend-lint-scraping-module-spec`; scraping module spec queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #95 abierto: `chore/backend-lint-localize`; localize queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #96 abierto: `chore/backend-lint-chat-response-dto`; chat response dto queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico preparado: `chore/backend-lint-reservation-response-dto`; reservation response dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #97 abierto: `chore/backend-lint-reservation-response-dto`; reservation response dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 

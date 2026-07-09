@@ -222,7 +222,7 @@ Avance aplicado:
 - PR tecnico #96 `chore/backend-lint-chat-response-dto`:
   `message-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-reservation-response-dto`:
+- PR tecnico #97 `chore/backend-lint-reservation-response-dto`:
   `reservation-response.dto.ts` queda formateado por Prettier y con lint
   dirigido limpio.
 - Reduccion neta acumulada: -91 archivos con problemas, -2664 errores y -246 warnings.
