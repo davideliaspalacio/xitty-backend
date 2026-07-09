@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 16.
-- Errores: 20.
+- Archivos con problemas: 15.
+- Errores: 18.
 - Warnings: 0.
-- Errores auto-fixables: 18.
+- Errores auto-fixables: 16.
 
 Avance aplicado:
 
@@ -257,23 +257,26 @@ Avance aplicado:
 - PR tecnico #108 `chore/backend-lint-openai-enrichment-provider`:
   `openai-enrichment-provider.ts` queda con errores `unknown`, helper de
   mensaje seguro, formato Prettier y lint dirigido limpio.
-- Reduccion neta acumulada: -102 archivos con problemas, -2690 errores y -247 warnings.
+- PR tecnico pendiente `chore/backend-lint-quality-scorer-service`:
+  `quality-scorer.service.ts` queda formateado por Prettier y con lint dirigido
+  limpio.
+- Reduccion neta acumulada: -103 archivos con problemas, -2692 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 18 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 16 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/require-await` | 2 | 0 | Funciones async sin await. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/enrichment/quality-scorer.service.ts` | 2 | 0 |
 | `src/modules/scraping/public/discover.controller.ts` | 2 | 0 |
 | `src/modules/scraping/public/dto/curated-item.dto.ts` | 2 | 0 |
 | `src/modules/scraping/scheduler/scheduler.module.ts` | 2 | 0 |
+| `src/config/database.module.ts` | 1 | 0 |
 
 ## Impacto en Features v2
 
