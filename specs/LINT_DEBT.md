@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 76.
-- Errores: 485.
-- Warnings: 105.
-- Errores auto-fixables: 174.
+- Archivos con problemas: 74.
+- Errores: 446.
+- Warnings: 103.
+- Errores auto-fixables: 169.
 
 Avance aplicado:
 
@@ -95,18 +95,21 @@ Avance aplicado:
   `chat/rag/context.service.ts` y `chat/rag/context.service.spec.ts` quedan con
   filas de categorias/lugares tipadas, errores `unknown`, mocks Supabase tipados
   y lint dirigido limpio.
-- Reduccion neta acumulada: -42 archivos con problemas, -2225 errores y -142 warnings.
+- PR tecnico #57 `chore/backend-lint-location-service-spec`:
+  `location.service.ts` y `location.service.spec.ts` quedan con formato Prettier,
+  mocks Supabase tipados y lint dirigido limpio.
+- Reduccion neta acumulada: -44 archivos con problemas, -2264 errores y -144 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 173 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 173 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 104 | Argumentos `any` en tests/servicios. |
-| `@typescript-eslint/no-unsafe-assignment` | 69 | 0 | Asignaciones desde `any`. |
-| `@typescript-eslint/no-unsafe-call` | 32 | 0 | Llamadas sobre valores `any`. |
-| `@typescript-eslint/no-unsafe-return` | 17 | 0 | Retornos `any` sin tipar. |
+| `prettier/prettier` | 168 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-member-access` | 157 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 102 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-assignment` | 62 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-call` | 25 | 0 | Llamadas sobre valores `any`. |
+| `@typescript-eslint/no-unsafe-return` | 13 | 0 | Retornos `any` sin tipar. |
 | `@typescript-eslint/require-await` | 9 | 0 | Funciones async sin await. |
 | `@typescript-eslint/unbound-method` | 4 | 0 | Metodos usados sin bind, principalmente mocks. |
 | `@typescript-eslint/no-base-to-string` | 3 | 0 | Conversion implicita a string. |
@@ -116,7 +119,6 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/location/location.service.spec.ts` | 36 | 2 |
 | `src/modules/chat/chat.controller.spec.ts` | 17 | 14 |
 | `src/modules/suggestions/suggestions.service.spec.ts` | 28 | 2 |
 | `src/modules/notification-settings/notification-settings.service.spec.ts` | 24 | 2 |
@@ -131,6 +133,7 @@ Avance aplicado:
 | `src/modules/auth/auth.controller.ts` | 11 | 3 |
 | `src/modules/chat/chat.controller.ts` | 9 | 5 |
 | `src/common/guards/auth.guard.ts` | 11 | 0 |
+| `src/common/i18n/__tests__/localize.spec.ts` | 0 | 11 |
 
 ## Impacto en Features v2
 

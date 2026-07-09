@@ -1,9 +1,39 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { LocationService } from './location.service';
 
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  message?: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  insert: ChainMethod;
+  delete: ChainMethod;
+  eq: ChainMethod;
+  order: ChainMethod;
+  limit: ChainMethod;
+  single: ChainMethod;
+  maybeSingle: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  _on: (data: unknown, error?: MockDbError | null) => MockChain;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
     'from',
     'select',
@@ -14,38 +44,50 @@ function createChain(result: any) {
     'limit',
     'single',
     'maybeSingle',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn() };
-  mock._chains = [];
-  mock._on = (data: any, error?: any) => {
-    const c = createChain({ data, error: error || null });
-    mock._chains.push(c);
-    mock.from.mockReturnValueOnce(c);
-    return c;
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    _on: (data: unknown, error?: MockDbError | null) => {
+      const c = createChain({ data, error: error ?? null });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
   };
-  mock.from.mockImplementation(() =>
-    createChain({ data: null, error: null }),
-  );
+  mock.from.mockImplementation(() => createChain({ data: null, error: null }));
   return mock;
 }
 
 describe('LocationService', () => {
   let service: LocationService;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LocationService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
       ],
     }).compile();
     service = module.get<LocationService>(LocationService);
@@ -107,9 +149,9 @@ describe('LocationService', () => {
         lat: 10 + i * 0.001,
         lng: -74,
       }));
-      await expect(
-        service.saveSnapshots('u1', { snapshots }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.saveSnapshots('u1', { snapshots })).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('rechaza si el batch esta vacio', async () => {
