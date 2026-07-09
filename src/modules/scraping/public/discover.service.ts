@@ -9,6 +9,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import {
   CuratedItemCardDto,
   CuratedItemDetailDto,
+  SourceReviewDto,
 } from './dto/curated-item.dto';
 
 const ENRICHED_TABLE = 'scraped_items_enriched';
@@ -32,6 +33,47 @@ export interface FindCuratedOptions {
   category?: string;
 }
 
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseListResult<T> {
+  data: T[] | null;
+  error: SupabaseError | null;
+}
+
+interface SupabaseSingleResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+interface CuratedItemRow {
+  id: string;
+  title: string;
+  description: string | null;
+  category_hint: string | null;
+  location_name: string | null;
+  lat: number | null;
+  lng: number | null;
+  price_cop: number | null;
+  image_url: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  quality_score: number | string | null;
+  created_at: string;
+}
+
+interface RawJoinRow {
+  scraped_at: string | null;
+}
+
+interface CuratedItemDetailRow extends CuratedItemRow {
+  source_url: string | null;
+  source_reviews: SourceReviewDto[] | null;
+  scraped_at?: string | null;
+  scraped_items_raw?: RawJoinRow | RawJoinRow[] | null;
+}
+
 /**
  * DiscoverService — feed publico de items curados del pipeline de scraping.
  *
@@ -51,9 +93,7 @@ export class DiscoverService {
    * Lista paginada de items curados, ordenados por calidad y recencia.
    * Acepta filtro opcional por `category` (matchea `category_hint`).
    */
-  async findCurated(
-    opts: FindCuratedOptions,
-  ): Promise<CuratedItemCardDto[]> {
+  async findCurated(opts: FindCuratedOptions): Promise<CuratedItemCardDto[]> {
     const limit = this.normalizeLimit(opts.limit);
 
     let qb = this.supabase
@@ -70,22 +110,23 @@ export class DiscoverService {
       .order('created_at', { ascending: false })
       .range(0, limit - 1);
 
-    const { data, error } = await qb;
+    const { data, error } =
+      (await qb) as unknown as SupabaseListResult<CuratedItemRow>;
     if (error) throw new BadRequestException(error.message);
 
-    return (data ?? []).map((row: any) => this.toCard(row));
+    return (data ?? []).map((row) => this.toCard(row));
   }
 
   /**
    * Detalle de un item curado. 404 si no existe o no esta publicado.
    */
   async findCuratedById(id: string): Promise<CuratedItemDetailDto> {
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(ENRICHED_TABLE)
       .select(DETAIL_SELECT)
       .eq('id', id)
       .eq('status', 'published')
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseSingleResult<CuratedItemDetailRow>;
 
     if (error) throw new BadRequestException(error.message);
     if (!data) throw new NotFoundException(`Curated item ${id} not found`);
@@ -105,7 +146,7 @@ export class DiscoverService {
     return n;
   }
 
-  private toCard(row: any): CuratedItemCardDto {
+  private toCard(row: CuratedItemRow): CuratedItemCardDto {
     return {
       id: row.id,
       title: row.title,
@@ -122,15 +163,14 @@ export class DiscoverService {
     };
   }
 
-  private toDetail(row: any): CuratedItemDetailDto {
+  private toDetail(row: CuratedItemDetailRow): CuratedItemDetailDto {
     // El join con scraped_items_raw devuelve un objeto (FK 1-1) o null.
     // Supabase a veces lo devuelve como array — soportamos ambos.
     const rawJoin = Array.isArray(row.scraped_items_raw)
       ? row.scraped_items_raw[0]
       : row.scraped_items_raw;
 
-    const scrapedAt =
-      rawJoin?.scraped_at ?? row.scraped_at ?? row.created_at;
+    const scrapedAt = rawJoin?.scraped_at ?? row.scraped_at ?? row.created_at;
 
     return {
       ...this.toCard(row),
