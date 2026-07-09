@@ -11,7 +11,11 @@ export class CreatePlacePhotoDto {
   @IsString()
   alt_text?: string;
 
-  @ApiProperty({ description: 'Is cover photo', default: false, required: false })
+  @ApiProperty({
+    description: 'Is cover photo',
+    default: false,
+    required: false,
+  })
   @IsOptional()
   @IsBoolean()
   is_cover?: boolean;

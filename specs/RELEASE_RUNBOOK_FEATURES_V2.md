@@ -105,6 +105,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 97. #118 - PR tecnico experiences module lint/typing, base #117.
 98. #119 - PR tecnico favorite response dto lint/typing, base #118.
 99. #120 - PR tecnico category response dto lint/typing, base #119.
+100. Pendiente - PR tecnico create place photo dto lint/typing, base #120.
 
 ### Frontend
 
