@@ -89,6 +89,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #66 abierto: `chore/backend-lint-promotions-controller`; promotions controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #67 abierto: `chore/backend-lint-places-controller`; places controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #68 abierto: `chore/backend-lint-auth-controller`; auth controller queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico preparado: `chore/backend-lint-auth-guard`; auth guard queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -206,7 +207,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend auth controller lint: `npx eslint src/modules/auth/auth.controller.ts` -> OK.
 - Backend auth controller tests: no existe spec de `AuthController` en `src/**/*.spec.ts`; verificado con build.
 - Backend build tras auth controller lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 57 archivos / 199 errores / 46 warnings.
+- Backend auth guard lint: `npx eslint src/common/guards/auth.guard.ts` -> OK.
+- Backend auth guard tests: no existe spec directa de `AuthGuard` en `src/**/*.spec.ts`; verificado con build.
+- Backend build tras auth guard lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 56 archivos / 188 errores / 46 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
