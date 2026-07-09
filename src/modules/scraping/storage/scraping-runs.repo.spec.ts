@@ -3,33 +3,101 @@ import { BadRequestException } from '@nestjs/common';
 
 import { ScrapingRunsRepo } from './scraping-runs.repo';
 
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  message: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  insert: ChainMethod;
+  update: ChainMethod;
+  delete: ChainMethod;
+  eq: ChainMethod;
+  neq: ChainMethod;
+  in: ChainMethod;
+  order: ChainMethod;
+  range: ChainMethod;
+  limit: ChainMethod;
+  single: ChainMethod;
+  maybeSingle: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  _on: (data: unknown, error?: MockDbError) => MockChain;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
-    'from', 'select', 'insert', 'update', 'delete',
-    'eq', 'neq', 'in', 'order', 'range', 'limit',
-    'single', 'maybeSingle',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+    'from',
+    'select',
+    'insert',
+    'update',
+    'delete',
+    'eq',
+    'neq',
+    'in',
+    'order',
+    'range',
+    'limit',
+    'single',
+    'maybeSingle',
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn() };
-  mock._on = (data: any, error?: any) => {
-    const c = createChain({ data, error: error || null });
-    mock.from.mockReturnValueOnce(c);
-    return c;
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    _on: (data: unknown, error?: MockDbError) => {
+      const c = createChain({ data, error: error ?? null });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
   };
   mock.from.mockImplementation(() => createChain({ data: null, error: null }));
   return mock;
 }
 
+function firstArg<T>(method: ChainMethod): T {
+  const value = method.mock.calls[0]?.[0];
+  return value as T;
+}
+
+function stringField(record: Record<string, unknown>, key: string): string {
+  const value = record[key];
+  if (typeof value !== 'string') {
+    throw new Error(`Expected ${key} to be a string`);
+  }
+  return value;
+}
+
 describe('ScrapingRunsRepo', () => {
   let repo: ScrapingRunsRepo;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
@@ -57,7 +125,7 @@ describe('ScrapingRunsRepo', () => {
       expect(result.id).toBe('run-1');
       expect(result.status).toBe('running');
       expect(supabase.from).toHaveBeenCalledWith('scraping_runs');
-      const insertArg = chain.insert.mock.calls[0][0];
+      const insertArg = firstArg<Record<string, unknown>>(chain.insert);
       expect(insertArg.source_id).toBe('s1');
       expect(insertArg.status).toBe('running');
       expect(insertArg.triggered_by).toBe('cron');
@@ -65,7 +133,9 @@ describe('ScrapingRunsRepo', () => {
 
     it('tira BadRequestException si supabase falla', async () => {
       supabase._on(null, { message: 'db down' });
-      await expect(repo.start('s1', 'cron')).rejects.toThrow(BadRequestException);
+      await expect(repo.start('s1', 'cron')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -80,7 +150,7 @@ describe('ScrapingRunsRepo', () => {
       });
 
       expect(supabase.from).toHaveBeenCalledWith('scraping_runs');
-      const updateArg = chain.update.mock.calls[0][0];
+      const updateArg = firstArg<Record<string, unknown>>(chain.update);
       expect(updateArg.status).toBe('succeeded');
       expect(updateArg.items_found).toBe(10);
       expect(updateArg.items_enriched).toBe(8);
@@ -97,7 +167,7 @@ describe('ScrapingRunsRepo', () => {
         itemsEnriched: 6,
         itemsFailed: 4,
       });
-      const updateArg = chain.update.mock.calls[0][0];
+      const updateArg = firstArg<Record<string, unknown>>(chain.update);
       expect(updateArg.status).toBe('partial');
     });
 
@@ -119,7 +189,7 @@ describe('ScrapingRunsRepo', () => {
       const chain = supabase._on(null);
       await repo.error('run-1', 'foursquare returned 500');
 
-      const updateArg = chain.update.mock.calls[0][0];
+      const updateArg = firstArg<Record<string, unknown>>(chain.update);
       expect(updateArg.status).toBe('failed');
       expect(updateArg.error).toBe('foursquare returned 500');
       expect(updateArg.finished_at).toBeDefined();
@@ -134,8 +204,8 @@ describe('ScrapingRunsRepo', () => {
       const huge = 'x'.repeat(5000);
       const chain = supabase._on(null);
       await repo.error('run-1', huge);
-      const updateArg = chain.update.mock.calls[0][0];
-      expect(updateArg.error.length).toBeLessThanOrEqual(2000);
+      const updateArg = firstArg<Record<string, unknown>>(chain.update);
+      expect(stringField(updateArg, 'error').length).toBeLessThanOrEqual(2000);
     });
   });
 });
