@@ -156,7 +156,7 @@ Avance aplicado:
 - PR tecnico #74 `chore/backend-lint-main-bootstrap`:
   `main.ts` queda con callback CORS tipado, bootstrap con `.catch` explicito,
   formato Prettier y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-featured-controller`:
+- PR tecnico #75 `chore/backend-lint-featured-controller`:
   `featured.controller.ts` queda con request autenticado tipado, formato
   Prettier y lint dirigido limpio.
 - Reduccion neta acumulada: -68 archivos con problemas, -2559 errores y -225 warnings.
