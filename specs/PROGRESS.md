@@ -67,7 +67,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #44 abierto: `chore/backend-lint-experiences-service-spec`; experiences service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #45 abierto: `chore/backend-lint-ranking-spec`; ranking spec queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #46 abierto: `chore/backend-lint-places-spec`; places service/spec quedan tipados y con lint dirigido limpio.
-- 2026-07-09: PR tecnico #47 preparado: `chore/backend-lint-metrics-spec`; metrics spec queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #47 abierto: `chore/backend-lint-metrics-spec`; metrics spec queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
