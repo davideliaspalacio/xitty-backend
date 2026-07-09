@@ -28,13 +28,17 @@ import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
 import { PlaceListQueryDto } from './dto/place-list-query.dto';
 import { CreatePlacePhotoDto } from './dto/create-place-photo.dto';
-import {
-  PlaceDetailDto,
-  PlaceListResponseDto,
-} from './dto/place-response.dto';
+import { PlaceDetailDto, PlaceListResponseDto } from './dto/place-response.dto';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { OgResponseDto } from './dto/og-response.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
+
+interface AuthenticatedPlaceRequest {
+  user: {
+    id: string;
+    role: string;
+  };
+}
 
 @ApiTags('places')
 @Controller()
@@ -109,8 +113,14 @@ export class PlacesController {
   @ApiResponse({ status: 201, type: PlaceDetailDto })
   @ApiResponse({ status: 400, description: 'Validation error' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — requires business or admin role' })
-  async create(@Request() req: any, @Body() dto: CreatePlaceDto) {
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden — requires business or admin role',
+  })
+  async create(
+    @Request() req: AuthenticatedPlaceRequest,
+    @Body() dto: CreatePlaceDto,
+  ) {
     return this.placesService.create(req.user.id, req.user.role, dto);
   }
 
@@ -125,7 +135,7 @@ export class PlacesController {
   @ApiResponse({ status: 404, description: 'Place not found' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedPlaceRequest,
     @Body() dto: UpdatePlaceDto,
   ) {
     return this.placesService.update(id, req.user.id, req.user.role, dto);
@@ -141,7 +151,7 @@ export class PlacesController {
   @ApiResponse({ status: 403, description: 'Admin access required' })
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedPlaceRequest,
   ) {
     return this.placesService.softDelete(id, req.user.role);
   }
@@ -160,7 +170,7 @@ export class PlacesController {
   @ApiResponse({ status: 404, description: 'Place not found' })
   async addPhoto(
     @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedPlaceRequest,
     @Body() dto: CreatePlacePhotoDto,
   ) {
     return this.placesService.addPhoto(id, req.user.id, req.user.role, dto);
