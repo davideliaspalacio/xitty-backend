@@ -198,7 +198,7 @@ Avance aplicado:
 - PR tecnico #88 `chore/backend-lint-source-factory`:
   `source.factory.ts` queda con config normalizada desde `unknown`, type guard
   para Google Places y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-mock-chat-provider`:
+- PR tecnico #89 `chore/backend-lint-mock-chat-provider`:
   `mock-provider.ts` queda sin `async` innecesario, con formato Prettier y lint
   dirigido limpio.
 - Reduccion neta acumulada: -82 archivos con problemas, -2634 errores y -243 warnings.

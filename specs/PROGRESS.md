@@ -109,7 +109,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #86 abierto: `chore/backend-lint-scraping-runs-repo`; scraping runs repo queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #87 abierto: `chore/backend-lint-preferences-service`; preferences service queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #88 abierto: `chore/backend-lint-source-factory`; source factory queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico preparado: `chore/backend-lint-mock-chat-provider`; mock chat provider queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #89 abierto: `chore/backend-lint-mock-chat-provider`; mock chat provider queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
