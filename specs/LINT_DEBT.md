@@ -254,7 +254,7 @@ Avance aplicado:
 - PR tecnico #107 `chore/backend-lint-mock-enrichment-provider`:
   `mock-enrichment-provider.ts` queda sin `async` innecesario, sin parametro
   sin usar y con lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-openai-enrichment-provider`:
+- PR tecnico #108 `chore/backend-lint-openai-enrichment-provider`:
   `openai-enrichment-provider.ts` queda con errores `unknown`, helper de
   mensaje seguro, formato Prettier y lint dirigido limpio.
 - Reduccion neta acumulada: -102 archivos con problemas, -2690 errores y -247 warnings.
