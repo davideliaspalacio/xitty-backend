@@ -1,5 +1,7 @@
 import { ConfigService } from '@nestjs/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
+
+type XittySupabaseClient = ReturnType<typeof createClient>;
 
 const readCredentials = (configService: ConfigService) => {
   const supabaseUrl = configService.get<string>('SUPABASE_URL');
@@ -7,12 +9,18 @@ const readCredentials = (configService: ConfigService) => {
 
   // Debug logs (safe - no sensitive data)
   console.log('🔍 Debug - SUPABASE_URL:', supabaseUrl ? 'Present' : 'Missing');
-  console.log('🔍 Debug - SUPABASE_SERVICE_ROLE_KEY:', supabaseKey ? 'Present' : 'Missing');
+  console.log(
+    '🔍 Debug - SUPABASE_SERVICE_ROLE_KEY:',
+    supabaseKey ? 'Present' : 'Missing',
+  );
 
   if (!supabaseUrl || !supabaseKey) {
     console.error('❌ Missing required environment variables:');
     console.error('   - SUPABASE_URL:', supabaseUrl ? 'OK' : 'MISSING');
-    console.error('   - SUPABASE_SERVICE_ROLE_KEY:', supabaseKey ? 'OK' : 'MISSING');
+    console.error(
+      '   - SUPABASE_SERVICE_ROLE_KEY:',
+      supabaseKey ? 'OK' : 'MISSING',
+    );
     throw new Error('Supabase URL and Service Role Key must be provided');
   }
 
@@ -32,7 +40,9 @@ const STATELESS_AUTH = {
  * el del usuario logueado y las queries `.from(...)` quedarían sujetas a RLS.
  * Todas las consultas a tablas del backend pasan por este cliente.
  */
-export const createSupabaseClient = (configService: ConfigService): SupabaseClient => {
+export const createSupabaseClient = (
+  configService: ConfigService,
+): XittySupabaseClient => {
   const { supabaseUrl, supabaseKey } = readCredentials(configService);
 
   return createClient(supabaseUrl, supabaseKey, { auth: STATELESS_AUTH });
@@ -44,7 +54,9 @@ export const createSupabaseClient = (configService: ConfigService): SupabaseClie
  * aquí sí se setea la sesión del usuario, pero como nunca se usa para `.from(...)`
  * el cliente de datos conserva siempre las credenciales de service_role.
  */
-export const createSupabaseAuthClient = (configService: ConfigService): SupabaseClient => {
+export const createSupabaseAuthClient = (
+  configService: ConfigService,
+): XittySupabaseClient => {
   const { supabaseUrl, supabaseKey } = readCredentials(configService);
 
   return createClient(supabaseUrl, supabaseKey, { auth: STATELESS_AUTH });
