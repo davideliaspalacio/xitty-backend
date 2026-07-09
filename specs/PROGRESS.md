@@ -75,6 +75,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #52 abierto: `chore/backend-lint-featured-service-spec`; featured service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #53 abierto: `chore/backend-lint-reviews-service-spec`; reviews service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #54 abierto: `chore/backend-lint-consents-service-spec`; consents service/spec quedan tipados y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #55 preparado: `chore/backend-lint-experiences-controller`; experiences controller queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -150,7 +151,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend consents lint: `npx eslint src/modules/consents/consents.service.ts src/modules/consents/consents.service.spec.ts` -> OK.
 - Backend consents tests: `npm test -- --runInBand src/modules/consents/consents.service.spec.ts` -> 1 suite / 7 tests OK.
 - Backend build tras consents lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 79 archivos / 579 errores / 126 warnings.
+- Backend experiences controller lint: `npx eslint src/modules/experiences/experiences.controller.ts` -> OK.
+- Backend experiences controller tests: `npm test -- --runInBand src/modules/experiences/experiences.service.spec.ts src/modules/experiences/reservations.service.spec.ts src/modules/experiences/experience-reviews.service.spec.ts` -> 3 suites / 33 tests OK.
+- Backend build tras experiences controller lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 78 archivos / 553 errores / 107 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
