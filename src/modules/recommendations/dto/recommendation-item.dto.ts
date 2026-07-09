@@ -51,7 +51,11 @@ export class RecommendationPlaceSummaryDto {
   @ApiProperty({ required: false, nullable: true })
   category_id: string | null;
 
-  @ApiProperty({ type: RecommendationPlaceCategoryDto, required: false, nullable: true })
+  @ApiProperty({
+    type: RecommendationPlaceCategoryDto,
+    required: false,
+    nullable: true,
+  })
   category: RecommendationPlaceCategoryDto | null;
 
   @ApiProperty({ required: false, nullable: true })
@@ -66,7 +70,8 @@ export class RecommendationItemDto {
   score: number;
 
   @ApiProperty({
-    description: 'Texto en español explicando por qué este lugar fue recomendado',
+    description:
+      'Texto en español explicando por qué este lugar fue recomendado',
     example: 'Cerca de ti · Para pareja · Abierto ahora',
   })
   reason: string;
@@ -77,7 +82,8 @@ export class TodayRecommendationsResponseDto {
   items: RecommendationItemDto[];
 
   @ApiProperty({
-    description: 'Timestamp ISO 8601 de cuándo se generaron las recomendaciones',
+    description:
+      'Timestamp ISO 8601 de cuándo se generaron las recomendaciones',
   })
   generated_at: string;
 }
