@@ -10,9 +10,9 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 98.
-- Errores: 1473.
-- Warnings: 156.
+- Archivos con problemas: 97.
+- Errores: 1378.
+- Warnings: 154.
 - Errores auto-fixables: 332.
 
 Avance aplicado:
@@ -51,18 +51,21 @@ Avance aplicado:
 - PR tecnico #44 `chore/backend-lint-experiences-service-spec`:
   `experiences.service.ts` y `experiences.service.spec.ts` quedan con filas
   de catalogo/detalle/slots tipadas, mocks Supabase tipados y lint dirigido limpio.
-- Reduccion neta acumulada: -20 archivos con problemas, -1237 errores y -91 warnings.
+- PR tecnico #45 `chore/backend-lint-ranking-spec`:
+  `ranking.service.spec.ts` queda con mocks Supabase/RPC tipados y lint dirigido
+  limpio.
+- Reduccion neta acumulada: -21 archivos con problemas, -1332 errores y -93 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `@typescript-eslint/no-unsafe-member-access` | 567 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `@typescript-eslint/no-unsafe-member-access` | 520 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `prettier/prettier` | 331 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-assignment` | 241 | 0 | Asignaciones desde `any`. |
-| `@typescript-eslint/no-unsafe-call` | 215 | 0 | Llamadas sobre valores `any`. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 155 | Argumentos `any` en tests/servicios. |
-| `@typescript-eslint/no-unsafe-return` | 95 | 0 | Retornos `any` sin tipar. |
+| `@typescript-eslint/no-unsafe-assignment` | 227 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-call` | 185 | 0 | Llamadas sobre valores `any`. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 153 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-return` | 91 | 0 | Retornos `any` sin tipar. |
 | `@typescript-eslint/require-await` | 9 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unused-vars` | 5 | 0 | Variables/imports historicos sin usar. |
 | `@typescript-eslint/unbound-method` | 4 | 0 | Metodos usados sin bind, principalmente mocks. |
@@ -72,7 +75,6 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/ranking/ranking.service.spec.ts` | 95 | 2 |
 | `src/modules/places/places.service.spec.ts` | 92 | 2 |
 | `src/modules/metrics/metrics.service.spec.ts` | 90 | 2 |
 | `src/modules/recommendations/recommendations.service.spec.ts` | 75 | 2 |
@@ -87,6 +89,7 @@ Avance aplicado:
 | `src/modules/chat/rag/context.service.spec.ts` | 39 | 2 |
 | `src/modules/recommendations/recommendations.service.ts` | 40 | 1 |
 | `src/modules/experiences/experience-reviews.service.ts` | 36 | 3 |
+| `src/modules/local-picks/local-picks.service.ts` | 39 | 0 |
 
 ## Impacto en Features v2
 
