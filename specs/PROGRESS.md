@@ -10,8 +10,8 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 
 - 2026-07-09: merge completado en `main` para backend #22-#127 y frontend #18-#26.
 - 2026-07-09: no quedan PRs abiertos en backend ni frontend para el paquete Features v2.
-- 2026-07-09: verificacion post-merge en backend `main`: `npm test -- --runInBand` OK (38 suites / 477 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
-- 2026-07-09: verificacion post-merge en frontend `main`: `npm run test:run` OK (44 files / 215 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
+- 2026-07-09: verificacion post-merge en backend `main`: `npm test -- --runInBand` OK (39 suites / 492 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
+- 2026-07-09: verificacion post-merge en frontend `main`: `npm run test:run` OK (47 files / 224 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
 - 2026-07-09: smoke local post-merge con servidores arriba: frontend `/` responde 200, backend `/categories` responde 200, `/promotions/active` responde 200 y `/featured/current` responde 200.
 - 2026-07-09: smoke local post-merge tambien confirma que la DB conectada aun no tiene migraciones nuevas: `/ranking` falla con `column place_rankings.city does not exist`.
 - 2026-07-09: cerrado gap post-smoke de `/places?city=&zone=`: el endpoint ya acepta filtros de ciudad/zona y el RPC `list_places_near` queda versionado para respetarlos con `sort_by=distance` (`20260709000012_filter_nearby_places_by_city_zone.sql`).

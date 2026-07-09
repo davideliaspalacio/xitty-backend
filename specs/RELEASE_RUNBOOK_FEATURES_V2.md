@@ -8,8 +8,8 @@ Estado actual: los PRs backend #22-#127 y frontend #18-#26 ya fueron mergeados e
 
 Verificacion post-merge local:
 
-- Backend `main`: `npm test -- --runInBand` OK (38 suites / 477 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
-- Frontend `main`: `npm run test:run` OK (44 files / 215 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
+- Backend `main`: `npm test -- --runInBand` OK (39 suites / 492 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
+- Frontend `main`: `npm run test:run` OK (47 files / 224 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
 - Migraciones locales: `supabase db reset` OK en Supabase temporal, aplicando todas las migraciones hasta `20260709000015_add_reservation_created_notifications.sql`.
 - Validacion SQL post-migracion: 0 columnas faltantes, 0 relaciones faltantes, constraint `reservation_created` presente y `refresh_place_rankings()` sin error.
 - Smoke con backend apuntando a DB local migrada: `/categories`, `/places?city=Cartagena`, `/places?sort_by=distance&city=Cartagena` y `/ranking?city=Cartagena` respondieron 200.
