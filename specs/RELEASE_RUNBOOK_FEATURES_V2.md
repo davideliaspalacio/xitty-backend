@@ -34,6 +34,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 26. #47 - PR tecnico metrics spec lint/typing, base #46.
 27. #48 - PR tecnico recommendations service/spec lint/typing, base #47.
 28. #49 - PR tecnico experience reviews service/spec lint/typing, base #48.
+29. #50 - PR tecnico favorites service/spec lint/typing, base #49.
 
 ### Frontend
 
