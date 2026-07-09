@@ -246,7 +246,7 @@ Avance aplicado:
 - PR tecnico #104 `chore/backend-lint-chat-rate-limit-service`:
   `rate-limit.service.ts` queda con resultado RPC tipado, formato Prettier y
   lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-create-slot-dto`:
+- PR tecnico #105 `chore/backend-lint-create-slot-dto`:
   `create-slot.dto.ts` queda formateado por Prettier y con lint dirigido limpio.
 - Reduccion neta acumulada: -99 archivos con problemas, -2684 errores y -247 warnings.
 

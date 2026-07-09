@@ -89,7 +89,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 81. #102 - PR tecnico quality scorer spec lint/typing, base #101.
 82. #103 - PR tecnico openai chat provider lint/typing, base #102.
 83. #104 - PR tecnico chat rate limit service lint/typing, base #103.
-84. Pendiente - PR tecnico create slot dto lint/typing, base #104.
+84. #105 - PR tecnico create slot dto lint/typing, base #104.
 
 ### Frontend
 

@@ -125,7 +125,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #102 abierto: `chore/backend-lint-quality-scorer-spec`; quality scorer spec queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #103 abierto: `chore/backend-lint-openai-chat-provider`; openai chat provider queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #104 abierto: `chore/backend-lint-chat-rate-limit-service`; chat rate limit service queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico preparado: `chore/backend-lint-create-slot-dto`; create slot dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #105 abierto: `chore/backend-lint-create-slot-dto`; create slot dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
