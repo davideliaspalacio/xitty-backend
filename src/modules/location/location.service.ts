@@ -1,14 +1,7 @@
-import {
-  Injectable,
-  Inject,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-import {
-  LocationSource,
-  SaveSnapshotsDto,
-} from './dto/save-snapshots.dto';
+import { LocationSource, SaveSnapshotsDto } from './dto/save-snapshots.dto';
 import { LocationSnapshotDto } from './dto/location-snapshot.dto';
 
 const TABLE = 'user_location_snapshots';
@@ -111,7 +104,9 @@ export class LocationService {
   async getLatest(userId: string): Promise<LocationSnapshotDto | null> {
     const { data, error } = await this.supabase
       .from(TABLE)
-      .select('id, user_id, latitude, longitude, accuracy_m, source, created_at')
+      .select(
+        'id, user_id, latitude, longitude, accuracy_m, source, created_at',
+      )
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(1)
