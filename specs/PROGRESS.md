@@ -54,8 +54,8 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: saneado y versionado `.env.example` backend sin secretos reales, incluyendo `GOOGLE_MAPS_API_KEY`.
 - 2026-07-09: cuantificado full lint backend: falla por deuda historica en 118 archivos (2710 errores, 247 warnings); ver `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #33 abierto: `chore/backend-lint-google-places`; Google Places source/spec quedan tipados y con lint dirigido limpio.
-- 2026-07-09: iniciado PR tecnico `chore/backend-lint-scraped-items-spec`; `scraped-items.repo.spec.ts` queda con mock Supabase tipado y lint dirigido limpio.
-- 2026-07-09: iniciado PR tecnico `chore/backend-lint-scraping-storage-specs`; runs/sources repo specs quedan con mocks Supabase tipados y lint dirigido limpio.
+- 2026-07-09: PR tecnico #34 abierto: `chore/backend-lint-scraped-items-spec`; `scraped-items.repo.spec.ts` queda con mock Supabase tipado y lint dirigido limpio.
+- 2026-07-09: PR tecnico #35 abierto: `chore/backend-lint-scraping-storage-specs`; runs/sources repo specs quedan con mocks Supabase tipados y lint dirigido limpio.
 
 ## Evidencia transversal
 

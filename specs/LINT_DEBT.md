@@ -19,9 +19,9 @@ Avance aplicado:
 
 - PR tecnico #33 `chore/backend-lint-google-places`: `google-places-source.ts`
   y `google-places-source.spec.ts` quedaron con lint dirigido limpio.
-- PR tecnico `chore/backend-lint-scraped-items-spec`: `scraped-items.repo.spec.ts`
-  queda con lint dirigido limpio.
-- PR tecnico `chore/backend-lint-scraping-storage-specs`:
+- PR tecnico #34 `chore/backend-lint-scraped-items-spec`:
+  `scraped-items.repo.spec.ts` queda con lint dirigido limpio.
+- PR tecnico #35 `chore/backend-lint-scraping-storage-specs`:
   `scraping-runs.repo.spec.ts` y `scraping-sources.repo.spec.ts` quedan con
   lint dirigido limpio.
 - Reduccion neta acumulada: -5 archivos con problemas, -362 errores y -10 warnings.
