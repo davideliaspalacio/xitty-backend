@@ -84,6 +84,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #61 abierto: `chore/backend-lint-tavily-search-source-spec`; Tavily source/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #62 abierto: `chore/backend-lint-auth-service`; auth service queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #63 abierto: `chore/backend-lint-photo-storage-service-spec`; photo storage service/spec quedan tipados y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #64 abierto: `chore/backend-lint-metrics-controller`; metrics controller queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -186,7 +187,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend photo storage lint: `npx eslint src/modules/scraping/storage/photo-storage.service.ts src/modules/scraping/storage/photo-storage.service.spec.ts` -> OK.
 - Backend photo storage tests: `npm test -- --runInBand src/modules/scraping/storage/photo-storage.service.spec.ts` -> 1 suite / 6 tests OK.
 - Backend build tras photo storage lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 63 archivos / 268 errores / 71 warnings.
+- Backend metrics controller lint: `npx eslint src/modules/metrics/metrics.controller.ts` -> OK.
+- Backend metrics smoke tests: `npm test -- --runInBand src/modules/metrics/metrics.service.spec.ts` -> 1 suite / 12 tests OK.
+- Backend build tras metrics controller lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 62 archivos / 251 errores / 66 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

@@ -35,6 +35,24 @@ import {
 import { AuthGuard } from '../../common/guards/auth.guard';
 import * as jwt from 'jsonwebtoken';
 
+type HeaderValue = string | string[] | undefined;
+
+interface MetricsRequestHeaders {
+  authorization?: HeaderValue;
+  'user-agent'?: HeaderValue;
+}
+
+interface OptionalAuthRequest {
+  headers: MetricsRequestHeaders;
+}
+
+interface AuthenticatedMetricsRequest extends OptionalAuthRequest {
+  user: {
+    id: string;
+    role: string;
+  };
+}
+
 @ApiTags('metrics')
 @Controller('places/:placeId')
 export class MetricsController {
@@ -51,13 +69,13 @@ export class MetricsController {
   @ApiResponse({ status: 404, description: 'Place not found' })
   async track(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Request() req: any,
+    @Request() req: OptionalAuthRequest,
     @Body() dto: TrackInteractionDto,
   ) {
     // Optional auth: extract user_id from Bearer token if present
     const userId = this.tryExtractUserId(req);
     return this.metricsService.track(placeId, userId, dto, {
-      userAgent: req.headers?.['user-agent'],
+      userAgent: firstHeader(req.headers['user-agent']),
     });
   }
 
@@ -74,7 +92,7 @@ export class MetricsController {
   @ApiResponse({ status: 403, description: 'Not the owner of this place' })
   async getSummary(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedMetricsRequest,
     @Query() query: MetricsRangeQueryDto,
   ) {
     return this.metricsService.getSummary(
@@ -102,7 +120,7 @@ export class MetricsController {
   @ApiResponse({ status: 403, description: 'Not the owner of this place' })
   async getTimeseries(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedMetricsRequest,
     @Query() query: MetricsTimeseriesQueryDto,
   ) {
     return this.metricsService.getTimeseries(
@@ -115,17 +133,28 @@ export class MetricsController {
     );
   }
 
-  private tryExtractUserId(req: any): string | null {
-    const authHeader = req.headers?.authorization;
+  private tryExtractUserId(req: OptionalAuthRequest): string | null {
+    const authHeader = firstHeader(req.headers.authorization);
     if (!authHeader?.startsWith('Bearer ')) return null;
     const token = authHeader.substring(7);
     const secret = process.env.JWT_SECRET;
     if (!secret) return null;
     try {
-      const decoded = jwt.verify(token, secret) as any;
-      return decoded?.type === 'access' ? decoded.sub : null;
+      const decoded = jwt.verify(token, secret) as unknown;
+      if (!isRecord(decoded)) return null;
+      return decoded.type === 'access' && typeof decoded.sub === 'string'
+        ? decoded.sub
+        : null;
     } catch {
       return null;
     }
   }
+}
+
+function firstHeader(value: HeaderValue): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
