@@ -27,7 +27,9 @@ export class CreateExperienceReviewDto {
   @MaxLength(2000)
   comment?: string;
 
-  @ApiPropertyOptional({ description: 'Reservation id (optional, for verified reviews)' })
+  @ApiPropertyOptional({
+    description: 'Reservation id (optional, for verified reviews)',
+  })
   @IsOptional()
   @IsUUID()
   reservation_id?: string;
