@@ -10,7 +10,7 @@
 - [x] Ajustar vistas/RLS para ocultar promos de lugares inactivos.
 - [x] Ajustar dashboard para usar gestion autenticada.
 - [x] Agregar tests unitarios/backend y frontend.
-- [ ] Abrir PRs apilados.
+- [x] Abrir PRs apilados.
 
 ## Migracion SQL
 
@@ -56,3 +56,5 @@ Archivo: `supabase/migrations/20260709000004_harden_promotions_public_visibility
 - Frontend: `npm run test:run -- src/features/promotions/__tests__/promotion-form.test.tsx` -> 1 file / 2 tests OK.
 - Frontend: `npm run typecheck` -> OK.
 - Frontend: `npm run build` -> OK.
+- Backend PR: <https://github.com/davideliaspalacio/xitty-backend/pull/25>.
+- Frontend PR: <https://github.com/davideliaspalacio/xitty-frontend/pull/21>.
