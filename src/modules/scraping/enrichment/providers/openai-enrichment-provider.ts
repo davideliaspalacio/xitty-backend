@@ -1,4 +1,8 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import OpenAI from 'openai';
 import { EnrichmentProvider } from './enrichment-provider.interface';
 
@@ -57,13 +61,17 @@ export class OpenAIEnrichmentProvider implements EnrichmentProvider {
         throw new Error('empty response from openai');
       }
       return text;
-    } catch (err: any) {
-      this.logger.error(
-        `OpenAI enrichment failed: ${err?.message ?? 'unknown error'}`,
-      );
+    } catch (err: unknown) {
+      this.logger.error(`OpenAI enrichment failed: ${errorMessage(err)}`);
       throw new ServiceUnavailableException(
         'Enrichment AI temporalmente no disponible.',
       );
     }
   }
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'unknown error';
 }

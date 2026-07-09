@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 17.
-- Errores: 22.
+- Archivos con problemas: 16.
+- Errores: 20.
 - Warnings: 0.
-- Errores auto-fixables: 19.
+- Errores auto-fixables: 18.
 
 Avance aplicado:
 
@@ -254,24 +254,26 @@ Avance aplicado:
 - PR tecnico #107 `chore/backend-lint-mock-enrichment-provider`:
   `mock-enrichment-provider.ts` queda sin `async` innecesario, sin parametro
   sin usar y con lint dirigido limpio.
-- Reduccion neta acumulada: -101 archivos con problemas, -2688 errores y -247 warnings.
+- PR tecnico pendiente `chore/backend-lint-openai-enrichment-provider`:
+  `openai-enrichment-provider.ts` queda con errores `unknown`, helper de
+  mensaje seguro, formato Prettier y lint dirigido limpio.
+- Reduccion neta acumulada: -102 archivos con problemas, -2690 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 19 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 18 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/require-await` | 2 | 0 | Funciones async sin await. |
-| `@typescript-eslint/no-unsafe-member-access` | 1 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/enrichment/providers/openai-enrichment-provider.ts` | 2 | 0 |
 | `src/modules/scraping/enrichment/quality-scorer.service.ts` | 2 | 0 |
 | `src/modules/scraping/public/discover.controller.ts` | 2 | 0 |
 | `src/modules/scraping/public/dto/curated-item.dto.ts` | 2 | 0 |
+| `src/modules/scraping/scheduler/scheduler.module.ts` | 2 | 0 |
 
 ## Impacto en Features v2
 
