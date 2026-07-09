@@ -9,7 +9,7 @@
 - [x] Encolar avisos desde tracking respetando preferencias.
 - [x] Ajustar copy frontend para no prometer canal no definido.
 - [x] Correr tests, build y lint dirigido.
-- [ ] Abrir PRs apilados.
+- [x] Abrir PRs apilados.
 
 ## Migracion SQL
 
@@ -46,3 +46,5 @@ Archivo: `supabase/migrations/20260709000008_create_notification_outbox.sql`
 - Frontend: `npm run typecheck` -> OK.
 - Frontend: `npm run build` -> OK.
 - Frontend lint dirigido: `npx eslint 'src/app/(app)/dashboard/settings/page.tsx'` -> OK.
+- Backend PR: <https://github.com/davideliaspalacio/xitty-backend/pull/29>.
+- Frontend PR: <https://github.com/davideliaspalacio/xitty-frontend/pull/24>.
