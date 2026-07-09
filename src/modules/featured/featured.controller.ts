@@ -32,13 +32,22 @@ import {
 } from './dto/featured-response.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
+interface AuthenticatedFeaturedRequest {
+  user: {
+    id: string;
+    role: string;
+  };
+}
+
 @ApiTags('featured')
 @Controller()
 export class FeaturedController {
   constructor(private readonly featuredService: FeaturedService) {}
 
   @Get('featured/current')
-  @ApiOperation({ summary: 'Currently active featured content (this week) — US-032' })
+  @ApiOperation({
+    summary: 'Currently active featured content (this week) — US-032',
+  })
   @ApiResponse({ status: 200, type: [FeaturedResponseDto] })
   async findCurrent() {
     return this.featuredService.findCurrent();
@@ -65,7 +74,10 @@ export class FeaturedController {
   @ApiResponse({ status: 201, type: FeaturedResponseDto })
   @ApiResponse({ status: 403, description: 'Admin only' })
   @ApiResponse({ status: 404, description: 'Place not found' })
-  async create(@Request() req: any, @Body() dto: CreateFeaturedDto) {
+  async create(
+    @Request() req: AuthenticatedFeaturedRequest,
+    @Body() dto: CreateFeaturedDto,
+  ) {
     return this.featuredService.create(req.user.id, req.user.role, dto);
   }
 
@@ -80,7 +92,7 @@ export class FeaturedController {
   @ApiResponse({ status: 404, description: 'Featured entry not found' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedFeaturedRequest,
     @Body() dto: UpdateFeaturedDto,
   ) {
     return this.featuredService.update(id, req.user.role, dto);
@@ -94,7 +106,10 @@ export class FeaturedController {
   @ApiParam({ name: 'id', description: 'Featured entry ID' })
   @ApiResponse({ status: 204, description: 'Featured entry deleted' })
   @ApiResponse({ status: 403, description: 'Admin only' })
-  async remove(@Param('id', ParseUUIDPipe) id: string, @Request() req: any) {
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: AuthenticatedFeaturedRequest,
+  ) {
     return this.featuredService.remove(id, req.user.role);
   }
 }
