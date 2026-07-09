@@ -82,7 +82,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #59 abierto: `chore/backend-lint-suggestions-service-spec`; suggestions service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #60 abierto: `chore/backend-lint-notification-settings-service-spec`; notification settings service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #61 abierto: `chore/backend-lint-tavily-search-source-spec`; Tavily source/spec quedan tipados y con lint dirigido limpio.
-- 2026-07-09: PR tecnico #62 preparado: `chore/backend-lint-auth-service`; auth service queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #62 abierto: `chore/backend-lint-auth-service`; auth service queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
