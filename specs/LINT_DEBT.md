@@ -296,7 +296,7 @@ Avance aplicado:
 - PR tecnico #121 `chore/backend-lint-create-place-photo-dto`:
   `create-place-photo.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-og-response-dto`:
+- PR tecnico #122 `chore/backend-lint-og-response-dto`:
   `og-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -116 archivos con problemas, -2708 errores y -247 warnings.
