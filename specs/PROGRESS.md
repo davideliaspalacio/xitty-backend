@@ -119,6 +119,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #96 abierto: `chore/backend-lint-chat-response-dto`; chat response dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #97 abierto: `chore/backend-lint-reservation-response-dto`; reservation response dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #98 abierto: `chore/backend-lint-microsites-service`; microsites service queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico preparado: `chore/backend-lint-place-list-query-dto`; place list query dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -325,7 +326,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend microsites service lint: `npx eslint src/modules/microsites/microsites.service.ts` -> OK.
 - Backend microsites service tests: no existe spec de `MicrositesService`/`MicrositesController` en `src/**/*.spec.ts`; verificado con build.
 - Backend build tras microsites service lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 26 archivos / 43 errores / 1 warning.
+- Backend place list query dto lint: `npx eslint src/modules/places/dto/place-list-query.dto.ts` -> OK.
+- Backend place list query dto smoke tests: `npm test -- --runInBand src/modules/places/places.service.spec.ts` -> 1 suite / 19 tests OK.
+- Backend build tras place list query dto lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 25 archivos / 40 errores / 1 warning.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

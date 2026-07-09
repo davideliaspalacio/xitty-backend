@@ -83,6 +83,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 75. #96 - PR tecnico chat response dto lint/typing, base #95.
 76. #97 - PR tecnico reservation response dto lint/typing, base #96.
 77. #98 - PR tecnico microsites service lint/typing, base #97.
+78. Pendiente - PR tecnico place list query dto lint/typing, base #98.
 
 ### Frontend
 
