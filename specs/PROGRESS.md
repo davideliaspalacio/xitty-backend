@@ -58,6 +58,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #35 abierto: `chore/backend-lint-scraping-storage-specs`; runs/sources repo specs quedan con mocks Supabase tipados y lint dirigido limpio.
 - 2026-07-09: PR tecnico #36 abierto: `chore/backend-lint-scraping-executor-spec`; executor spec queda con mocks tipados y lint dirigido limpio.
 - 2026-07-09: PR tecnico #37 abierto: `chore/backend-lint-scraping-admin-spec`; admin scraping spec queda con mocks Supabase/repos tipados y lint dirigido limpio.
+- 2026-07-09: PR tecnico #38 preparado: `chore/backend-lint-scraping-runner-spec`; runner legacy spec queda con mocks tipados y lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -82,7 +83,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend admin scraping spec lint: `npx eslint src/modules/scraping/admin/admin-scraping.service.spec.ts` -> OK.
 - Backend admin scraping spec tests: `npm test -- --runInBand src/modules/scraping/admin/admin-scraping.service.spec.ts` -> 1 suite / 31 tests OK.
 - Backend build tras admin scraping spec lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 111 archivos / 2223 errores / 175 warnings.
+- Backend runner spec lint: `npx eslint src/modules/scraping/scheduler/runner.service.spec.ts` -> OK.
+- Backend runner spec tests: `npm test -- --runInBand src/modules/scraping/scheduler/runner.service.spec.ts` -> 1 suite / 16 tests OK.
+- Backend build tras runner spec lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 110 archivos / 2169 errores / 175 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

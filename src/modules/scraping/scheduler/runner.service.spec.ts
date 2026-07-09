@@ -1,13 +1,22 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 
 import { RunnerService } from './runner.service';
-import { ScrapingRunsRepo } from '../storage/scraping-runs.repo';
+import type {
+  InsertEnrichedInput,
+  InsertRawInput,
+  ScrapedItemEnriched,
+  ScrapedItemRaw,
+} from '../storage/scraped-items.repo';
 import { ScrapedItemsRepo } from '../storage/scraped-items.repo';
+import type { ScrapingRun as ScrapingRunRow } from '../storage/scraping-runs.repo';
+import { ScrapingRunsRepo } from '../storage/scraping-runs.repo';
 import {
   ENRICHMENT_SERVICE,
   QUALITY_SERVICE,
   SCRAPER_SOURCES,
+} from '../scraper-source.interface';
+import type {
   EnrichedItem,
   EnrichmentService,
   QualityService,
@@ -15,106 +24,89 @@ import {
   ScraperSource,
 } from '../scraper-source.interface';
 
-// ── Helpers ────────────────────────────────────────────────────────────
+type SourceMock = Omit<ScraperSource, 'fetch'> & {
+  fetch: jest.MockedFunction<ScraperSource['fetch']>;
+};
 
-/** Helper para crear un mock source. */
-function mockSource(
-  overrides: Partial<ScraperSource> = {},
-): jest.Mocked<ScraperSource> {
-  return {
-    id: 'mock-source',
-    name: 'Mock Source',
-    enabled: true,
-    fetch: jest.fn().mockResolvedValue([]),
-    ...overrides,
-  } as jest.Mocked<ScraperSource>;
-}
+type RunsRepoMock = {
+  start: jest.MockedFunction<ScrapingRunsRepo['start']>;
+  finish: jest.MockedFunction<ScrapingRunsRepo['finish']>;
+  error: jest.MockedFunction<ScrapingRunsRepo['error']>;
+};
 
-function rawItem(over: Partial<RawItem> = {}): RawItem {
-  return {
-    external_id: 'ext-1',
-    name: 'Test Place',
-    description: 'Una descripcion',
-    category: 'restaurante',
-    address: 'Calle 84 #45-21',
-    latitude: 10.99,
-    longitude: -74.79,
-    source_url: 'https://example.com/ext-1',
-    ...over,
-  };
-}
+type ItemsRepoMock = {
+  insertRaw: jest.MockedFunction<ScrapedItemsRepo['insertRaw']>;
+  insertEnriched: jest.MockedFunction<ScrapedItemsRepo['insertEnriched']>;
+};
 
-function enrichedFrom(item: RawItem, quality_score = 0.9): EnrichedItem {
-  return {
-    ...item,
-    description: item.description ?? 'enriched description',
-    category: item.category ?? 'restaurante',
-    latitude: item.latitude ?? 10.99,
-    longitude: item.longitude ?? -74.79,
-    quality_score,
-  };
-}
+type EnrichmentMock = {
+  enrich: jest.MockedFunction<EnrichmentService['enrich']>;
+};
 
-// ── Suite ──────────────────────────────────────────────────────────────
+type QualityMock = {
+  score: jest.MockedFunction<QualityService['score']>;
+};
 
 describe('RunnerService', () => {
   let runner: RunnerService;
-  let runsRepo: jest.Mocked<Pick<ScrapingRunsRepo, 'start' | 'finish' | 'error'>>;
-  let itemsRepo: jest.Mocked<
-    Pick<ScrapedItemsRepo, 'insertRaw' | 'insertEnriched'>
-  >;
-  let enrichment: jest.Mocked<EnrichmentService>;
-  let quality: jest.Mocked<QualityService>;
-  let sources: ScraperSource[];
+  let runsRepo: RunsRepoMock;
+  let itemsRepo: ItemsRepoMock;
+  let enrichment: EnrichmentMock;
+  let quality: QualityMock;
 
   let rawSeq = 0;
 
-  // Helper para reconstruir el module con un set distinto de sources.
-  async function build(srcs: ScraperSource[]) {
-    sources = srcs;
+  async function build(srcs: ScraperSource[]): Promise<void> {
     rawSeq = 0;
 
     runsRepo = {
       start: jest
-        .fn()
-        .mockResolvedValue({ id: 'run-1', source_id: 's', status: 'running' }),
-      finish: jest.fn().mockResolvedValue(undefined),
-      error: jest.fn().mockResolvedValue(undefined),
-    } as any;
+        .fn<ScrapingRunsRepo['start']>()
+        .mockResolvedValue(scrapingRunRow({ id: 'run-1' })),
+      finish: jest
+        .fn<ScrapingRunsRepo['finish']>()
+        .mockResolvedValue(undefined),
+      error: jest.fn<ScrapingRunsRepo['error']>().mockResolvedValue(undefined),
+    };
 
     itemsRepo = {
-      // Por default cada insertRaw devuelve una fila nueva (no dedup).
       insertRaw: jest
-        .fn()
-        .mockImplementation(async () => ({ id: `raw-${++rawSeq}` })),
+        .fn<ScrapedItemsRepo['insertRaw']>()
+        .mockImplementation((input: InsertRawInput) =>
+          Promise.resolve(rawRow(input, { id: `raw-${++rawSeq}` })),
+        ),
       insertEnriched: jest
-        .fn()
-        .mockImplementation(async (input: any) => ({
-          id: `enr-${input.rawId}`,
-          status: 'pending',
-          ...input,
-        })),
-    } as any;
+        .fn<ScrapedItemsRepo['insertEnriched']>()
+        .mockImplementation((input: InsertEnrichedInput) =>
+          Promise.resolve(enrichedRow(input)),
+        ),
+    };
 
     enrichment = {
       enrich: jest
-        .fn()
-        .mockImplementation(async (i: RawItem) => enrichedFrom(i)),
-    } as any;
+        .fn<EnrichmentService['enrich']>()
+        .mockImplementation((item: RawItem) =>
+          Promise.resolve(enrichedFrom(item)),
+        ),
+    };
     quality = {
-      score: jest.fn().mockImplementation(async (i: EnrichedItem) => ({
-        score: i.quality_score,
-        reason: 'ok',
-        passes: i.quality_score >= 0.5,
-      })),
-    } as any;
+      score: jest
+        .fn<QualityService['score']>()
+        .mockImplementation((item: EnrichedItem) =>
+          Promise.resolve({
+            score: item.quality_score,
+            reason: 'ok',
+            passes: item.quality_score >= 0.5,
+          }),
+        ),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RunnerService,
         { provide: ScrapingRunsRepo, useValue: runsRepo },
         { provide: ScrapedItemsRepo, useValue: itemsRepo },
-        { provide: SCRAPER_SOURCES, useValue: sources },
+        { provide: SCRAPER_SOURCES, useValue: srcs },
         { provide: ENRICHMENT_SERVICE, useValue: enrichment },
         { provide: QUALITY_SERVICE, useValue: quality },
       ],
@@ -123,41 +115,38 @@ describe('RunnerService', () => {
     runner = module.get(RunnerService);
   }
 
-  // ── runSource — happy path ──────────────────────────────────────────
-
   describe('runSource — happy path', () => {
     it('orquesta start → fetch → insertRaw → enrich → insertEnriched → finish', async () => {
       const src = mockSource({
         id: 'tripadvisor',
-        fetch: jest.fn().mockResolvedValue([
-          rawItem({ external_id: 'a', name: 'Lugar A' }),
-          rawItem({ external_id: 'b', name: 'Lugar B' }),
-        ]),
+        fetch: jest
+          .fn<ScraperSource['fetch']>()
+          .mockResolvedValue([
+            rawItem({ external_id: 'a', name: 'Lugar A' }),
+            rawItem({ external_id: 'b', name: 'Lugar B' }),
+          ]),
       });
       await build([src]);
 
       const run = await runner.runSource('tripadvisor', 'admin-42');
 
-      // 1) Run registrado en scraping_runs
       expect(runsRepo.start).toHaveBeenCalledTimes(1);
-      expect(runsRepo.start).toHaveBeenCalledWith('tripadvisor', 'admin-42');
-
-      // 2) Pipeline
+      expect(runsRepo.start.mock.calls[0]).toEqual(['tripadvisor', 'admin-42']);
       expect(src.fetch).toHaveBeenCalledTimes(1);
       expect(itemsRepo.insertRaw).toHaveBeenCalledTimes(2);
       expect(enrichment.enrich).toHaveBeenCalledTimes(2);
       expect(quality.score).toHaveBeenCalledTimes(2);
       expect(itemsRepo.insertEnriched).toHaveBeenCalledTimes(2);
-
-      // 3) Run finalizado con counters correctos
       expect(runsRepo.finish).toHaveBeenCalledTimes(1);
-      expect(runsRepo.finish).toHaveBeenCalledWith('run-1', {
-        status: 'succeeded',
-        itemsFound: 2,
-        itemsEnriched: 2,
-        itemsFailed: 0,
-      });
-
+      expect(runsRepo.finish.mock.calls[0]).toEqual([
+        'run-1',
+        {
+          status: 'succeeded',
+          itemsFound: 2,
+          itemsEnriched: 2,
+          itemsFailed: 0,
+        },
+      ]);
       expect(run.source_id).toBe('tripadvisor');
       expect(run.items_found).toBe(2);
       expect(run.items_enriched).toBe(2);
@@ -173,7 +162,7 @@ describe('RunnerService', () => {
       const src = mockSource({
         id: 'src-x',
         fetch: jest
-          .fn()
+          .fn<ScraperSource['fetch']>()
           .mockResolvedValue([
             rawItem({ external_id: 'a', source_url: 'https://x.co/a' }),
           ]),
@@ -182,18 +171,18 @@ describe('RunnerService', () => {
 
       await runner.runSource('src-x', 'cron');
 
-      const arg = itemsRepo.insertRaw.mock.calls[0][0];
-      expect(arg.runId).toBe('run-1');
-      expect(arg.sourceId).toBe('src-x');
-      expect(arg.sourceUrl).toBe('https://x.co/a');
-      expect(arg.sourceExternalId).toBe('a');
-      expect(arg.payload).toBeDefined();
+      const arg = itemsRepo.insertRaw.mock.calls[0]?.[0];
+      expect(arg?.runId).toBe('run-1');
+      expect(arg?.sourceId).toBe('src-x');
+      expect(arg?.sourceUrl).toBe('https://x.co/a');
+      expect(arg?.sourceExternalId).toBe('a');
+      expect(arg?.payload).toBeDefined();
     });
 
     it('insertEnriched mapea los campos normalizados y queda pending', async () => {
       const src = mockSource({
         id: 'src-e',
-        fetch: jest.fn().mockResolvedValue([
+        fetch: jest.fn<ScraperSource['fetch']>().mockResolvedValue([
           rawItem({
             external_id: 'a',
             name: 'Café del Mar',
@@ -210,20 +199,22 @@ describe('RunnerService', () => {
 
       await runner.runSource('src-e', 'cron');
 
-      const arg = itemsRepo.insertEnriched.mock.calls[0][0];
-      expect(arg.rawId).toBe('raw-1');
-      expect(arg.title).toBe('Café del Mar');
-      expect(arg.description).toBe('lindo');
-      expect(arg.categoryHint).toBe('cafe');
-      expect(arg.locationName).toBe('Malecón');
-      expect(arg.lat).toBe(11.01);
-      expect(arg.lng).toBe(-74.8);
-      expect(arg.sourceUrl).toBe('https://x.co/a');
-      expect(arg.qualityScore).toBe(0.9);
+      const arg = itemsRepo.insertEnriched.mock.calls[0]?.[0];
+      expect(arg?.rawId).toBe('raw-1');
+      expect(arg?.title).toBe('Café del Mar');
+      expect(arg?.description).toBe('lindo');
+      expect(arg?.categoryHint).toBe('cafe');
+      expect(arg?.locationName).toBe('Malecón');
+      expect(arg?.lat).toBe(11.01);
+      expect(arg?.lng).toBe(-74.8);
+      expect(arg?.sourceUrl).toBe('https://x.co/a');
+      expect(arg?.qualityScore).toBe(0.9);
 
-      // El resultado persistido queda en estado pending (cola de moderacion)
-      const result = await itemsRepo.insertEnriched.mock.results[0].value;
-      expect(result.status).toBe('pending');
+      const resultValue = itemsRepo.insertEnriched.mock.results[0]?.value as
+        | Promise<ScrapedItemEnriched>
+        | undefined;
+      const result = await resultValue;
+      expect(result?.status).toBe('pending');
     });
 
     it('triggered_by por defecto es "manual" si no se pasa', async () => {
@@ -232,11 +223,12 @@ describe('RunnerService', () => {
 
       await runner.runSource('src-d');
 
-      expect(runsRepo.start).toHaveBeenCalledWith('src-d', 'manual');
+      expect(runsRepo.start.mock.calls[0]).toEqual(['src-d', 'manual']);
     });
 
     it('tira NotFoundException si el sourceId no existe', async () => {
       await build([mockSource({ id: 'a' })]);
+
       await expect(runner.runSource('does-not-exist')).rejects.toThrow(
         NotFoundException,
       );
@@ -246,29 +238,28 @@ describe('RunnerService', () => {
     it('no corre una source con enabled=false aunque se la pidan por id', async () => {
       const src = mockSource({ id: 'disabled-src', enabled: false });
       await build([src]);
+
       await expect(runner.runSource('disabled-src')).rejects.toThrow();
       expect(src.fetch).not.toHaveBeenCalled();
       expect(runsRepo.start).not.toHaveBeenCalled();
     });
   });
 
-  // ── dedup ───────────────────────────────────────────────────────────
-
   describe('runSource — dedup', () => {
     it('items deduplicados (insertRaw devuelve null) no se enriquecen ni persisten', async () => {
       const src = mockSource({
         id: 'dedup',
-        fetch: jest.fn().mockResolvedValue([
-          rawItem({ external_id: 'nuevo', source_url: 'https://x.co/nuevo' }),
-          rawItem({ external_id: 'viejo', source_url: 'https://x.co/viejo' }),
-        ]),
+        fetch: jest
+          .fn<ScraperSource['fetch']>()
+          .mockResolvedValue([
+            rawItem({ external_id: 'nuevo', source_url: 'https://x.co/nuevo' }),
+            rawItem({ external_id: 'viejo', source_url: 'https://x.co/viejo' }),
+          ]),
       });
       await build([src]);
-
-      // El segundo item ya existia → insertRaw devuelve null (dedup hit)
-      itemsRepo.insertRaw.mockImplementation(async (input: any) => {
-        if (input.sourceExternalId === 'viejo') return null;
-        return { id: `raw-${++rawSeq}` } as any;
+      itemsRepo.insertRaw.mockImplementation((input) => {
+        if (input.sourceExternalId === 'viejo') return Promise.resolve(null);
+        return Promise.resolve(rawRow(input, { id: `raw-${++rawSeq}` }));
       });
 
       const run = await runner.runSource('dedup', 'cron');
@@ -276,7 +267,6 @@ describe('RunnerService', () => {
       expect(itemsRepo.insertRaw).toHaveBeenCalledTimes(2);
       expect(enrichment.enrich).toHaveBeenCalledTimes(1);
       expect(itemsRepo.insertEnriched).toHaveBeenCalledTimes(1);
-
       expect(run.items_found).toBe(2);
       expect(run.items_deduped).toBe(1);
       expect(run.items_enriched).toBe(1);
@@ -284,13 +274,13 @@ describe('RunnerService', () => {
     });
   });
 
-  // ── error handling en fetch ─────────────────────────────────────────
-
   describe('runSource — fetch fallido', () => {
     it('captura el error de fetch, marca el run como failed y devuelve errored=true', async () => {
       const src = mockSource({
         id: 'broken',
-        fetch: jest.fn().mockRejectedValue(new Error('API down')),
+        fetch: jest
+          .fn<ScraperSource['fetch']>()
+          .mockRejectedValue(new Error('API down')),
       });
       await build([src]);
 
@@ -301,19 +291,19 @@ describe('RunnerService', () => {
       expect(run.items_found).toBe(0);
       expect(run.items_enriched).toBe(0);
       expect(enrichment.enrich).not.toHaveBeenCalled();
-
-      // El run quedo registrado como failed (no finish)
       expect(runsRepo.start).toHaveBeenCalledTimes(1);
       expect(runsRepo.error).toHaveBeenCalledTimes(1);
-      expect(runsRepo.error.mock.calls[0][0]).toBe('run-1');
-      expect(runsRepo.error.mock.calls[0][1]).toContain('API down');
+      expect(runsRepo.error.mock.calls[0]?.[0]).toBe('run-1');
+      expect(runsRepo.error.mock.calls[0]?.[1]).toContain('API down');
       expect(runsRepo.finish).not.toHaveBeenCalled();
     });
 
     it('no propaga el error — siempre devuelve un summary', async () => {
       const src = mockSource({
         id: 'broken-2',
-        fetch: jest.fn().mockRejectedValue(new Error('timeout')),
+        fetch: jest
+          .fn<ScraperSource['fetch']>()
+          .mockRejectedValue(new Error('timeout')),
       });
       await build([src]);
 
@@ -326,25 +316,24 @@ describe('RunnerService', () => {
     });
   });
 
-  // ── conteo de metricas ──────────────────────────────────────────────
-
   describe('runSource — conteo de metricas', () => {
     it('cuenta correctamente cuando algunos items fallan en enrichment', async () => {
       const src = mockSource({
         id: 'mixed',
-        fetch: jest.fn().mockResolvedValue([
-          rawItem({ external_id: '1', source_url: 'https://x.co/1' }),
-          rawItem({ external_id: '2', source_url: 'https://x.co/2' }),
-          rawItem({ external_id: '3', source_url: 'https://x.co/3' }),
-        ]),
+        fetch: jest
+          .fn<ScraperSource['fetch']>()
+          .mockResolvedValue([
+            rawItem({ external_id: '1', source_url: 'https://x.co/1' }),
+            rawItem({ external_id: '2', source_url: 'https://x.co/2' }),
+            rawItem({ external_id: '3', source_url: 'https://x.co/3' }),
+          ]),
       });
       await build([src]);
-
-      // Item 2 falla enrichment (tira excepcion), item 3 devuelve null
-      enrichment.enrich.mockImplementation(async (item: RawItem) => {
-        if (item.external_id === '2') throw new Error('geocoding failed');
-        if (item.external_id === '3') return null;
-        return enrichedFrom(item);
+      enrichment.enrich.mockImplementation((item) => {
+        if (item.external_id === '2')
+          return Promise.reject(new Error('geocoding failed'));
+        if (item.external_id === '3') return Promise.resolve(null);
+        return Promise.resolve(enrichedFrom(item));
       });
 
       const run = await runner.runSource('mixed', 'cron');
@@ -352,36 +341,39 @@ describe('RunnerService', () => {
       expect(run.items_found).toBe(3);
       expect(run.items_enriched).toBe(1);
       expect(run.items_failed).toBe(2);
-      expect(run.errored).toBe(false); // fetch funciono, solo fallaron items individuales
+      expect(run.errored).toBe(false);
       expect(itemsRepo.insertEnriched).toHaveBeenCalledTimes(1);
-
-      // Run finalizado como partial (hubo failures)
-      expect(runsRepo.finish).toHaveBeenCalledWith('run-1', {
-        status: 'partial',
-        itemsFound: 3,
-        itemsEnriched: 1,
-        itemsFailed: 2,
-      });
+      expect(runsRepo.finish.mock.calls[0]).toEqual([
+        'run-1',
+        {
+          status: 'partial',
+          itemsFound: 3,
+          itemsEnriched: 1,
+          itemsFailed: 2,
+        },
+      ]);
     });
 
     it('cuenta items_persisted segun quality threshold', async () => {
       const src = mockSource({
         id: 'q',
-        fetch: jest.fn().mockResolvedValue([
-          rawItem({ external_id: 'hi', source_url: 'https://x.co/hi' }),
-          rawItem({ external_id: 'lo', source_url: 'https://x.co/lo' }),
-        ]),
+        fetch: jest
+          .fn<ScraperSource['fetch']>()
+          .mockResolvedValue([
+            rawItem({ external_id: 'hi', source_url: 'https://x.co/hi' }),
+            rawItem({ external_id: 'lo', source_url: 'https://x.co/lo' }),
+          ]),
       });
       await build([src]);
-
-      enrichment.enrich.mockImplementation(async (i: RawItem) =>
-        enrichedFrom(i, i.external_id === 'hi' ? 0.9 : 0.2),
+      enrichment.enrich.mockImplementation((item) =>
+        Promise.resolve(
+          enrichedFrom(item, item.external_id === 'hi' ? 0.9 : 0.2),
+        ),
       );
 
       const run = await runner.runSource('q', 'cron');
 
       expect(run.items_enriched).toBe(2);
-      // Solo el item con score 0.9 deberia persistirse en enriched
       expect(run.items_persisted).toBe(1);
       expect(itemsRepo.insertEnriched).toHaveBeenCalledTimes(1);
       expect(quality.score).toHaveBeenCalledTimes(2);
@@ -390,7 +382,7 @@ describe('RunnerService', () => {
     it('items_found=0 cuando fetch devuelve array vacio (no es error)', async () => {
       const src = mockSource({
         id: 'empty',
-        fetch: jest.fn().mockResolvedValue([]),
+        fetch: jest.fn<ScraperSource['fetch']>().mockResolvedValue([]),
       });
       await build([src]);
 
@@ -402,33 +394,36 @@ describe('RunnerService', () => {
       expect(run.errored).toBe(false);
       expect(enrichment.enrich).not.toHaveBeenCalled();
       expect(itemsRepo.insertRaw).not.toHaveBeenCalled();
-
-      // El run igual se registra y se finaliza
       expect(runsRepo.start).toHaveBeenCalledTimes(1);
-      expect(runsRepo.finish).toHaveBeenCalledWith('run-1', {
-        status: 'succeeded',
-        itemsFound: 0,
-        itemsEnriched: 0,
-        itemsFailed: 0,
-      });
+      expect(runsRepo.finish.mock.calls[0]).toEqual([
+        'run-1',
+        {
+          status: 'succeeded',
+          itemsFound: 0,
+          itemsEnriched: 0,
+          itemsFailed: 0,
+        },
+      ]);
     });
   });
-
-  // ── runAll ──────────────────────────────────────────────────────────
 
   describe('runAll', () => {
     it('itera sobre todas las sources con enabled=true', async () => {
       const a = mockSource({
         id: 'a',
         fetch: jest
-          .fn()
-          .mockResolvedValue([rawItem({ external_id: 'a1', source_url: 'https://x.co/a1' })]),
+          .fn<ScraperSource['fetch']>()
+          .mockResolvedValue([
+            rawItem({ external_id: 'a1', source_url: 'https://x.co/a1' }),
+          ]),
       });
       const b = mockSource({
         id: 'b',
         fetch: jest
-          .fn()
-          .mockResolvedValue([rawItem({ external_id: 'b1', source_url: 'https://x.co/b1' })]),
+          .fn<ScraperSource['fetch']>()
+          .mockResolvedValue([
+            rawItem({ external_id: 'b1', source_url: 'https://x.co/b1' }),
+          ]),
       });
       await build([a, b]);
 
@@ -454,27 +449,142 @@ describe('RunnerService', () => {
     });
 
     it('una source que falla NO detiene a las demas', async () => {
-      const ok = mockSource({ id: 'ok', fetch: jest.fn().mockResolvedValue([]) });
+      const ok = mockSource({
+        id: 'ok',
+        fetch: jest.fn<ScraperSource['fetch']>().mockResolvedValue([]),
+      });
       const bad = mockSource({
         id: 'bad',
-        fetch: jest.fn().mockRejectedValue(new Error('boom')),
+        fetch: jest
+          .fn<ScraperSource['fetch']>()
+          .mockRejectedValue(new Error('boom')),
       });
       await build([ok, bad]);
 
       const runs = await runner.runAll('cron');
 
       expect(runs).toHaveLength(2);
-      const badRun = runs.find((r) => r.source_id === 'bad')!;
-      const okRun = runs.find((r) => r.source_id === 'ok')!;
-      expect(badRun.errored).toBe(true);
-      expect(okRun.errored).toBe(false);
+      const badRun = runs.find((r) => r.source_id === 'bad');
+      const okRun = runs.find((r) => r.source_id === 'ok');
+      expect(badRun?.errored).toBe(true);
+      expect(okRun?.errored).toBe(false);
     });
 
     it('devuelve array vacio si no hay sources registradas', async () => {
       await build([]);
+
       const runs = await runner.runAll('cron');
+
       expect(runs).toEqual([]);
       expect(runsRepo.start).not.toHaveBeenCalled();
     });
   });
 });
+
+function mockSource(overrides: Partial<SourceMock> = {}): SourceMock {
+  return {
+    id: 'mock-source',
+    name: 'Mock Source',
+    enabled: true,
+    fetch: jest.fn<ScraperSource['fetch']>().mockResolvedValue([]),
+    ...overrides,
+  };
+}
+
+function rawItem(overrides: Partial<RawItem> = {}): RawItem {
+  return {
+    external_id: 'ext-1',
+    name: 'Test Place',
+    description: 'Una descripcion',
+    category: 'restaurante',
+    address: 'Calle 84 #45-21',
+    latitude: 10.99,
+    longitude: -74.79,
+    source_url: 'https://example.com/ext-1',
+    ...overrides,
+  };
+}
+
+function enrichedFrom(item: RawItem, qualityScore = 0.9): EnrichedItem {
+  return {
+    ...item,
+    description: item.description ?? 'enriched description',
+    category: item.category ?? 'restaurante',
+    latitude: item.latitude ?? 10.99,
+    longitude: item.longitude ?? -74.79,
+    quality_score: qualityScore,
+  };
+}
+
+function scrapingRunRow(
+  overrides: Partial<ScrapingRunRow> = {},
+): ScrapingRunRow {
+  return {
+    id: 'run-1',
+    source_id: 's',
+    status: 'running',
+    triggered_by: 'manual',
+    items_found: 0,
+    items_enriched: 0,
+    items_failed: 0,
+    error: null,
+    started_at: 't',
+    finished_at: null,
+    ...overrides,
+  };
+}
+
+function rawRow(
+  input: InsertRawInput,
+  overrides: Partial<ScrapedItemRaw> = {},
+): ScrapedItemRaw {
+  return {
+    id: 'raw-1',
+    run_id: input.runId,
+    source_id: input.sourceId,
+    source_url: input.sourceUrl,
+    source_external_id: input.sourceExternalId ?? null,
+    raw_payload: input.payload,
+    dedup_hash: `hash-${input.sourceExternalId ?? input.sourceUrl}`,
+    scraped_at: 't',
+    ...overrides,
+  };
+}
+
+function enrichedRow(input: InsertEnrichedInput): ScrapedItemEnriched {
+  return {
+    id: `enr-${input.rawId}`,
+    raw_id: input.rawId,
+    title: input.title,
+    description: input.description ?? null,
+    category_hint: input.categoryHint ?? null,
+    location_name: input.locationName ?? null,
+    lat: input.lat ?? null,
+    lng: input.lng ?? null,
+    starts_at: input.startsAt ?? null,
+    ends_at: input.endsAt ?? null,
+    price_cop: input.priceCop ?? null,
+    image_url: input.imageUrl ?? null,
+    rating: input.rating ?? null,
+    review_count: input.reviewCount ?? null,
+    phone: input.phone ?? null,
+    website: input.website ?? null,
+    opening_hours: input.openingHours ?? null,
+    price_level: input.priceLevel ?? null,
+    city: input.city ?? null,
+    zone: input.zone ?? null,
+    source_kind: input.sourceKind ?? null,
+    source_external_id: input.sourceExternalId ?? null,
+    source_reviews: input.sourceReviews ?? null,
+    source_url: input.sourceUrl ?? null,
+    quality_score: input.qualityScore ?? null,
+    status: 'pending',
+    reviewed_by: null,
+    reviewed_at: null,
+    rejection_reason: null,
+    published_place_id: null,
+    published_experience_id: null,
+    created_at: 't',
+    updated_at: 't',
+  };
+}
