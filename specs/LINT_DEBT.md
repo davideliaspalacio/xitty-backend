@@ -192,7 +192,7 @@ Avance aplicado:
 - PR tecnico #86 `chore/backend-lint-scraping-runs-repo`:
   `scraping-runs.repo.ts` queda con query condicional tipado, resultado
   Supabase normalizado y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-preferences-service`:
+- PR tecnico #87 `chore/backend-lint-preferences-service`:
   `preferences.service.ts` queda con resultados Supabase tipados, updates sin
   `any` y lint dirigido limpio.
 - Reduccion neta acumulada: -80 archivos con problemas, -2626 errores y -242 warnings.
