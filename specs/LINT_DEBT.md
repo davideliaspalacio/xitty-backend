@@ -216,7 +216,7 @@ Avance aplicado:
 - PR tecnico #94 `chore/backend-lint-scraping-module-spec`:
   `scraping.module.spec.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-localize`:
+- PR tecnico #95 `chore/backend-lint-localize`:
   `localize.ts` queda con records `unknown`, header validado y lint dirigido
   limpio.
 - Reduccion neta acumulada: -89 archivos con problemas, -2658 errores y -246 warnings.

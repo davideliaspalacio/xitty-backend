@@ -115,7 +115,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #92 abierto: `chore/backend-lint-runner-service`; runner service queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #93 abierto: `chore/backend-lint-source-factory-spec`; source factory spec queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #94 abierto: `chore/backend-lint-scraping-module-spec`; scraping module spec queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico preparado: `chore/backend-lint-localize`; localize queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #95 abierto: `chore/backend-lint-localize`; localize queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
