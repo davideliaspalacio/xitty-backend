@@ -106,7 +106,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #83 abierto: `chore/backend-lint-supabase-config`; supabase config queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #84 abierto: `chore/backend-lint-create-experience-dto`; create experience dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #85 abierto: `chore/backend-lint-create-featured-dto`; create featured dto queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico preparado: `chore/backend-lint-scraping-runs-repo`; scraping runs repo queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #86 abierto: `chore/backend-lint-scraping-runs-repo`; scraping runs repo queda con lint dirigido limpio.
 
 ## Evidencia transversal
 

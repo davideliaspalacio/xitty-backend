@@ -189,7 +189,7 @@ Avance aplicado:
 - PR tecnico #85 `chore/backend-lint-create-featured-dto`:
   `create-featured.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-scraping-runs-repo`:
+- PR tecnico #86 `chore/backend-lint-scraping-runs-repo`:
   `scraping-runs.repo.ts` queda con query condicional tipado, resultado
   Supabase normalizado y lint dirigido limpio.
 - Reduccion neta acumulada: -79 archivos con problemas, -2621 errores y -242 warnings.
