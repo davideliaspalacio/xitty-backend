@@ -51,8 +51,10 @@ describe('MetricsService', () => {
 
   describe('track', () => {
     it('registra una interaccion de un usuario autenticado', async () => {
-      supabase._on({ id: 'place-1' }); // place exists
-      const insertChain = supabase._on(null); // insert ok
+      supabase._on({ id: 'place-1', owner_id: 'owner-1' }); // place exists
+      const insertChain = supabase._on({ id: 'interaction-1' }); // insert ok
+      supabase._on({ notify_call_click: true }); // settings
+      const outboxChain = supabase._on(null); // outbox ok
 
       await expect(
         service.track(
@@ -72,11 +74,22 @@ describe('MetricsService', () => {
           user_agent_hash: expect.any(String),
         }),
       );
+      expect(outboxChain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          recipient_user_id: 'owner-1',
+          place_id: 'place-1',
+          interaction_id: 'interaction-1',
+          notification_type: InteractionType.CALL_CLICK,
+          channel: 'pending',
+          status: 'pending',
+          dedup_key: 'call_click:interaction-1',
+        }),
+      );
     });
 
     it('registra una interaccion anonima con hash de sesion sin guardar el id crudo', async () => {
-      supabase._on({ id: 'place-1' });
-      const insertChain = supabase._on(null);
+      supabase._on({ id: 'place-1', owner_id: 'owner-1' });
+      const insertChain = supabase._on({ id: 'interaction-1' });
 
       await expect(
         service.track('place-1', null, {
@@ -115,7 +128,7 @@ describe('MetricsService', () => {
     });
 
     it('trata el unique de dedup_key como exito idempotente', async () => {
-      supabase._on({ id: 'place-1' });
+      supabase._on({ id: 'place-1', owner_id: 'owner-1' });
       supabase._on(null, {
         code: '23505',
         message:
@@ -125,6 +138,58 @@ describe('MetricsService', () => {
       await expect(
         service.track('place-1', null, {
           interaction_type: InteractionType.WHATSAPP_CLICK,
+          anonymous_session_id: 'session-abc-123',
+        }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('no encola avisos cuando la preferencia esta apagada', async () => {
+      supabase._on({ id: 'place-1', owner_id: 'owner-1' });
+      supabase._on({ id: 'interaction-1' });
+      supabase._on({ notify_whatsapp_click: false });
+
+      await expect(
+        service.track('place-1', null, {
+          interaction_type: InteractionType.WHATSAPP_CLICK,
+          anonymous_session_id: 'session-abc-123',
+        }),
+      ).resolves.toBeUndefined();
+
+      expect(supabase.from.mock.calls.map(([table]: [string]) => table)).toEqual([
+        'places',
+        'microsite_interactions',
+        'business_notification_settings',
+      ]);
+    });
+
+    it('no encola avisos si el negocio no tiene dueno', async () => {
+      supabase._on({ id: 'place-1', owner_id: null });
+      supabase._on({ id: 'interaction-1' });
+
+      await expect(
+        service.track('place-1', null, {
+          interaction_type: InteractionType.RESERVATION_CLICK,
+          anonymous_session_id: 'session-abc-123',
+        }),
+      ).resolves.toBeUndefined();
+
+      expect(supabase.from.mock.calls.map(([table]: [string]) => table)).toEqual([
+        'places',
+        'microsite_interactions',
+      ]);
+    });
+
+    it('no rompe tracking si falla el outbox de notificaciones', async () => {
+      supabase._on({ id: 'place-1', owner_id: 'owner-1' });
+      supabase._on({ id: 'interaction-1' });
+      supabase._on(null);
+      supabase._on(null, {
+        message: 'outbox temporarily unavailable',
+      });
+
+      await expect(
+        service.track('place-1', null, {
+          interaction_type: InteractionType.RESERVATION_CLICK,
           anonymous_session_id: 'session-abc-123',
         }),
       ).resolves.toBeUndefined();
