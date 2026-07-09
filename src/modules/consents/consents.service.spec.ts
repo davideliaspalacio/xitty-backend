@@ -1,11 +1,50 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { ConsentsService } from './consents.service';
 import { ConsentType } from './dto/grant-consent.dto';
 
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  message?: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+}
+
+interface ConsentUpsertPayload {
+  user_id: string;
+  consent_type: ConsentType;
+  granted: boolean;
+  granted_at?: string;
+  revoked_at: string | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  upsert: ChainMethod;
+  insert: ChainMethod;
+  update: ChainMethod;
+  delete: ChainMethod;
+  eq: ChainMethod;
+  in: ChainMethod;
+  order: ChainMethod;
+  maybeSingle: ChainMethod;
+  single: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  _on: (data: unknown, error?: MockDbError | null) => MockChain;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
     'from',
     'select',
@@ -18,37 +57,55 @@ function createChain(result: any) {
     'order',
     'maybeSingle',
     'single',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn() };
-  const calls: any[] = [];
-  mock._calls = calls;
-  mock._on = (data: any, error?: any) => {
-    const c = createChain({ data, error: error || null });
-    mock.from.mockReturnValueOnce(c);
-    calls.push(c);
-    return c;
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    _on: (data: unknown, error?: MockDbError | null) => {
+      const c = createChain({ data, error: error ?? null });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
   };
   mock.from.mockImplementation(() => createChain({ data: null, error: null }));
   return mock;
 }
 
+function getFirstUpsertPayload(chain: MockChain): ConsentUpsertPayload {
+  const payload = chain.upsert.mock.calls[0]?.[0];
+  return payload as ConsentUpsertPayload;
+}
+
 describe('ConsentsService', () => {
   let service: ConsentsService;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ConsentsService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
       ],
     }).compile();
     service = module.get<ConsentsService>(ConsentsService);
@@ -74,7 +131,7 @@ describe('ConsentsService', () => {
       expect(result.revoked_at).toBeNull();
       // Verifica que se llamó upsert con la fila esperada
       expect(chain.upsert).toHaveBeenCalled();
-      const upsertArg = chain.upsert.mock.calls[0][0];
+      const upsertArg = getFirstUpsertPayload(chain);
       expect(upsertArg.user_id).toBe('u1');
       expect(upsertArg.consent_type).toBe('location_tracking');
       expect(upsertArg.granted).toBe(true);
@@ -83,7 +140,9 @@ describe('ConsentsService', () => {
 
     it('rechaza consent_type inválido con BadRequestException', async () => {
       await expect(
-        service.grant('u1', { consent_type: 'banana' as any }),
+        service.grant('u1', {
+          consent_type: 'banana' as unknown as ConsentType,
+        }),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -104,7 +163,7 @@ describe('ConsentsService', () => {
       expect(result.granted).toBe(false);
       expect(result.revoked_at).toBeTruthy();
       expect(chain.upsert).toHaveBeenCalled();
-      const upsertArg = chain.upsert.mock.calls[0][0];
+      const upsertArg = getFirstUpsertPayload(chain);
       expect(upsertArg.granted).toBe(false);
       expect(upsertArg.revoked_at).toBeTruthy();
       // Auditoría Ley 1581: revoke NO debe tocar granted_at (preserva la fecha
@@ -114,9 +173,9 @@ describe('ConsentsService', () => {
     });
 
     it('rechaza consent_type inválido en revoke', async () => {
-      await expect(service.revoke('u1', 'banana' as any)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.revoke('u1', 'banana' as unknown as ConsentType),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
