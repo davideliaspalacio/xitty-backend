@@ -9,7 +9,7 @@
 - [x] Publicar lugares de forma idempotente por fuente/source URL.
 - [x] Agregar tests de publicacion idempotente y proveniencia.
 - [x] Correr tests, build y lint dirigido.
-- [ ] Abrir PR apilado.
+- [x] Abrir PR apilado.
 
 ## Migracion SQL
 
@@ -37,3 +37,4 @@ Archivo: `supabase/migrations/20260709000009_place_source_provenance_report.sql`
 - Backend tests: `npm test -- --runInBand src/modules/scraping/admin/admin-scraping.service.spec.ts src/modules/scraping/executor/scraping-executor.service.spec.ts src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 3 suites / 58 tests OK.
 - Backend build: `npm run build` -> OK.
 - Backend lint dirigido: `npx eslint src/modules/scraping/admin/admin-scraping.service.ts src/modules/scraping/executor/scraping-executor.service.ts src/modules/scraping/storage/scraped-items.repo.ts` -> OK.
+- Backend PR: <https://github.com/davideliaspalacio/xitty-backend/pull/30>.
