@@ -35,11 +35,19 @@ export class CreatePromotionDto {
   @Max(100)
   discount_percentage?: number;
 
-  @ApiProperty({ description: 'Start date (ISO 8601)', example: '2026-04-20T00:00:00Z' })
+  @ApiProperty({
+    description:
+      'Start date. Date-only values are interpreted as 00:00 in America/Bogota.',
+    example: '2026-04-20',
+  })
   @IsDateString()
   starts_at: string;
 
-  @ApiProperty({ description: 'End date (ISO 8601)', example: '2026-04-30T23:59:59Z' })
+  @ApiProperty({
+    description:
+      'End date. Date-only values include the full day in America/Bogota.',
+    example: '2026-04-30',
+  })
   @IsDateString()
   ends_at: string;
 

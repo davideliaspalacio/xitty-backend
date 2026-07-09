@@ -93,6 +93,28 @@ export class PromotionsController {
     return this.promotionsService.findActiveByPlace(placeId);
   }
 
+  @Get('places/:placeId/promotions/manage')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'List all promotions for owner/admin management, including inactive/future/expired',
+  })
+  @ApiParam({ name: 'placeId', description: 'Place ID' })
+  @ApiResponse({ status: 200, type: [PromotionResponseDto] })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Not the owner of this place' })
+  async findManageByPlace(
+    @Param('placeId', ParseUUIDPipe) placeId: string,
+    @Request() req: any,
+  ) {
+    return this.promotionsService.findManageByPlace(
+      placeId,
+      req.user.id,
+      req.user.role,
+    );
+  }
+
   @Post('places/:placeId/promotions')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
