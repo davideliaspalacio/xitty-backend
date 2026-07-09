@@ -31,6 +31,20 @@ import { RejectScrapedItemDto } from './dto/reject-item.dto';
 
 import { AuthGuard } from '../../../common/guards/auth.guard';
 
+interface AuthenticatedAdminRequest {
+  user?: {
+    id?: string;
+    role?: string;
+  };
+}
+
+interface VerifiedAdminRequest {
+  user: {
+    id: string;
+    role: 'admin';
+  };
+}
+
 /**
  * Panel de moderacion de scraping. Todos los endpoints requieren:
  *  1. Bearer token valido (AuthGuard)
@@ -44,9 +58,7 @@ import { AuthGuard } from '../../../common/guards/auth.guard';
 @UseGuards(AuthGuard)
 @Controller('admin/scraping')
 export class AdminScrapingController {
-  constructor(
-    private readonly adminService: AdminScrapingService,
-  ) {}
+  constructor(private readonly adminService: AdminScrapingService) {}
 
   // ── Sources ────────────────────────────────────────────────────────────
 
@@ -54,7 +66,7 @@ export class AdminScrapingController {
   @ApiOperation({ summary: 'Lista sources con last_run y items_count' })
   @ApiResponse({ status: 200, description: 'Lista de sources' })
   @ApiResponse({ status: 403, description: 'Admin requerido' })
-  async listSources(@Request() req: any) {
+  async listSources(@Request() req: AuthenticatedAdminRequest) {
     this.assertAdmin(req);
     return this.adminService.listSources();
   }
@@ -66,7 +78,7 @@ export class AdminScrapingController {
   })
   @ApiResponse({ status: 201, description: 'Source creada/actualizada' })
   async upsertSource(
-    @Request() req: any,
+    @Request() req: AuthenticatedAdminRequest,
     @Body() dto: CreateScrapingSourceDto,
   ) {
     this.assertAdmin(req);
@@ -80,7 +92,7 @@ export class AdminScrapingController {
   @ApiResponse({ status: 200, description: 'Source actualizada' })
   @ApiResponse({ status: 404, description: 'Source no encontrada' })
   async patchSource(
-    @Request() req: any,
+    @Request() req: AuthenticatedAdminRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateScrapingSourceDto,
   ) {
@@ -94,7 +106,7 @@ export class AdminScrapingController {
   @ApiResponse({ status: 202, description: 'Run summary' })
   @ApiResponse({ status: 404, description: 'Source no encontrada / disabled' })
   async runSource(
-    @Request() req: any,
+    @Request() req: AuthenticatedAdminRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
     this.assertAdmin(req);
@@ -106,7 +118,7 @@ export class AdminScrapingController {
   @Get('runs')
   @ApiOperation({ summary: 'Historial de runs (filtrable por source)' })
   async listRuns(
-    @Request() req: any,
+    @Request() req: AuthenticatedAdminRequest,
     @Query() query: ListRunsQueryDto,
   ) {
     this.assertAdmin(req);
@@ -118,7 +130,7 @@ export class AdminScrapingController {
   @Get('items')
   @ApiOperation({ summary: 'Cola de moderacion (default status=pending)' })
   async listItems(
-    @Request() req: any,
+    @Request() req: AuthenticatedAdminRequest,
     @Query() query: ListItemsQueryDto,
   ) {
     this.assertAdmin(req);
@@ -129,7 +141,7 @@ export class AdminScrapingController {
   @ApiOperation({ summary: 'Detalle de un item enriched' })
   @ApiResponse({ status: 404, description: 'Item no encontrado' })
   async getItem(
-    @Request() req: any,
+    @Request() req: AuthenticatedAdminRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
     this.assertAdmin(req);
@@ -143,7 +155,7 @@ export class AdminScrapingController {
   @ApiResponse({ status: 200, description: 'Item actualizado' })
   @ApiResponse({ status: 404, description: 'Item no encontrado' })
   async patchItem(
-    @Request() req: any,
+    @Request() req: AuthenticatedAdminRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateScrapedItemDto,
   ) {
@@ -155,7 +167,7 @@ export class AdminScrapingController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Mueve el item a status=approved' })
   async approveItem(
-    @Request() req: any,
+    @Request() req: AuthenticatedAdminRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
     this.assertAdmin(req);
@@ -166,7 +178,7 @@ export class AdminScrapingController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Mueve el item a status=rejected con razon' })
   async rejectItem(
-    @Request() req: any,
+    @Request() req: AuthenticatedAdminRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: RejectScrapedItemDto,
   ) {
@@ -186,7 +198,7 @@ export class AdminScrapingController {
     description: 'Item rejected, ya publicado, o falla al crear entidad',
   })
   async publishItem(
-    @Request() req: any,
+    @Request() req: AuthenticatedAdminRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
     this.assertAdmin(req);
@@ -195,7 +207,9 @@ export class AdminScrapingController {
 
   // ── helpers ────────────────────────────────────────────────────────────
 
-  private assertAdmin(req: any): void {
+  private assertAdmin(
+    req: AuthenticatedAdminRequest,
+  ): asserts req is VerifiedAdminRequest {
     if (!req?.user?.id) {
       throw new UnauthorizedException('User not authenticated');
     }

@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 54.
-- Errores: 177.
-- Warnings: 35.
-- Errores auto-fixables: 98.
+- Archivos con problemas: 53.
+- Errores: 169.
+- Warnings: 32.
+- Errores auto-fixables: 95.
 
 Avance aplicado:
 
@@ -147,15 +147,18 @@ Avance aplicado:
 - PR tecnico #71 `chore/backend-lint-localize-spec`:
   `localize.spec.ts` queda con fixtures `getLang` tipados, sin casts `any`,
   y lint dirigido limpio.
-- Reduccion neta acumulada: -64 archivos con problemas, -2533 errores y -212 warnings.
+- PR tecnico #72 `chore/backend-lint-admin-scraping-controller`:
+  `admin-scraping.controller.ts` queda con request admin tipado, `assertAdmin`
+  como type guard y lint dirigido limpio.
+- Reduccion neta acumulada: -65 archivos con problemas, -2541 errores y -215 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 98 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 46 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 34 | Argumentos `any` en tests/servicios. |
+| `prettier/prettier` | 95 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-member-access` | 41 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 31 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/no-unsafe-assignment` | 15 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-call` | 5 | 0 | Llamadas sobre valores `any`. |
 | `@typescript-eslint/require-await` | 5 | 0 | Funciones async sin await. |
@@ -169,10 +172,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/admin/admin-scraping.controller.ts` | 8 | 3 |
 | `src/modules/notification-settings/notification-settings.controller.ts` | 6 | 4 |
 | `src/main.ts` | 7 | 2 |
 | `src/modules/featured/featured.controller.ts` | 5 | 4 |
+| `src/modules/local-picks/local-picks.controller.ts` | 5 | 4 |
 
 ## Impacto en Features v2
 
