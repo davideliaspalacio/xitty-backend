@@ -14,7 +14,9 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: smoke local post-merge con servidores arriba: frontend `/` responde 200, backend `/categories` responde 200, `/promotions/active` responde 200 y `/featured/current` responde 200.
 - 2026-07-09: smoke local post-merge tambien confirma que la DB conectada aun no tiene migraciones nuevas: `/ranking` falla con `column place_rankings.city does not exist`.
 - 2026-07-09: cerrado gap post-smoke de `/places?city=&zone=`: el endpoint ya acepta filtros de ciudad/zona y el RPC `list_places_near` queda versionado para respetarlos con `sort_by=distance` (`20260709000012_filter_nearby_places_by_city_zone.sql`).
-- 2026-07-09: validacion local de migraciones en copia temporal: `supabase db reset` aplico todas las migraciones hasta `20260709000012_filter_nearby_places_by_city_zone.sql` sin errores SQL; el stack temporal fue detenido despues de la prueba.
+- 2026-07-09: validacion local de migraciones en copia temporal: `supabase db reset` aplico todas las migraciones hasta `20260709000013_harden_backend_service_role_and_place_rpc.sql` sin errores SQL; el stack temporal fue detenido despues de la prueba.
+- 2026-07-09: smoke con backend apuntando a DB local migrada: `/categories`, `/places?city=Cartagena`, `/places?sort_by=distance&city=Cartagena` y `/ranking?city=Cartagena` respondieron 200.
+- 2026-07-09: cerrada brecha de permisos en DB limpia: la migracion #13 concede privilegios a `service_role` sobre objetos propios de Xitty y elimina overloads antiguos de `list_places_near`.
 - Pendiente operativo: aplicar migraciones en produccion, configurar envs, correr scraper con datos reales, refrescar rankings y hacer QA con datos reales.
 
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
