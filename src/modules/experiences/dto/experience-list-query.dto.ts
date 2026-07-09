@@ -1,6 +1,5 @@
 import {
   IsOptional,
-  IsString,
   IsInt,
   IsIn,
   IsDateString,
@@ -13,9 +12,21 @@ import { EXPERIENCE_TYPES } from './create-experience.dto';
 import type { ExperienceType } from './create-experience.dto';
 
 export const EXPERIENCE_SORT = [
-  'rating', 'price_asc', 'price_desc', 'duration', 'created_at',
+  'rating',
+  'price_asc',
+  'price_desc',
+  'duration',
+  'created_at',
 ] as const;
-export type ExperienceSort = typeof EXPERIENCE_SORT[number];
+export type ExperienceSort = (typeof EXPERIENCE_SORT)[number];
+
+function parseTags(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  return value
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
 
 export class ExperienceListQueryDto {
   @ApiPropertyOptional({ enum: EXPERIENCE_TYPES })
@@ -23,9 +34,12 @@ export class ExperienceListQueryDto {
   @IsIn(EXPERIENCE_TYPES as unknown as string[])
   experience_type?: ExperienceType;
 
-  @ApiPropertyOptional({ description: 'Comma-separated tags', example: 'romantico,relax' })
+  @ApiPropertyOptional({
+    description: 'Comma-separated tags',
+    example: 'romantico,relax',
+  })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map((t) => t.trim()).filter(Boolean) : value))
+  @Transform(({ value }: { value: unknown }) => parseTags(value))
   tags?: string[];
 
   @ApiPropertyOptional({ example: 30000 })
@@ -56,7 +70,10 @@ export class ExperienceListQueryDto {
   @Min(1)
   max_duration?: number;
 
-  @ApiPropertyOptional({ description: 'Filter to experiences with at least one available slot on this date' })
+  @ApiPropertyOptional({
+    description:
+      'Filter to experiences with at least one available slot on this date',
+  })
   @IsOptional()
   @IsDateString()
   available_on?: string;
