@@ -13,6 +13,20 @@ const PHOTOS_TABLE = 'place_photos';
 const PLACE_DETAIL_SELECT =
   'id, name, description, address, latitude, longitude, phone, website, price_range, schedule, category_id, categories(id, name, slug, icon), owner_id, tags, average_rating, total_reviews, is_active, slug, cta_phone, cta_whatsapp, reservation_url, created_at, updated_at';
 
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+interface MicrositePlaceRow {
+  id: string;
+  [key: string]: unknown;
+}
+
 @Injectable()
 export class MicrositesService {
   constructor(
@@ -21,17 +35,17 @@ export class MicrositesService {
   ) {}
 
   async findBySlug(slug: string) {
-    const { data: place, error } = await this.supabase
+    const { data: place, error } = (await this.supabase
       .from(PLACES_TABLE)
       .select(PLACE_DETAIL_SELECT)
       .eq('slug', slug)
       .eq('is_active', true)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseResult<MicrositePlaceRow>;
 
     if (error) throw new BadRequestException(error.message);
     if (!place) throw new NotFoundException('Microsite not found');
 
-    const placeId = (place as any).id;
+    const placeId = place.id;
 
     // Photos + active promotions in parallel
     const [photosResult, promosResult] = await Promise.all([
@@ -42,15 +56,17 @@ export class MicrositesService {
         .order('display_order'),
       this.supabase
         .from(ACTIVE_PROMOS_VIEW)
-        .select('id, title, description, discount_percentage, starts_at, ends_at')
+        .select(
+          'id, title, description, discount_percentage, starts_at, ends_at',
+        )
         .eq('place_id', placeId)
         .order('created_at', { ascending: false }),
     ]);
 
     return {
       ...place,
-      photos: photosResult.data || [],
-      active_promotions: promosResult.data || [],
+      photos: photosResult.data ?? [],
+      active_promotions: promosResult.data ?? [],
     };
   }
 }
