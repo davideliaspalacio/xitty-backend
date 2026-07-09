@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 35.
-- Errores: 74.
+- Archivos con problemas: 33.
+- Errores: 66.
 - Warnings: 2.
-- Errores auto-fixables: 54.
+- Errores auto-fixables: 50.
 
 Avance aplicado:
 
@@ -204,28 +204,30 @@ Avance aplicado:
 - PR tecnico #90 `chore/backend-lint-favorites-controller`:
   `favorites.controller.ts` queda con request autenticado tipado y lint dirigido
   limpio.
-- Reduccion neta acumulada: -83 archivos con problemas, -2636 errores y -245 warnings.
+- PR tecnico #91 `chore/backend-lint-enrichment-service`:
+  `enrichment.service.ts` y `enrichment.service.spec.ts` quedan con errores
+  `unknown`, fake provider sin `async` innecesario y lint dirigido limpio.
+- Reduccion neta acumulada: -85 archivos con problemas, -2644 errores y -245 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 54 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 8 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-assignment` | 6 | 0 | Asignaciones desde `any`. |
-| `@typescript-eslint/require-await` | 4 | 0 | Funciones async sin await. |
+| `prettier/prettier` | 50 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-member-access` | 7 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `@typescript-eslint/no-unsafe-assignment` | 5 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/require-await` | 3 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unsafe-argument` | 0 | 2 | Argumentos `any` en tests/servicios. |
-| `@typescript-eslint/no-redundant-type-constituents` | 1 | 0 | Union de tipos redundante. |
 | `@typescript-eslint/no-unused-vars` | 1 | 0 | Variables/imports historicos sin usar. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/enrichment/enrichment.service.spec.ts` | 4 | 0 |
-| `src/modules/scraping/enrichment/enrichment.service.ts` | 4 | 0 |
 | `src/modules/scraping/scheduler/runner.service.ts` | 4 | 0 |
 | `src/modules/scraping/scraping.module.spec.ts` | 4 | 0 |
+| `src/modules/scraping/sources/source.factory.spec.ts` | 4 | 0 |
+| `src/common/i18n/localize.ts` | 2 | 1 |
 
 ## Impacto en Features v2
 

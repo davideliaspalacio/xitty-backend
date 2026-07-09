@@ -17,14 +17,14 @@ class FakeProvider implements EnrichmentProvider {
     this.responses.push(r);
   }
 
-  async generate(prompt: string): Promise<string> {
+  generate(prompt: string): Promise<string> {
     this.calls.push(prompt);
     if (this.responses.length === 0) {
-      throw new Error('FakeProvider: no canned response');
+      return Promise.reject(new Error('FakeProvider: no canned response'));
     }
     const next = this.responses.shift()!;
-    if (next instanceof Error) throw next;
-    return next;
+    if (next instanceof Error) return Promise.reject(next);
+    return Promise.resolve(next);
   }
 }
 
@@ -149,7 +149,9 @@ describe('EnrichmentService', () => {
     provider.enqueue(tooLong);
     provider.enqueue(tooLong);
 
-    await expect(service.enrich({}, 'src')).rejects.toThrow(BadRequestException);
+    await expect(service.enrich({}, 'src')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('valida zod: lat/lng como string se coercen a numero', async () => {
@@ -175,7 +177,9 @@ describe('EnrichmentService', () => {
     provider.enqueue(bad);
     provider.enqueue(bad);
 
-    await expect(service.enrich({}, 'src')).rejects.toThrow(BadRequestException);
+    await expect(service.enrich({}, 'src')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   // ──────────────────────────────────────────────────────────────────────
@@ -186,7 +190,9 @@ describe('EnrichmentService', () => {
     provider.enqueue(new Error('openai down 2'));
     provider.enqueue(new Error('openai down 3'));
 
-    await expect(service.enrich({}, 'src')).rejects.toThrow(BadRequestException);
+    await expect(service.enrich({}, 'src')).rejects.toThrow(
+      BadRequestException,
+    );
     expect(provider.calls).toHaveLength(3);
   });
 

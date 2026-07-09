@@ -75,9 +75,11 @@ export class EnrichmentService {
         }
         parsed = validated.data;
         break;
-      } catch (err: any) {
-        lastError = err?.message ?? 'unknown provider error';
-        this.logger.warn(`[attempt ${attempt + 1}] provider error: ${lastError}`);
+      } catch (err: unknown) {
+        lastError = errorMessage(err, 'unknown provider error');
+        this.logger.warn(
+          `[attempt ${attempt + 1}] provider error: ${lastError}`,
+        );
       }
     }
 
@@ -158,7 +160,7 @@ export class EnrichmentService {
     );
   }
 
-  private safeJsonParse(raw: string): unknown | null {
+  private safeJsonParse(raw: string): unknown {
     if (typeof raw !== 'string') return null;
     const trimmed = raw.trim();
     if (!trimmed) return null;
@@ -175,4 +177,10 @@ export class EnrichmentService {
       return null;
     }
   }
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return fallback;
 }
