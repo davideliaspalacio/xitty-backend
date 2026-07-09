@@ -42,6 +42,7 @@ SUPABASE_URL=https://xxxxx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
 
 JWT_SECRET=cambia-esto-en-produccion
+GOOGLE_MAPS_API_KEY=
 ```
 
 | Variable | Para qué |
@@ -51,6 +52,7 @@ JWT_SECRET=cambia-esto-en-produccion
 | `JWT_SECRET` | Secret para firmar los tokens propios |
 | `CORS_ORIGIN` | Orígenes permitidos, separados por coma |
 | `PORT` | Puerto del servidor (default 3001) |
+| `GOOGLE_MAPS_API_KEY` | Opcional en dev. Permite que el scraper use Google Places/Maps real; si falta, usa mock data. |
 
 ## Estructura del proyecto
 
