@@ -92,6 +92,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #69 abierto: `chore/backend-lint-auth-guard`; auth guard queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #70 abierto: `chore/backend-lint-chat-rate-limit-spec`; chat rate limit spec queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #71 abierto: `chore/backend-lint-localize-spec`; localize spec queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico preparado: `chore/backend-lint-admin-scraping-controller`; admin scraping controller queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -218,7 +219,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend localize lint: `npx eslint src/common/i18n/__tests__/localize.spec.ts` -> OK.
 - Backend localize tests: `npm test -- --runInBand src/common/i18n/__tests__/localize.spec.ts` -> 1 suite / 16 tests OK.
 - Backend build tras localize lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 54 archivos / 177 errores / 35 warnings.
+- Backend admin scraping controller lint: `npx eslint src/modules/scraping/admin/admin-scraping.controller.ts` -> OK.
+- Backend admin scraping smoke tests: `npm test -- --runInBand src/modules/scraping/admin/admin-scraping.service.spec.ts` -> 1 suite / 31 tests OK.
+- Backend build tras admin scraping controller lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 53 archivos / 169 errores / 32 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
