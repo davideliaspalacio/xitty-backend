@@ -16,6 +16,16 @@ export type ScrapingSourceKind =
   | 'firecrawl'
   | 'manual';
 
+interface SupabaseError {
+  message: string;
+  code?: string;
+}
+
+interface SupabaseResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
 export interface ScrapingSource {
   id: string;
   name: string;
@@ -59,18 +69,16 @@ export class ScrapingSourcesRepo {
   ) {}
 
   async findAll(opts: FindAllOptions = {}): Promise<ScrapingSource[]> {
-    let query: any = this.supabase
+    const query = this.supabase
       .from(TABLE)
       .select(SELECT_COLS)
       .order('name', { ascending: true });
 
-    if (opts.enabledOnly) {
-      query = query.eq('enabled', true);
-    }
-
-    const { data, error } = await query;
+    const { data, error } = (await (opts.enabledOnly
+      ? query.eq('enabled', true)
+      : query)) as unknown as SupabaseResult<ScrapingSource[]>;
     if (error) throw new BadRequestException(error.message);
-    return (data ?? []) as ScrapingSource[];
+    return data ?? [];
   }
 
   async findById(id: string): Promise<ScrapingSource> {
@@ -117,7 +125,7 @@ export class ScrapingSourcesRepo {
     id: string,
     patch: PatchScrapingSourceInput,
   ): Promise<ScrapingSource> {
-    const updates: Record<string, any> = {};
+    const updates: Record<string, unknown> = {};
     if (patch.enabled !== undefined) updates.enabled = patch.enabled;
     if (patch.schedule_cron !== undefined) {
       updates.schedule_cron = patch.schedule_cron;
@@ -130,25 +138,23 @@ export class ScrapingSourcesRepo {
       );
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .update(updates)
       .eq('id', id)
       .select(SELECT_COLS)
-      .single();
+      .single()) as unknown as SupabaseResult<ScrapingSource>;
 
     if (error || !data) {
       // single() devuelve PGRST116 cuando no encuentra fila
-      const code = (error as any)?.code as string | undefined;
-      const message = (error as any)?.message as string | undefined;
-      if (code === 'PGRST116' || !data) {
+      if (error?.code === 'PGRST116' || !data) {
         throw new NotFoundException(`Scraping source ${id} not found`);
       }
       throw new BadRequestException(
-        message ?? 'No se pudo actualizar la source',
+        error?.message ?? 'No se pudo actualizar la source',
       );
     }
-    return data as ScrapingSource;
+    return data;
   }
 
   /**
@@ -162,9 +168,7 @@ export class ScrapingSourcesRepo {
       .eq('id', id);
 
     if (error) {
-      this.logger.warn(
-        `markRun(${id}) failed (ignored): ${error.message}`,
-      );
+      this.logger.warn(`markRun(${id}) failed (ignored): ${error.message}`);
     }
   }
 }
