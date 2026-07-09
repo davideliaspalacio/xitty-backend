@@ -23,11 +23,12 @@ export const DEFAULT_LANG: SupportedLang = 'es';
 
 const TRANSLATABLE_FIELDS = ['name', 'title', 'description'] as const;
 
-type TranslationEntry = Partial<Record<(typeof TRANSLATABLE_FIELDS)[number], string>>;
+type TranslatableField = (typeof TRANSLATABLE_FIELDS)[number];
+type TranslationEntry = Partial<Record<TranslatableField, string>>;
 
 interface TranslatableRecord {
   translations?: Record<string, TranslationEntry> | null;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -53,7 +54,7 @@ export function localize<T extends TranslatableRecord>(
   const entry = translations[lang];
   if (!entry || typeof entry !== 'object') return record;
 
-  const overrides: Record<string, any> = {};
+  const overrides: Partial<Record<TranslatableField, string>> = {};
   for (const field of TRANSLATABLE_FIELDS) {
     const value = entry[field];
     if (typeof value === 'string' && value.length > 0) {
@@ -99,15 +100,19 @@ function normalize(value: unknown): SupportedLang | null {
  * Unknown / unsupported languages fall back to DEFAULT_LANG.
  */
 export function getLang(req: {
-  query?: Record<string, any>;
-  headers?: Record<string, any>;
+  query?: Record<string, unknown>;
+  headers?: Record<string, unknown>;
 }): SupportedLang {
   const fromQuery = normalize(req?.query?.lang);
   if (fromQuery) return fromQuery;
 
   const acceptLanguage =
     req?.headers?.['accept-language'] ?? req?.headers?.['Accept-Language'];
-  const fromHeader = normalize(parseAcceptLanguage(acceptLanguage));
+  const fromHeader = normalize(
+    parseAcceptLanguage(
+      typeof acceptLanguage === 'string' ? acceptLanguage : undefined,
+    ),
+  );
   if (fromHeader) return fromHeader;
 
   return DEFAULT_LANG;

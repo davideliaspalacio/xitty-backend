@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 30.
-- Errores: 54.
-- Warnings: 2.
-- Errores auto-fixables: 43.
+- Archivos con problemas: 29.
+- Errores: 52.
+- Warnings: 1.
+- Errores auto-fixables: 42.
 
 Avance aplicado:
 
@@ -216,27 +216,30 @@ Avance aplicado:
 - PR tecnico #94 `chore/backend-lint-scraping-module-spec`:
   `scraping.module.spec.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- Reduccion neta acumulada: -88 archivos con problemas, -2656 errores y -245 warnings.
+- PR tecnico #95 `chore/backend-lint-localize`:
+  `localize.ts` queda con records `unknown`, header validado y lint dirigido
+  limpio.
+- Reduccion neta acumulada: -89 archivos con problemas, -2658 errores y -246 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 43 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 42 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-member-access` | 4 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-assignment` | 3 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/require-await` | 3 | 0 | Funciones async sin await. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 2 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-assignment` | 2 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 1 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/no-unused-vars` | 1 | 0 | Variables/imports historicos sin usar. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/common/i18n/localize.ts` | 2 | 1 |
 | `src/modules/chat/dto/message-response.dto.ts` | 3 | 0 |
 | `src/modules/experiences/dto/reservation-response.dto.ts` | 3 | 0 |
 | `src/modules/microsites/microsites.service.ts` | 3 | 0 |
+| `src/modules/places/dto/place-list-query.dto.ts` | 3 | 0 |
 
 ## Impacto en Features v2
 
