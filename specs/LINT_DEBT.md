@@ -240,7 +240,7 @@ Avance aplicado:
 - PR tecnico #102 `chore/backend-lint-quality-scorer-spec`:
   `quality-scorer.spec.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-openai-chat-provider`:
+- PR tecnico #103 `chore/backend-lint-openai-chat-provider`:
   `openai-provider.ts` queda con errores `unknown`, helper de mensaje seguro,
   formato Prettier y lint dirigido limpio.
 - Reduccion neta acumulada: -97 archivos con problemas, -2680 errores y -247 warnings.
