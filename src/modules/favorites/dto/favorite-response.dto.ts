@@ -13,7 +13,12 @@ export class FavoritePlaceDto {
   @ApiProperty({ nullable: true }) price_range: number | null;
   @ApiProperty({ nullable: true }) cover_photo_url: string | null;
   @ApiProperty({ nullable: true })
-  categories: { id: string; name: string; slug: string; icon: string | null } | null;
+  categories: {
+    id: string;
+    name: string;
+    slug: string;
+    icon: string | null;
+  } | null;
 }
 
 export class FavoriteItemDto {
