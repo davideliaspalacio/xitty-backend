@@ -243,7 +243,7 @@ Avance aplicado:
 - PR tecnico #103 `chore/backend-lint-openai-chat-provider`:
   `openai-provider.ts` queda con errores `unknown`, helper de mensaje seguro,
   formato Prettier y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-chat-rate-limit-service`:
+- PR tecnico #104 `chore/backend-lint-chat-rate-limit-service`:
   `rate-limit.service.ts` queda con resultado RPC tipado, formato Prettier y
   lint dirigido limpio.
 - Reduccion neta acumulada: -98 archivos con problemas, -2682 errores y -247 warnings.
