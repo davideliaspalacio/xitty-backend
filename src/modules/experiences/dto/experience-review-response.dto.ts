@@ -26,7 +26,8 @@ export class ExperienceReviewResponseDto {
 }
 
 export class ExperienceReviewListResponseDto {
-  @ApiProperty({ type: [ExperienceReviewResponseDto] }) data: ExperienceReviewResponseDto[];
+  @ApiProperty({ type: [ExperienceReviewResponseDto] })
+  data: ExperienceReviewResponseDto[];
   @ApiProperty() total: number;
   @ApiProperty() page: number;
   @ApiProperty() limit: number;
