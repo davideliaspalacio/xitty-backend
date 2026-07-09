@@ -89,7 +89,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #66 abierto: `chore/backend-lint-promotions-controller`; promotions controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #67 abierto: `chore/backend-lint-places-controller`; places controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #68 abierto: `chore/backend-lint-auth-controller`; auth controller queda tipado y con lint dirigido limpio.
-- 2026-07-09: PR tecnico preparado: `chore/backend-lint-auth-guard`; auth guard queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #69 abierto: `chore/backend-lint-auth-guard`; auth guard queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 

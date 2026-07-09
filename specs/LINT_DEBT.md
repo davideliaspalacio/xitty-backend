@@ -138,7 +138,7 @@ Avance aplicado:
 - PR tecnico #68 `chore/backend-lint-auth-controller`:
   `auth.controller.ts` queda con request autenticado tipado, logout sin `async`
   innecesario, formato Prettier y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-auth-guard`:
+- PR tecnico #69 `chore/backend-lint-auth-guard`:
   `auth.guard.ts` queda con payload JWT tipado, request autenticado tipado,
   validacion de `sub`, asignacion de usuario sin `any` y lint dirigido limpio.
 - Reduccion neta acumulada: -62 archivos con problemas, -2522 errores y -201 warnings.
