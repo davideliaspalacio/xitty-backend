@@ -32,6 +32,13 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
+interface AuthenticatedRequest {
+  user: {
+    id: string;
+    role: string;
+  };
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -96,9 +103,7 @@ export class AuthController {
     type: AuthResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Invalid or expired OTP' })
-  async verifyEmail(
-    @Body() dto: VerifyEmailDto,
-  ): Promise<AuthResponseDto> {
+  async verifyEmail(@Body() dto: VerifyEmailDto): Promise<AuthResponseDto> {
     return this.authService.verifyEmail(dto.email, dto.token);
   }
 
@@ -114,9 +119,7 @@ export class AuthController {
     type: AuthResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
-  async refresh(
-    @Body() dto: RefreshTokenDto,
-  ): Promise<AuthResponseDto> {
+  async refresh(@Body() dto: RefreshTokenDto): Promise<AuthResponseDto> {
     return this.authService.refreshTokens(dto.refresh_token);
   }
 
@@ -178,7 +181,7 @@ export class AuthController {
     },
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getProfile(@Request() req: any) {
+  async getProfile(@Request() req: AuthenticatedRequest) {
     return this.authService.getProfile(req.user.id);
   }
 
@@ -194,7 +197,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateProfile(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Body() dto: UpdateProfileDto,
   ) {
     return this.authService.updateProfile(req.user.id, dto);
@@ -211,7 +214,7 @@ export class AuthController {
     description: 'Summary with profile and zeroed stats',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getProfileSummary(@Request() req: any) {
+  async getProfileSummary(@Request() req: AuthenticatedRequest) {
     return this.authService.getProfileSummary(req.user.id);
   }
 
@@ -219,7 +222,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'User logout (client discards token)' })
   @ApiResponse({ status: 200, description: 'Logout successful' })
-  async logout(): Promise<{ message: string }> {
+  logout(): { message: string } {
     return { message: 'Logout successful' };
   }
 
@@ -232,9 +235,9 @@ export class AuthController {
   @ApiResponse({ status: 403, description: 'Forbidden — admin required' })
   async getAllUsers(
     @Query() pagination: PaginationDto,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ) {
-    if (!req.user?.id) {
+    if (!req.user.id) {
       throw new UnauthorizedException('User not authenticated');
     }
     if (req.user.role !== 'admin') {
