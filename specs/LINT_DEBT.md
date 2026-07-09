@@ -260,7 +260,7 @@ Avance aplicado:
 - PR tecnico #109 `chore/backend-lint-quality-scorer-service`:
   `quality-scorer.service.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-discover-controller`:
+- PR tecnico #110 `chore/backend-lint-discover-controller`:
   `discover.controller.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -104 archivos con problemas, -2694 errores y -247 warnings.
