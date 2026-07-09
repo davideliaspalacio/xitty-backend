@@ -10,8 +10,8 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 33.
-- Errores: 66.
+- Archivos con problemas: 32.
+- Errores: 62.
 - Warnings: 2.
 - Errores auto-fixables: 50.
 
@@ -207,15 +207,18 @@ Avance aplicado:
 - PR tecnico #91 `chore/backend-lint-enrichment-service`:
   `enrichment.service.ts` y `enrichment.service.spec.ts` quedan con errores
   `unknown`, fake provider sin `async` innecesario y lint dirigido limpio.
-- Reduccion neta acumulada: -85 archivos con problemas, -2644 errores y -245 warnings.
+- PR tecnico pendiente `chore/backend-lint-runner-service`:
+  `runner.service.ts` queda con errores `unknown`, helper de mensaje seguro y
+  lint dirigido limpio.
+- Reduccion neta acumulada: -86 archivos con problemas, -2648 errores y -245 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
 | `prettier/prettier` | 50 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 7 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-assignment` | 5 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-assignment` | 4 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-member-access` | 4 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/require-await` | 3 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unsafe-argument` | 0 | 2 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/no-unused-vars` | 1 | 0 | Variables/imports historicos sin usar. |
@@ -224,10 +227,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/scheduler/runner.service.ts` | 4 | 0 |
 | `src/modules/scraping/scraping.module.spec.ts` | 4 | 0 |
 | `src/modules/scraping/sources/source.factory.spec.ts` | 4 | 0 |
 | `src/common/i18n/localize.ts` | 2 | 1 |
+| `src/modules/chat/dto/message-response.dto.ts` | 3 | 0 |
 
 ## Impacto en Features v2
 
