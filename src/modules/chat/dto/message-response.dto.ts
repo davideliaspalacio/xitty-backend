@@ -17,7 +17,8 @@ export class MessageResponseDto {
   content: string;
 
   @ApiProperty({
-    description: 'Metadata opcional. Para mensajes del assistant incluye context_place_ids.',
+    description:
+      'Metadata opcional. Para mensajes del assistant incluye context_place_ids.',
     required: false,
     nullable: true,
     type: Object,
@@ -35,7 +36,11 @@ export class ConversationResponseDto {
   @ApiProperty({ description: 'ID del usuario dueño' })
   user_id: string;
 
-  @ApiProperty({ description: 'Titulo de la conversacion', required: false, nullable: true })
+  @ApiProperty({
+    description: 'Titulo de la conversacion',
+    required: false,
+    nullable: true,
+  })
   title: string | null;
 
   @ApiProperty({ description: 'Fecha de creacion' })
@@ -55,7 +60,8 @@ export class CreateConversationResponseDto {
   conversation_id: string;
 
   @ApiProperty({
-    description: 'ID del primer mensaje (assistant) si first_message fue enviado, sino null',
+    description:
+      'ID del primer mensaje (assistant) si first_message fue enviado, sino null',
     required: false,
     nullable: true,
   })

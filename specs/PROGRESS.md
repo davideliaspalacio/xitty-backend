@@ -116,6 +116,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #93 abierto: `chore/backend-lint-source-factory-spec`; source factory spec queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #94 abierto: `chore/backend-lint-scraping-module-spec`; scraping module spec queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #95 abierto: `chore/backend-lint-localize`; localize queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #96 abierto: `chore/backend-lint-chat-response-dto`; chat response dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -313,7 +314,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend localize lint: `npx eslint src/common/i18n/localize.ts` -> OK.
 - Backend localize tests: `npm test -- --runInBand src/common/i18n/__tests__/localize.spec.ts` -> 1 suite / 16 tests OK.
 - Backend build tras localize lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 29 archivos / 52 errores / 1 warning.
+- Backend chat response dto lint: `npx eslint src/modules/chat/dto/message-response.dto.ts` -> OK.
+- Backend chat response dto smoke tests: `npm test -- --runInBand src/modules/chat/chat.service.spec.ts` -> 1 suite / 18 tests OK.
+- Backend build tras chat response dto lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 28 archivos / 49 errores / 1 warning.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
