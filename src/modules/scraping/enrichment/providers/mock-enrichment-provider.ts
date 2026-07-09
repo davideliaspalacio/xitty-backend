@@ -24,22 +24,24 @@ export class MockEnrichmentProvider implements EnrichmentProvider {
     this.queue = [];
   }
 
-  async generate(_prompt: string): Promise<string> {
+  generate(): Promise<string> {
     if (this.queue.length > 0) {
-      return this.queue.shift()!;
+      return Promise.resolve(this.queue.shift()!);
     }
-    return JSON.stringify({
-      title: 'Carnaval de Barranquilla (mock)',
-      description:
-        'Fiesta tradicional del Caribe colombiano declarada Patrimonio Cultural Inmaterial. Mock generado para tests sin OPENAI_API_KEY configurada.',
-      category_hint: 'festival',
-      location_name: 'Vía 40',
-      lat: 10.9685,
-      lng: -74.7813,
-      starts_at: '2026-02-14T08:00:00Z',
-      ends_at: '2026-02-17T22:00:00Z',
-      price_cop: null,
-      image_url: null,
-    });
+    return Promise.resolve(
+      JSON.stringify({
+        title: 'Carnaval de Barranquilla (mock)',
+        description:
+          'Fiesta tradicional del Caribe colombiano declarada Patrimonio Cultural Inmaterial. Mock generado para tests sin OPENAI_API_KEY configurada.',
+        category_hint: 'festival',
+        location_name: 'Vía 40',
+        lat: 10.9685,
+        lng: -74.7813,
+        starts_at: '2026-02-14T08:00:00Z',
+        ends_at: '2026-02-17T22:00:00Z',
+        price_cop: null,
+        image_url: null,
+      }),
+    );
   }
 }

@@ -10,8 +10,8 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 18.
-- Errores: 24.
+- Archivos con problemas: 17.
+- Errores: 22.
 - Warnings: 0.
 - Errores auto-fixables: 19.
 
@@ -251,25 +251,27 @@ Avance aplicado:
 - PR tecnico #106 `chore/backend-lint-create-local-pick-dto`:
   `create-local-pick.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- Reduccion neta acumulada: -100 archivos con problemas, -2686 errores y -247 warnings.
+- PR tecnico #107 `chore/backend-lint-mock-enrichment-provider`:
+  `mock-enrichment-provider.ts` queda sin `async` innecesario, sin parametro
+  sin usar y con lint dirigido limpio.
+- Reduccion neta acumulada: -101 archivos con problemas, -2688 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
 | `prettier/prettier` | 19 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/require-await` | 3 | 0 | Funciones async sin await. |
-| `@typescript-eslint/no-unused-vars` | 1 | 0 | Variables/imports historicos sin usar. |
+| `@typescript-eslint/require-await` | 2 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unsafe-member-access` | 1 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/enrichment/providers/mock-enrichment-provider.ts` | 2 | 0 |
 | `src/modules/scraping/enrichment/providers/openai-enrichment-provider.ts` | 2 | 0 |
 | `src/modules/scraping/enrichment/quality-scorer.service.ts` | 2 | 0 |
 | `src/modules/scraping/public/discover.controller.ts` | 2 | 0 |
+| `src/modules/scraping/public/dto/curated-item.dto.ts` | 2 | 0 |
 
 ## Impacto en Features v2
 
