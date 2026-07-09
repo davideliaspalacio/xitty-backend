@@ -201,7 +201,7 @@ Avance aplicado:
 - PR tecnico #89 `chore/backend-lint-mock-chat-provider`:
   `mock-provider.ts` queda sin `async` innecesario, con formato Prettier y lint
   dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-favorites-controller`:
+- PR tecnico #90 `chore/backend-lint-favorites-controller`:
   `favorites.controller.ts` queda con request autenticado tipado y lint dirigido
   limpio.
 - Reduccion neta acumulada: -83 archivos con problemas, -2636 errores y -245 warnings.
