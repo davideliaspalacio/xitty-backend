@@ -3,6 +3,7 @@
 Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo specs, planes, pruebas y trazabilidad por feature.
 
 Runbook de release: `specs/RELEASE_RUNBOOK_FEATURES_V2.md`.
+Deuda de lint backend: `specs/LINT_DEBT.md`.
 
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
 | ------------------------------ | ------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------- |
@@ -51,6 +52,7 @@ Runbook de release: `specs/RELEASE_RUNBOOK_FEATURES_V2.md`.
 - 2026-07-09: smoke test manual de Google Maps/Places sin exponer secretos: Geocoding, Places Search, Place Details, Nearby Search y descarga de foto via media endpoint respondieron OK.
 - 2026-07-09: documentada `GOOGLE_MAPS_API_KEY` en `README.md` backend para evitar que el scraper corra accidentalmente en modo mock.
 - 2026-07-09: saneado y versionado `.env.example` backend sin secretos reales, incluyendo `GOOGLE_MAPS_API_KEY`.
+- 2026-07-09: cuantificado full lint backend: falla por deuda historica en 118 archivos (2710 errores, 247 warnings); ver `specs/LINT_DEBT.md`.
 
 ## Evidencia transversal
 
@@ -59,6 +61,8 @@ Runbook de release: `specs/RELEASE_RUNBOOK_FEATURES_V2.md`.
 - Frontend full suite tras correccion de tokens verdes en PR #24: `npm run test:run` -> 41 files / 207 tests OK.
 - Frontend typecheck tras correccion de tokens verdes en PR #24: `npm run typecheck` -> OK.
 - Frontend build tras correccion de tokens verdes en PR #24: `npm run build` -> OK.
+- Frontend lint tras README flags: `npm run lint` -> 0 errors / 12 warnings historicos de e2e screenshots.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica documentada en `specs/LINT_DEBT.md`; lint dirigido de archivos tocados sigue OK.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
