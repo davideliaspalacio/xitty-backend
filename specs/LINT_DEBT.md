@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 8.
-- Errores: 8.
+- Archivos con problemas: 7.
+- Errores: 7.
 - Warnings: 0.
-- Errores auto-fixables: 8.
+- Errores auto-fixables: 7.
 
 Avance aplicado:
 
@@ -281,22 +281,25 @@ Avance aplicado:
 - PR tecnico #116 `chore/backend-lint-create-experience-review-dto`:
   `create-experience-review.dto.ts` queda formateado por Prettier y con lint
   dirigido limpio.
-- Reduccion neta acumulada: -110 archivos con problemas, -2702 errores y -247 warnings.
+- PR tecnico #117 `chore/backend-lint-experience-review-response-dto`:
+  `experience-review-response.dto.ts` queda formateado por Prettier y con lint
+  dirigido limpio.
+- Reduccion neta acumulada: -111 archivos con problemas, -2703 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 8 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 7 | 0 | Formato historico fuera de Prettier. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/experiences/dto/experience-review-response.dto.ts` | 1 | 0 |
 | `src/modules/experiences/experiences.module.ts` | 1 | 0 |
 | `src/modules/favorites/dto/favorite-response.dto.ts` | 1 | 0 |
 | `src/modules/places/dto/category-response.dto.ts` | 1 | 0 |
+| `src/modules/places/dto/create-place-photo.dto.ts` | 1 | 0 |
 
 ## Impacto en Features v2
 
