@@ -167,6 +167,22 @@ Frontend runtime:
 - `NEXT_PUBLIC_APP_URL`
 - Feature flags: por defecto quedan encendidas; usar `NEXT_PUBLIC_DISABLED_FEATURES` y `NEXT_PUBLIC_DISABLED_LANDING_SECTIONS` solo para apagar algo puntual.
 
+## Estado de acceso a produccion
+
+Desde esta maquina no se pudieron aplicar migraciones remotas porque el CLI no tiene proyecto enlazado ni token de plataforma:
+
+- `supabase projects list` falla por falta de `SUPABASE_ACCESS_TOKEN`/`supabase login`.
+- `supabase migration list` falla porque no hay project ref enlazado.
+- La `.env` local del backend tiene variables runtime de Supabase, pero eso no reemplaza el acceso de plataforma necesario para aplicar DDL remoto con el CLI.
+
+Para quien tenga acceso al proyecto Supabase correcto:
+
+1. Ejecutar `supabase login` o exportar `SUPABASE_ACCESS_TOKEN`.
+2. Ejecutar `supabase link --project-ref <project-ref-produccion>`.
+3. Ejecutar `supabase db push` desde `xitty-backend`.
+4. Confirmar que se aplicaron las 11 migraciones `20260709...`.
+5. Correr en SQL editor: `SELECT public.refresh_place_rankings();`.
+
 ## Post-merge operativo
 
 1. Confirmar que backend y frontend despliegan contra la misma rama/base ya mergeada.
