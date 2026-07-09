@@ -13,6 +13,51 @@ import { RegisterDto } from './dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseSingleResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+interface SupabaseListResult<T> {
+  data: T[] | null;
+  error: SupabaseError | null;
+  count: number | null;
+}
+
+export interface ProfileRow {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  phone: string | null;
+  role: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+type ProfileUpdate = Partial<Pick<ProfileRow, 'full_name' | 'phone'>>;
+
+export interface ProfileSummary {
+  profile: ProfileRow;
+  stats: {
+    places_visited: number;
+    places_saved: number;
+    reviews: number;
+    badges: string[];
+  };
+}
+
+export interface PaginatedUsers {
+  data: ProfileRow[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -59,11 +104,7 @@ export class AuthService {
     }
 
     const profile = await this.fetchProfile(data.user.id);
-    return this.buildAuthResponse(
-      data.user.id,
-      data.user.email!,
-      profile,
-    );
+    return this.buildAuthResponse(data.user.id, data.user.email!, profile);
   }
 
   /**
@@ -107,13 +148,11 @@ export class AuthService {
     }
 
     // Asignar rol por defecto en user_roles
-    const { error: roleError } = await this.supabase
-      .from('user_roles')
-      .insert({
-        user_id: data.user.id,
-        role: 'user',
-        created_at: new Date().toISOString(),
-      });
+    const { error: roleError } = await this.supabase.from('user_roles').insert({
+      user_id: data.user.id,
+      role: 'user',
+      created_at: new Date().toISOString(),
+    });
 
     if (roleError) {
       console.warn('Error assigning role:', roleError);
@@ -129,10 +168,7 @@ export class AuthService {
   /**
    * Verifica el email con el OTP que llegó al correo y devuelve los tokens.
    */
-  async verifyEmail(
-    email: string,
-    token: string,
-  ): Promise<AuthResponseDto> {
+  async verifyEmail(email: string, token: string): Promise<AuthResponseDto> {
     const { data, error } = await this.supabaseAuth.auth.verifyOtp({
       email,
       token,
@@ -146,11 +182,7 @@ export class AuthService {
     }
 
     const profile = await this.fetchProfile(data.user.id);
-    return this.buildAuthResponse(
-      data.user.id,
-      data.user.email!,
-      profile,
-    );
+    return this.buildAuthResponse(data.user.id, data.user.email!, profile);
   }
 
   /**
@@ -179,9 +211,8 @@ export class AuthService {
     }
 
     // Necesitamos el email del auth.users para devolverlo en el response
-    const { data: userData } = await this.supabaseAuth.auth.admin.getUserById(
-      userId,
-    );
+    const { data: userData } =
+      await this.supabaseAuth.auth.admin.getUserById(userId);
     const email = userData?.user?.email || profile.email || '';
 
     return this.buildAuthResponse(userId, email, profile);
@@ -190,23 +221,26 @@ export class AuthService {
   /**
    * Actualiza full_name y/o phone del usuario actual.
    */
-  async updateProfile(userId: string, dto: UpdateProfileDto) {
+  async updateProfile(
+    userId: string,
+    dto: UpdateProfileDto,
+  ): Promise<ProfileRow> {
     if (!dto.full_name && !dto.phone) {
       throw new BadRequestException(
         'At least one field (full_name or phone) is required',
       );
     }
 
-    const updates: Record<string, any> = {};
+    const updates: ProfileUpdate = {};
     if (dto.full_name !== undefined) updates.full_name = dto.full_name;
     if (dto.phone !== undefined) updates.phone = dto.phone;
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from('profiles')
       .update(updates)
       .eq('id', userId)
       .select('id, email, full_name, phone, role, created_at, updated_at')
-      .single();
+      .single()) as unknown as SupabaseSingleResult<ProfileRow>;
 
     if (error || !data) {
       throw new NotFoundException('Profile not found');
@@ -271,7 +305,7 @@ export class AuthService {
   /**
    * Devuelve el perfil del usuario autenticado (US-005 — versión completa).
    */
-  async getProfile(userId: string): Promise<any> {
+  async getProfile(userId: string): Promise<ProfileRow> {
     const profile = await this.fetchProfile(userId);
     if (!profile) {
       throw new NotFoundException('User not found');
@@ -284,7 +318,7 @@ export class AuthService {
    * TODO(US-005): reemplazar stats hardcoded cuando existan los módulos
    * places, reviews y gamification.
    */
-  async getProfileSummary(userId: string) {
+  async getProfileSummary(userId: string): Promise<ProfileSummary> {
     const profile = await this.getProfile(userId);
     return {
       profile,
@@ -300,28 +334,28 @@ export class AuthService {
   /**
    * Logout (stub — el cliente descarta el token).
    */
-  async logout(userId: string): Promise<void> {
+  logout(userId: string): Promise<void> {
     console.log(`User ${userId} logged out`);
+    return Promise.resolve();
   }
 
-  async getAllUsers(pagination: { page?: number; limit?: number }): Promise<{
-    data: any[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  }> {
+  async getAllUsers(pagination: {
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedUsers> {
     const { page = 1, limit = 10 } = pagination;
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await this.supabase
+    const { data, error, count } = (await this.supabase
       .from('profiles')
-      .select(
-        'id, email, full_name, phone, role, created_at, updated_at',
-        { count: 'exact' },
-      )
+      .select('id, email, full_name, phone, role, created_at, updated_at', {
+        count: 'exact',
+      })
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(
+        offset,
+        offset + limit - 1,
+      )) as unknown as SupabaseListResult<ProfileRow>;
 
     if (error) {
       throw new Error(`Error fetching users: ${error.message}`);
@@ -340,27 +374,27 @@ export class AuthService {
   // Helpers privados
   // ---------------------------------------------------------------------------
 
-  private async fetchProfile(userId: string) {
-    const { data } = await this.supabase
+  private async fetchProfile(userId: string): Promise<ProfileRow | null> {
+    const { data } = (await this.supabase
       .from('profiles')
       .select('id, email, full_name, phone, role, created_at, updated_at')
       .eq('id', userId)
-      .single();
+      .single()) as unknown as SupabaseSingleResult<ProfileRow>;
     return data;
   }
 
   private buildAuthResponse(
     userId: string,
     email: string,
-    profile: any,
+    profile: ProfileRow | null,
   ): AuthResponseDto {
     const role = profile?.role || 'user';
     return {
       user: {
         id: userId,
         email,
-        full_name: profile?.full_name,
-        phone: profile?.phone,
+        full_name: profile?.full_name ?? undefined,
+        phone: profile?.phone ?? undefined,
         role,
       },
       access_token: this.generateAccessToken(userId, role),

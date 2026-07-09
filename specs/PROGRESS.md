@@ -82,6 +82,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #59 abierto: `chore/backend-lint-suggestions-service-spec`; suggestions service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #60 abierto: `chore/backend-lint-notification-settings-service-spec`; notification settings service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #61 abierto: `chore/backend-lint-tavily-search-source-spec`; Tavily source/spec quedan tipados y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #62 abierto: `chore/backend-lint-auth-service`; auth service queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -178,7 +179,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend Tavily lint: `npx eslint src/modules/scraping/sources/tavily-search-source.ts src/modules/scraping/sources/tavily-search-source.spec.ts` -> OK.
 - Backend Tavily tests: `npm test -- --runInBand src/modules/scraping/sources/tavily-search-source.spec.ts` -> 1 suite / 21 tests OK.
 - Backend build tras Tavily lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 66 archivos / 313 errores / 80 warnings.
+- Backend auth service lint: `npx eslint src/modules/auth/auth.service.ts` -> OK.
+- Backend auth service tests: no existe spec de `AuthService`/`AuthController` en `src/**/*.spec.ts`; verificado con build.
+- Backend build tras auth service lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 65 archivos / 289 errores / 78 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
