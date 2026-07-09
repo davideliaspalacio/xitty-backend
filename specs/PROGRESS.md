@@ -12,7 +12,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 | F6 Preferencias notificaciones | Parcial auditado                     | Pendiente                          | Requiere decision canal/proveedor antes de implementacion final.                    |
 | F7 Ranking inteligente         | PR abierto, pendiente review/merge   | Backend #26 / Frontend #22         | Mergear despues de F3 backend #25 y frontend #21.                                   |
 | F8 Patrocinios                 | PR abierto, pendiente review/merge   | Backend #27 / Frontend #23         | Mergear despues de F7 backend #26 y frontend #22.                                   |
-| F9 Destacado semanal           | Parcial auditado                     | Pendiente                          | Cerrar fallback/semana Colombia/tests.                                              |
+| F9 Destacado semanal           | Implementado, pendiente PR/QA amplio | `feature/f9-destacados-semanales`  | Abrir PR backend apilado despues de F8.                                             |
 
 ## Cambios activos
 
@@ -32,6 +32,8 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: iniciado F8 patrocinios.
 - 2026-07-09: F8 implementado con prioridad de slots, maximo 3 destacados, extension segura, limpieza de vencidos y contrato frontend/backend corregido.
 - 2026-07-09: F8 PRs abiertos: backend #27 y frontend #23, apilados sobre F7.
+- 2026-07-09: iniciado F9 destacado semanal.
+- 2026-07-09: F9 implementado con view que oculta lugares inactivos y fallback semanal de lugares activos mejor calificados.
 
 ## Evidencia F4
 
@@ -85,3 +87,8 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - Frontend typecheck: `npm run typecheck` -> OK.
 - Frontend build: `npm run build` -> OK.
 - PRs: backend <https://github.com/davideliaspalacio/xitty-backend/pull/27>, frontend <https://github.com/davideliaspalacio/xitty-frontend/pull/23>.
+
+## Evidencia F9
+
+- Backend tests: `npm test -- --runInBand src/modules/featured/featured.service.spec.ts` -> 1 suite / 15 tests OK.
+- Backend build: `npm run build` -> OK.
