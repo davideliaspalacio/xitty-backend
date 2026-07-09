@@ -16,7 +16,7 @@ import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const PICK_TAGS = ['favorito_local', 'secreto', 'autentico'] as const;
-export type PickTag = typeof PICK_TAGS[number];
+export type PickTag = (typeof PICK_TAGS)[number];
 
 export class CreateLocalPickDto {
   @ApiProperty()
@@ -33,7 +33,9 @@ export class CreateLocalPickDto {
   @IsIn(PICK_TAGS as unknown as string[])
   pick_tag: PickTag;
 
-  @ApiPropertyOptional({ description: 'Curator pitch / personal recommendation' })
+  @ApiPropertyOptional({
+    description: 'Curator pitch / personal recommendation',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(2000)
