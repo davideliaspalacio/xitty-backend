@@ -7,7 +7,10 @@ export class OgResponseDto {
   @ApiProperty({ example: 'Restaurante italiano en el centro de Barranquilla' })
   description: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/photo.jpg', nullable: true })
+  @ApiProperty({
+    example: 'https://storage.example.com/photo.jpg',
+    nullable: true,
+  })
   image: string | null;
 
   @ApiProperty({ example: 'https://xitty.co/places/abc-123' })
