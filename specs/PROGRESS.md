@@ -79,6 +79,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #56 abierto: `chore/backend-lint-chat-rag-context`; chat RAG context service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #57 abierto: `chore/backend-lint-location-service-spec`; location service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #58 abierto: `chore/backend-lint-chat-controller-spec`; chat controller/spec quedan tipados y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #59 preparado: `chore/backend-lint-suggestions-service-spec`; suggestions service/spec quedan tipados y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -166,7 +167,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend chat controller lint: `npx eslint src/modules/chat/chat.controller.ts src/modules/chat/chat.controller.spec.ts` -> OK.
 - Backend chat controller tests: `npm test -- --runInBand src/modules/chat/chat.controller.spec.ts` -> 1 suite / 14 tests OK.
 - Backend build tras chat controller lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 72 archivos / 420 errores / 84 warnings.
+- Backend suggestions lint: `npx eslint src/modules/suggestions/suggestions.service.ts src/modules/suggestions/suggestions.service.spec.ts` -> OK.
+- Backend suggestions tests: `npm test -- --runInBand src/modules/suggestions/suggestions.service.spec.ts` -> 1 suite / 10 tests OK.
+- Backend build tras suggestions lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 70 archivos / 370 errores / 82 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
