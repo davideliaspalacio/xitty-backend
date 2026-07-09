@@ -334,6 +334,8 @@ export class AdminScrapingService {
       cta_phone: item.phone ?? null,
       website: item.website ?? null,
       price_range: item.price_level ?? null,
+      city: item.city ?? null,
+      zone: item.zone ?? null,
       schedule: item.opening_hours
         ? { weekday_descriptions: item.opening_hours }
         : null,
@@ -419,6 +421,8 @@ export class AdminScrapingService {
         description: source,
         address: source,
         coordinates: source,
+        city: source,
+        zone: source,
         phone: source,
         website: source,
         opening_hours: source,

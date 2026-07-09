@@ -52,6 +52,8 @@ export interface InsertEnrichedInput {
   website?: string | null;
   openingHours?: string[] | null;
   priceLevel?: number | null;
+  city?: string | null;
+  zone?: string | null;
   sourceKind?: string | null;
   sourceExternalId?: string | null;
   sourceReviews?: SourceReview[] | null;
@@ -119,6 +121,8 @@ export interface ScrapedItemEnriched {
   website: string | null;
   opening_hours: string[] | null;
   price_level: number | null;
+  city: string | null;
+  zone: string | null;
   source_kind: string | null;
   source_external_id: string | null;
   source_reviews: SourceReview[] | null;
@@ -140,7 +144,7 @@ const RAW_COLS =
 const ENRICHED_COLS =
   'id, raw_id, title, description, category_hint, location_name, lat, lng, ' +
   'starts_at, ends_at, price_cop, image_url, rating, review_count, ' +
-  'phone, website, opening_hours, price_level, source_kind, source_external_id, source_reviews, source_url, ' +
+  'phone, website, opening_hours, price_level, city, zone, source_kind, source_external_id, source_reviews, source_url, ' +
   'quality_score, status, ' +
   'reviewed_by, reviewed_at, rejection_reason, published_place_id, published_experience_id, ' +
   'created_at, updated_at';
@@ -243,6 +247,8 @@ export class ScrapedItemsRepo {
       website: input.website ?? null,
       opening_hours: input.openingHours ?? null,
       price_level: input.priceLevel ?? null,
+      city: input.city ?? null,
+      zone: input.zone ?? null,
       source_kind: input.sourceKind ?? null,
       source_external_id: input.sourceExternalId ?? null,
       source_reviews: input.sourceReviews ?? null,

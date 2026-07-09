@@ -2,15 +2,18 @@
 
 Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo specs, planes, pruebas y trazabilidad por feature.
 
+Runbook de release: `specs/RELEASE_RUNBOOK_FEATURES_V2.md`.
+Deuda de lint backend: `specs/LINT_DEBT.md`.
+
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
 | ------------------------------ | ------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------- |
-| F1 Poblacion de lugares        | PRs abiertos, pendiente review/merge | Backend #30 / Backend #31         | Mergear #30 despues de F6 backend #29; luego #31. Fotos/licencias quedan pendientes. |
-| F2 Perfil publico URL propia   | Implementado, pendiente PR/QA amplio | `feature/f2-public-slugs-og`       | Abrir PR apilado despues de F5.                                                     |
+| F1 Poblacion de lugares        | PRs abiertos, pendiente review/merge | Backend #30 / Backend #31         | Mergear #30 despues de F6 backend #29; luego #31. Aplicar `GOOGLE_MAPS_API_KEY` en backend antes de correr scraper. Fotos/licencias quedan pendientes. |
+| F2 Perfil publico URL propia   | PRs abiertos, pendiente review/merge | Backend #24 / Frontend #20         | Mergear despues de F5 backend #23 y frontend #19.                                   |
 | F3 Promociones                 | PR abierto, pendiente review/merge   | Backend #25 / Frontend #21         | Mergear despues de F2 backend #24 y frontend #20.                                   |
-| F4 Tracking de eventos         | Implementado, pendiente PR/QA amplio | `feature/f4-tracking-anti-inflado` | Abrir PR coordinado backend/frontend y correr suite amplia si el tiempo lo permite. |
-| F5 Dashboard metricas          | Implementado, pendiente PR/QA amplio | `feature/f5-metrics-comparativas`  | Abrir PR apilado despues de F4.                                                     |
+| F4 Tracking de eventos         | PRs abiertos, pendiente review/merge | Backend #22 / Frontend #18         | Mergear primero desde `main`; base de F5/F2/F3/F7/F8/F6.                            |
+| F5 Dashboard metricas          | PRs abiertos, pendiente review/merge | Backend #23 / Frontend #19         | Mergear despues de F4 backend #22 y frontend #18.                                   |
 | F6 Preferencias notificaciones | PR abierto, pendiente review/merge   | Backend #29 / Frontend #24         | Mergear despues de F9 backend #28 y F8 frontend #23.                                |
-| F7 Ranking inteligente         | PR abierto, pendiente review/merge   | Backend #26 / Frontend #22         | Mergear despues de F3 backend #25 y frontend #21.                                   |
+| F7 Ranking inteligente         | PRs abiertos, pendiente review/merge | Backend #26 / Frontend #22 / Backend #32 | Mergear #26/#22 en orden; #32 despues de backend #31 por city/zone.                 |
 | F8 Patrocinios                 | PR abierto, pendiente review/merge   | Backend #27 / Frontend #23         | Mergear despues de F7 backend #26 y frontend #22.                                   |
 | F9 Destacado semanal           | PR abierto, pendiente review/merge   | Backend #28                        | Mergear despues de F8 backend #27.                                                  |
 
@@ -43,6 +46,24 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: F1 PR abierto: backend #30.
 - 2026-07-09: F1 datos iniciado con seed ampliado de fuentes Cartagena por zonas, sin publicar fotos/lugares automaticamente.
 - 2026-07-09: F1 datos PR abierto: backend #31.
+- 2026-07-09: F7 gap ciudad implementado: `places.city/zone`, ranking filtrable por ciudad y snapshots city/city_category.
+- 2026-07-09: F7 city PR abierto: backend #32.
+- 2026-07-09: validacion full frontend en PR #24 tras alinear test de tokens con marca verde actual.
+- 2026-07-09: smoke test manual de Google Maps/Places sin exponer secretos: Geocoding, Places Search, Place Details, Nearby Search y descarga de foto via media endpoint respondieron OK.
+- 2026-07-09: documentada `GOOGLE_MAPS_API_KEY` en `README.md` backend para evitar que el scraper corra accidentalmente en modo mock.
+- 2026-07-09: saneado y versionado `.env.example` backend sin secretos reales, incluyendo `GOOGLE_MAPS_API_KEY`.
+- 2026-07-09: cuantificado full lint backend: falla por deuda historica en 118 archivos (2710 errores, 247 warnings); ver `specs/LINT_DEBT.md`.
+
+## Evidencia transversal
+
+- Backend full suite tras F7 city: `npm test -- --runInBand` -> 38 suites / 474 tests OK.
+- Backend build tras F7 city: `npm run build` -> OK.
+- Frontend full suite tras correccion de tokens verdes en PR #24: `npm run test:run` -> 41 files / 207 tests OK.
+- Frontend typecheck tras correccion de tokens verdes en PR #24: `npm run typecheck` -> OK.
+- Frontend build tras correccion de tokens verdes en PR #24: `npm run build` -> OK.
+- Frontend lint tras README flags y limpieza e2e: `npm run lint` -> OK, 0 warnings.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica documentada en `specs/LINT_DEBT.md`; lint dirigido de archivos tocados sigue OK.
+- Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
 
@@ -86,6 +107,10 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - Frontend typecheck: `npm run typecheck` -> OK.
 - Frontend build: `npm run build` -> OK.
 - PRs: backend <https://github.com/davideliaspalacio/xitty-backend/pull/26>, frontend <https://github.com/davideliaspalacio/xitty-frontend/pull/22>.
+- Backend city tests: `npm test -- --runInBand src/modules/ranking/ranking.service.spec.ts src/modules/scraping/admin/admin-scraping.service.spec.ts src/modules/scraping/executor/scraping-executor.service.spec.ts src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 4 suites / 73 tests OK.
+- Backend city build: `npm run build` -> OK.
+- Backend city lint dirigido: `npx eslint src/modules/ranking/ranking.service.ts src/modules/ranking/ranking.controller.ts src/modules/ranking/dto/ranking-query.dto.ts src/modules/ranking/dto/ranking-response.dto.ts src/modules/scraping/admin/admin-scraping.service.ts src/modules/scraping/executor/scraping-executor.service.ts src/modules/scraping/storage/scraped-items.repo.ts` -> OK.
+- PR city: backend <https://github.com/davideliaspalacio/xitty-backend/pull/32>.
 
 ## Evidencia F8
 

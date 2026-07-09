@@ -152,6 +152,34 @@ describe('ScrapingExecutorService', () => {
     );
   });
 
+  it('copia city/zone desde la config de la source al enriched item', async () => {
+    sourcesRepo.findById.mockResolvedValue({
+      ...ENABLED_SOURCE,
+      config: { city: 'Cartagena', zone: 'Getsemaní' },
+    });
+    factory.build.mockReturnValue(makeFetcher([rawItem('a')]));
+    runsRepo.start.mockResolvedValue(RUN_ROW);
+    itemsRepo.insertRaw.mockResolvedValue({
+      id: 'raw-a',
+      raw_payload: {},
+    } as any);
+    enrichment.enrich.mockResolvedValue({
+      title: 'X',
+      is_duplicate: false,
+      quality_score: 0.9,
+    } as any);
+    itemsRepo.insertEnriched.mockResolvedValue({} as any);
+
+    await service.runSource('s1', 'admin');
+
+    expect(itemsRepo.insertEnriched).toHaveBeenCalledWith(
+      expect.objectContaining({
+        city: 'Cartagena',
+        zone: 'Getsemaní',
+      }),
+    );
+  });
+
   it('tira NotFound y NO arranca run si la source no existe', async () => {
     sourcesRepo.findById.mockRejectedValue(new NotFoundException('nope'));
     await expect(service.runSource('missing', 'admin')).rejects.toThrow(
