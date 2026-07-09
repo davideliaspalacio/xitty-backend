@@ -86,6 +86,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #63 abierto: `chore/backend-lint-photo-storage-service-spec`; photo storage service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #64 abierto: `chore/backend-lint-metrics-controller`; metrics controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #65 abierto: `chore/backend-lint-eventbrite-source-spec`; Eventbrite source/spec quedan tipados y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #66 abierto: `chore/backend-lint-promotions-controller`; promotions controller queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -194,7 +195,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend Eventbrite lint: `npx eslint src/modules/scraping/sources/eventbrite-source.ts src/modules/scraping/sources/eventbrite-source.spec.ts` -> OK.
 - Backend Eventbrite tests: `npm test -- --runInBand src/modules/scraping/sources/eventbrite-source.spec.ts` -> 1 suite / 17 tests OK.
 - Backend build tras Eventbrite lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 60 archivos / 230 errores / 65 warnings.
+- Backend promotions controller lint: `npx eslint src/modules/promotions/promotions.controller.ts` -> OK.
+- Backend promotions smoke tests: `npm test -- --runInBand src/modules/promotions/promotions.service.spec.ts` -> 1 suite / 23 tests OK.
+- Backend build tras promotions controller lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 59 archivos / 219 errores / 56 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

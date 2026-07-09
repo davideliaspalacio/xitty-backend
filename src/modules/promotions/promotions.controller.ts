@@ -33,6 +33,26 @@ import {
 import { RecordImpressionDto } from './dto/record-impression.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
+type HeaderValue = string | string[] | undefined;
+
+interface PromotionRequestHeaders {
+  'user-agent'?: HeaderValue;
+}
+
+interface OptionalPromotionRequest {
+  headers: PromotionRequestHeaders;
+  user?: {
+    id: string;
+  };
+}
+
+interface AuthenticatedPromotionRequest extends OptionalPromotionRequest {
+  user: {
+    id: string;
+    role: string;
+  };
+}
+
 @ApiTags('promotions')
 @Controller()
 export class PromotionsController {
@@ -60,11 +80,11 @@ export class PromotionsController {
   @ApiResponse({ status: 404, description: 'Promotion not found' })
   async recordImpression(
     @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: any,
+    @Request() req: OptionalPromotionRequest,
     @Body() dto: RecordImpressionDto,
   ) {
-    await this.promotionsService.recordImpression(id, req?.user?.id, dto, {
-      userAgent: req.headers?.['user-agent'],
+    await this.promotionsService.recordImpression(id, req.user?.id, dto, {
+      userAgent: firstHeader(req.headers['user-agent']),
     });
   }
 
@@ -106,7 +126,7 @@ export class PromotionsController {
   @ApiResponse({ status: 403, description: 'Not the owner of this place' })
   async findManageByPlace(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedPromotionRequest,
   ) {
     return this.promotionsService.findManageByPlace(
       placeId,
@@ -128,7 +148,7 @@ export class PromotionsController {
   @ApiResponse({ status: 404, description: 'Place not found' })
   async create(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedPromotionRequest,
     @Body() dto: CreatePromotionDto,
   ) {
     return this.promotionsService.create(
@@ -152,7 +172,7 @@ export class PromotionsController {
   async update(
     @Param('placeId', ParseUUIDPipe) placeId: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedPromotionRequest,
     @Body() dto: UpdatePromotionDto,
   ) {
     return this.promotionsService.update(
@@ -176,7 +196,7 @@ export class PromotionsController {
   async remove(
     @Param('placeId', ParseUUIDPipe) placeId: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedPromotionRequest,
   ) {
     return this.promotionsService.remove(
       placeId,
@@ -185,4 +205,8 @@ export class PromotionsController {
       req.user.role,
     );
   }
+}
+
+function firstHeader(value: HeaderValue): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
 }
