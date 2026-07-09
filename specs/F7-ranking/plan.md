@@ -10,6 +10,7 @@
 - [x] Agregar tests backend/frontend.
 - [x] Abrir PRs apilados.
 - [x] Cerrar gap de ranking por ciudad con `city`/`zone` y snapshots city/city_category.
+- [x] Cerrar gap admin de configuracion de pesos con endpoints protegidos y UI `/admin/ranking`.
 
 ## Migracion SQL
 
@@ -32,6 +33,8 @@ Archivo adicional: `supabase/migrations/20260709000011_city_scoped_rankings.sql`
 - Extiende `ranking_snapshots.scope` con `city` y `city_category`.
 - Reemplaza `refresh_place_rankings()` para guardar snapshots global/category/city/city_category.
 
+La extension admin de configuracion no agrega migracion nueva; reutiliza `ranking_config` creada en `20260709000005_improve_place_rankings.sql`.
+
 ## Estrategia de tests
 
 - Backend:
@@ -41,9 +44,12 @@ Archivo adicional: `supabase/migrations/20260709000011_city_scoped_rankings.sql`
   - ranking por ciudad usa `city_position` y snapshots scope `city`.
   - ranking por ciudad+categoria usa `city_category_position`.
   - patrocinados se muestran arriba sin cambiar `position` organica.
+  - admin puede leer/editar `ranking_config`, se rechazan updates vacios y pesos totales en cero.
+  - controller bloquea refresh/configuracion para roles no admin.
 - Frontend:
   - ranking card muestra `+N`, `-N` o neutro segun `position_change`.
   - sello `Patrocinado` permanece visible.
+  - pagina `/admin/ranking` renderiza la config, valida pesos y llama save/refresh.
 
 ## Impacto
 
@@ -72,3 +78,7 @@ Archivo adicional: `supabase/migrations/20260709000011_city_scoped_rankings.sql`
 - Backend city build: `npm run build` -> OK.
 - Backend city lint dirigido: `npx eslint src/modules/ranking/ranking.service.ts src/modules/ranking/ranking.controller.ts src/modules/ranking/dto/ranking-query.dto.ts src/modules/ranking/dto/ranking-response.dto.ts src/modules/scraping/admin/admin-scraping.service.ts src/modules/scraping/executor/scraping-executor.service.ts src/modules/scraping/storage/scraped-items.repo.ts` -> OK.
 - Backend city PR: <https://github.com/davideliaspalacio/xitty-backend/pull/32>.
+- Backend config admin focused: `npm test -- ranking.controller.spec.ts ranking.service.spec.ts --runInBand` -> 2 suites / 25 tests OK.
+- Backend config admin full: `npm test -- --runInBand` -> 39 suites / 490 tests OK; `npx eslint "src/**/*.ts"` -> OK; `npm run build` -> OK.
+- Frontend config admin focused: `npm run test:run -- src/app/__tests__/admin-ranking.test.tsx src/features/admin/__tests__/api.test.ts` -> 2 files / 11 tests OK.
+- Frontend config admin full: `npm run test:run` -> 47 files / 224 tests OK; `npm run typecheck` -> OK; `npm run lint` -> OK; `npm run build` -> OK.

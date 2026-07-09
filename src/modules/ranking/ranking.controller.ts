@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Patch,
   Post,
   Delete,
   Body,
@@ -30,6 +31,7 @@ import {
   CreateSponsorshipDto,
   SponsorshipResponseDto,
 } from './dto/sponsorship.dto';
+import { UpdateRankingConfigDto } from './dto/update-ranking-config.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
 interface AuthenticatedRequest {
@@ -83,10 +85,35 @@ export class RankingController {
   @ApiResponse({ status: 200, description: 'Rankings refreshed' })
   @ApiResponse({ status: 403, description: 'Admin only' })
   async refresh(@Request() req: AuthenticatedRequest) {
-    if (req.user.role !== 'admin') {
-      throw new ForbiddenException('Admin only');
-    }
+    this.assertAdmin(req);
     return this.rankingService.refresh();
+  }
+
+  @Get('admin/ranking/config')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Read ranking formula config (admin) — F7' })
+  @ApiResponse({ status: 200, description: 'Ranking config' })
+  @ApiResponse({ status: 403, description: 'Admin only' })
+  async getConfig(@Request() req: AuthenticatedRequest) {
+    this.assertAdmin(req);
+    return this.rankingService.getConfig();
+  }
+
+  @Patch('admin/ranking/config')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update ranking formula config (admin) — F7' })
+  @ApiBody({ type: UpdateRankingConfigDto })
+  @ApiResponse({ status: 200, description: 'Ranking config updated' })
+  @ApiResponse({ status: 400, description: 'Invalid ranking config' })
+  @ApiResponse({ status: 403, description: 'Admin only' })
+  async updateConfig(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: UpdateRankingConfigDto,
+  ) {
+    this.assertAdmin(req);
+    return this.rankingService.updateConfig(dto);
   }
 
   @Post('admin/places/:placeId/sponsorship')
@@ -126,5 +153,11 @@ export class RankingController {
     @Request() req: AuthenticatedRequest,
   ) {
     return this.rankingService.deactivateSponsorship(placeId, req.user.role);
+  }
+
+  private assertAdmin(req: AuthenticatedRequest): void {
+    if (req.user.role !== 'admin') {
+      throw new ForbiddenException('Admin only');
+    }
   }
 }
