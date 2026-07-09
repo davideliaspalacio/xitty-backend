@@ -121,7 +121,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #98 abierto: `chore/backend-lint-microsites-service`; microsites service queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #99 abierto: `chore/backend-lint-place-list-query-dto`; place list query dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #100 abierto: `chore/backend-lint-recommendation-item-dto`; recommendation item dto queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico preparado: `chore/backend-lint-recommendations-controller`; recommendations controller queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #101 abierto: `chore/backend-lint-recommendations-controller`; recommendations controller queda con lint dirigido limpio.
 
 ## Evidencia transversal
 

@@ -234,7 +234,7 @@ Avance aplicado:
 - PR tecnico #100 `chore/backend-lint-recommendation-item-dto`:
   `recommendation-item.dto.ts` queda formateado por Prettier y con lint
   dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-recommendations-controller`:
+- PR tecnico #101 `chore/backend-lint-recommendations-controller`:
   `recommendations.controller.ts` queda con request autenticado tipado, formato
   Prettier y lint dirigido limpio.
 - Reduccion neta acumulada: -95 archivos con problemas, -2675 errores y -247 warnings.
