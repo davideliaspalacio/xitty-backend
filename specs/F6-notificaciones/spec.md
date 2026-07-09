@@ -12,13 +12,17 @@ Given un dueno autenticado, when abre ajustes de notificaciones, then ve sus pre
 
 Given un dueno autenticado, when cambia un toggle, then la preferencia queda persistida para su usuario.
 
-### US-F6-02 - Respetar preferencias en clicks relevantes
+### US-F6-02 - Respetar preferencias en clicks relevantes y reservas
 
 Given un turista hace click en `Llamar`, `WhatsApp` o `Reservar`, when el negocio tiene dueno y la preferencia correspondiente esta activa, then se encola un aviso para ese dueno.
 
 Given la preferencia correspondiente esta apagada, when ocurre el click, then no se encola ningun aviso.
 
 Given el dueno tiene todo apagado, when ocurren clicks relevantes, then no recibe absolutamente nada nuevo en la cola.
+
+Given un turista confirma una reserva de experiencia, when el operador tiene avisos de reservas activos, then se encola un aviso `reservation_created` para el dueno del place operador.
+
+Given el operador tiene avisos de reservas apagados, when se confirma una reserva de experiencia, then no se encola ningun aviso.
 
 ### US-F6-03 - Resumen diario
 
@@ -55,8 +59,9 @@ Se mantiene la API existente:
 - `GET /me/notification-settings`
 - `PATCH /me/notification-settings`
 - `POST /places/:placeId/interactions`
+- `POST /experiences/:experienceId/reservations`
 
-El endpoint de tracking ahora encola avisos en segundo plano cuando aplica.
+El endpoint de tracking y el flujo de reservas ahora encolan avisos en segundo plano cuando aplica.
 
 ## Reglas de autorizacion
 
@@ -72,10 +77,11 @@ El endpoint de tracking ahora encola avisos en segundo plano cuando aplica.
 ## Edge cases
 
 - Todo apagado: no se encolan avisos ni resumen.
+- Reserva confirmada con preferencia apagada: no se encola aviso.
 - Dia sin eventos: no se encola resumen.
 - Dueno con varios negocios: resumen por negocio.
 - Preferencia cambiada con notificacion ya encolada: no se reescriben items historicos; las preferencias nuevas aplican a los siguientes eventos o siguientes corridas del resumen.
-- Fallo del proveedor/cola: tracking sigue respondiendo normal.
+- Fallo del proveedor/cola: tracking y reservas siguen respondiendo normal.
 
 ## Fuera de alcance
 

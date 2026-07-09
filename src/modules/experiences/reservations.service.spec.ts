@@ -116,10 +116,12 @@ describe('ReservationsService', () => {
     it('crea reserva confirmada y calcula total_price_cop', async () => {
       supabase._on({
         id: 'e1',
+        operator_place_id: 'place-1',
         price_cop: 80000,
         min_participants: 1,
         max_participants: 10,
         is_active: true,
+        places: { owner_id: 'owner-1' },
       });
       supabase._on({
         id: 's1',
@@ -143,6 +145,8 @@ describe('ReservationsService', () => {
         slot: { id: 's1', starts_at: future() },
         experience: { id: 'e1', title: 'X', slug: 'x', duration_minutes: 120 },
       });
+      supabase._on({ notify_reservation_click: true });
+      const outboxChain = supabase._on(null);
       supabase._on({ url: 'https://img/cover.jpg' });
 
       const result = await service.create('e1', 'u1', {
@@ -151,6 +155,122 @@ describe('ReservationsService', () => {
       });
       expect(result.id).toBe('r1');
       expect(result.total_price_cop).toBe(160000);
+      expect(result.experience.cover_photo_url).toBe('https://img/cover.jpg');
+
+      const [outboxPayload] = outboxChain.insert.mock.calls[0] as [
+        Record<string, unknown>,
+      ];
+      expect(outboxPayload).toMatchObject({
+        recipient_user_id: 'owner-1',
+        place_id: 'place-1',
+        interaction_id: null,
+        notification_type: 'reservation_created',
+        channel: 'pending',
+        status: 'pending',
+        dedup_key: 'reservation_created:r1',
+      });
+      const notificationPayload = outboxPayload.payload as Record<
+        string,
+        unknown
+      >;
+      expect(notificationPayload).toMatchObject({
+        reservation_id: 'r1',
+        experience_id: 'e1',
+        experience_title: 'X',
+        slot_id: 's1',
+        participants: 2,
+        total_price_cop: 160000,
+      });
+    });
+
+    it('respeta preferencia apagada para reservas', async () => {
+      supabase._on({
+        id: 'e1',
+        operator_place_id: 'place-1',
+        price_cop: 80000,
+        min_participants: 1,
+        max_participants: 10,
+        is_active: true,
+        places: { owner_id: 'owner-1' },
+      });
+      supabase._on({
+        id: 's1',
+        experience_id: 'e1',
+        starts_at: future(),
+        capacity: 8,
+        seats_taken: 2,
+        is_active: true,
+      });
+      supabase._on({
+        id: 'r1',
+        slot_id: 's1',
+        experience_id: 'e1',
+        user_id: 'u1',
+        participants: 2,
+        total_price_cop: 160000,
+        status: 'confirmed',
+        cancelled_at: null,
+        created_at: 'now',
+        updated_at: 'now',
+        slot: { id: 's1', starts_at: future() },
+        experience: { id: 'e1', title: 'X', slug: 'x', duration_minutes: 120 },
+      });
+      supabase._on({ notify_reservation_click: false });
+      supabase._on({ url: null });
+
+      await expect(
+        service.create('e1', 'u1', {
+          slot_id: 's1',
+          participants: 2,
+        }),
+      ).resolves.toMatchObject({ id: 'r1' });
+      expect(supabase.from).not.toHaveBeenCalledWith(
+        'business_notification_outbox',
+      );
+    });
+
+    it('no rompe la reserva si falla el outbox de notificaciones', async () => {
+      supabase._on({
+        id: 'e1',
+        operator_place_id: 'place-1',
+        price_cop: 80000,
+        min_participants: 1,
+        max_participants: 10,
+        is_active: true,
+        places: { owner_id: 'owner-1' },
+      });
+      supabase._on({
+        id: 's1',
+        experience_id: 'e1',
+        starts_at: future(),
+        capacity: 8,
+        seats_taken: 2,
+        is_active: true,
+      });
+      supabase._on({
+        id: 'r1',
+        slot_id: 's1',
+        experience_id: 'e1',
+        user_id: 'u1',
+        participants: 2,
+        total_price_cop: 160000,
+        status: 'confirmed',
+        cancelled_at: null,
+        created_at: 'now',
+        updated_at: 'now',
+        slot: { id: 's1', starts_at: future() },
+        experience: { id: 'e1', title: 'X', slug: 'x', duration_minutes: 120 },
+      });
+      supabase._on({ notify_reservation_click: true });
+      supabase._on(null, { message: 'outbox temporarily unavailable' });
+      supabase._on({ url: 'https://img/cover.jpg' });
+
+      const result = await service.create('e1', 'u1', {
+        slot_id: 's1',
+        participants: 2,
+      });
+
+      expect(result.id).toBe('r1');
       expect(result.experience.cover_photo_url).toBe('https://img/cover.jpg');
     });
 

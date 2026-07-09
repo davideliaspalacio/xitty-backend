@@ -4,7 +4,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 
 Checklist de cutover produccion: `specs/FEATURES_V2_PRODUCTION_CUTOVER.md`.
 
-Estado actual: los PRs backend #22-#124 y frontend #18-#24 ya fueron mergeados en `main` el 2026-07-09. No quedan PRs abiertos de este paquete en backend ni frontend.
+Estado actual: los PRs backend #22-#126 y frontend #18-#26 ya fueron mergeados en `main` el 2026-07-09. F6 tiene un cierre extra en rama `feat/f6-reservation-outbox` para avisos de reservas confirmadas.
 
 Verificacion post-merge local:
 
@@ -154,6 +154,7 @@ Aplicar en orden cronologico despues de mergear cada PR backend correspondiente:
 12. `20260709000012_filter_nearby_places_by_city_zone.sql`
 13. `20260709000013_harden_backend_service_role_and_place_rpc.sql`
 14. `20260709000014_extend_place_data_completeness_report.sql`
+15. `20260709000015_add_reservation_created_notifications.sql`
 
 La configuracion admin del ranking no agrega migracion nueva: reutiliza `ranking_config` de `20260709000005_improve_place_rankings.sql`.
 
@@ -195,7 +196,7 @@ Para quien tenga acceso al proyecto Supabase correcto:
 1. Ejecutar `supabase login` o exportar `SUPABASE_ACCESS_TOKEN`.
 2. Ejecutar `supabase link --project-ref <project-ref-produccion>`.
 3. Ejecutar `supabase db push` desde `xitty-backend`.
-4. Confirmar que se aplicaron las 14 migraciones `20260709...`.
+4. Confirmar que se aplicaron las 15 migraciones `20260709...`.
 5. Correr en SQL editor: `SELECT public.refresh_place_rankings();`.
 
 ## Post-merge operativo
@@ -222,6 +223,7 @@ Smoke automatizado: `npm run smoke:features-v2 -- --api-url "$API_URL" --city Ca
 - Tracking anonimo no rompe UX y deduplica doble click.
 - Dashboard del dueno muestra dias sin eventos en cero.
 - Notificaciones respetan preferencias y escriben en outbox/pending.
+- Reservas confirmadas escriben `reservation_created` en outbox cuando `notify_reservation_click` esta activo.
 - Ranking general y por categoria no muestra lugares desactivados.
 - Admin puede ajustar pesos/caps/ventana y refrescar ranking en `/admin/ranking`.
 - Patrocinados siempre muestran sello "Patrocinado".
