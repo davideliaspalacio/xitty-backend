@@ -10,7 +10,11 @@ export class CategoryResponseDto {
   @ApiProperty({ description: 'URL-friendly slug', example: 'restaurantes' })
   slug: string;
 
-  @ApiProperty({ description: 'Icon identifier', example: 'utensils', nullable: true })
+  @ApiProperty({
+    description: 'Icon identifier',
+    example: 'utensils',
+    nullable: true,
+  })
   icon: string | null;
 
   @ApiProperty({ description: 'Category description', nullable: true })

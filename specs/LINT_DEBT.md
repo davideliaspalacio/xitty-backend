@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 5.
-- Errores: 5.
+- Archivos con problemas: 4.
+- Errores: 4.
 - Warnings: 0.
-- Errores auto-fixables: 5.
+- Errores auto-fixables: 4.
 
 Avance aplicado:
 
@@ -290,22 +290,25 @@ Avance aplicado:
 - PR tecnico #119 `chore/backend-lint-favorite-response-dto`:
   `favorite-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- Reduccion neta acumulada: -113 archivos con problemas, -2705 errores y -247 warnings.
+- PR tecnico #120 `chore/backend-lint-category-response-dto`:
+  `category-response.dto.ts` queda formateado por Prettier y con lint dirigido
+  limpio.
+- Reduccion neta acumulada: -114 archivos con problemas, -2706 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 5 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 4 | 0 | Formato historico fuera de Prettier. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/places/dto/category-response.dto.ts` | 1 | 0 |
 | `src/modules/places/dto/create-place-photo.dto.ts` | 1 | 0 |
 | `src/modules/places/dto/og-response.dto.ts` | 1 | 0 |
 | `src/modules/promotions/dto/promotion-response.dto.ts` | 1 | 0 |
+| `src/modules/scraping/scraper-source.interface.ts` | 1 | 0 |
 
 ## Impacto en Features v2
 
