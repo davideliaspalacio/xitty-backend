@@ -4,7 +4,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 
 Checklist de cutover produccion: `specs/FEATURES_V2_PRODUCTION_CUTOVER.md`.
 
-Estado actual: los PRs backend #22-#126 y frontend #18-#26 ya fueron mergeados en `main` el 2026-07-09. F6 tiene un cierre extra en rama `feat/f6-reservation-outbox` para avisos de reservas confirmadas.
+Estado actual: los PRs backend #22-#126 y frontend #18-#26 ya fueron mergeados en `main` el 2026-07-09. F6 tiene el PR backend #127 para avisos de reservas confirmadas.
 
 Verificacion post-merge local:
 
