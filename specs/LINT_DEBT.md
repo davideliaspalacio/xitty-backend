@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 79.
-- Errores: 579.
-- Warnings: 126.
-- Errores auto-fixables: 196.
+- Archivos con problemas: 78.
+- Errores: 553.
+- Warnings: 107.
+- Errores auto-fixables: 190.
 
 Avance aplicado:
 
@@ -88,28 +88,30 @@ Avance aplicado:
 - PR tecnico #54 `chore/backend-lint-consents-service-spec`:
   `consents.service.ts` y `consents.service.spec.ts` quedan con resultados de
   consentimiento tipados, mocks Supabase/upsert tipados y lint dirigido limpio.
-- Reduccion neta acumulada: -39 archivos con problemas, -2131 errores y -121 warnings.
+- PR tecnico #55 `chore/backend-lint-experiences-controller`:
+  `experiences.controller.ts` queda con requests autenticados tipados, imports
+  limpios, formato Prettier y lint dirigido limpio.
+- Reduccion neta acumulada: -40 archivos con problemas, -2157 errores y -140 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `@typescript-eslint/no-unsafe-member-access` | 219 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `prettier/prettier` | 195 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 125 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-member-access` | 200 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `prettier/prettier` | 189 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 106 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/no-unsafe-assignment` | 82 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-call` | 39 | 0 | Llamadas sobre valores `any`. |
 | `@typescript-eslint/no-unsafe-return` | 22 | 0 | Retornos `any` sin tipar. |
 | `@typescript-eslint/require-await` | 9 | 0 | Funciones async sin await. |
 | `@typescript-eslint/unbound-method` | 4 | 0 | Metodos usados sin bind, principalmente mocks. |
-| `@typescript-eslint/no-unused-vars` | 3 | 0 | Variables/imports historicos sin usar. |
 | `@typescript-eslint/no-base-to-string` | 3 | 0 | Conversion implicita a string. |
+| `@typescript-eslint/no-unused-vars` | 2 | 0 | Variables/imports historicos sin usar. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/experiences/experiences.controller.ts` | 26 | 19 |
 | `src/modules/chat/rag/context.service.spec.ts` | 39 | 2 |
 | `src/modules/location/location.service.spec.ts` | 36 | 2 |
 | `src/modules/chat/chat.controller.spec.ts` | 17 | 14 |
@@ -124,6 +126,7 @@ Avance aplicado:
 | `src/modules/scraping/sources/eventbrite-source.spec.ts` | 20 | 1 |
 | `src/modules/promotions/promotions.controller.ts` | 11 | 9 |
 | `src/modules/places/places.controller.ts` | 10 | 7 |
+| `src/modules/auth/auth.controller.ts` | 11 | 3 |
 
 ## Impacto en Features v2
 
