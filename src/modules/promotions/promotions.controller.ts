@@ -30,6 +30,7 @@ import {
   PromotionResponseDto,
   PromotionListResponseDto,
 } from './dto/promotion-response.dto';
+import { RecordImpressionDto } from './dto/record-impression.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
 @ApiTags('promotions')
@@ -60,16 +61,24 @@ export class PromotionsController {
   async recordImpression(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: any,
+    @Body() dto: RecordImpressionDto,
   ) {
-    await this.promotionsService.recordImpression(id, req?.user?.id);
+    await this.promotionsService.recordImpression(id, req?.user?.id, dto, {
+      userAgent: req.headers?.['user-agent'],
+    });
   }
 
   @Get('promotions/active')
-  @ApiOperation({ summary: 'List all currently active promotions across the directory' })
+  @ApiOperation({
+    summary: 'List all currently active promotions across the directory',
+  })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiResponse({ status: 200, type: PromotionListResponseDto })
-  async findAllActive(@Query('page') page?: number, @Query('limit') limit?: number) {
+  async findAllActive(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
     return this.promotionsService.findAllActive(
       page ? Number(page) : 1,
       limit ? Number(limit) : 10,
@@ -100,7 +109,12 @@ export class PromotionsController {
     @Request() req: any,
     @Body() dto: CreatePromotionDto,
   ) {
-    return this.promotionsService.create(placeId, req.user.id, req.user.role, dto);
+    return this.promotionsService.create(
+      placeId,
+      req.user.id,
+      req.user.role,
+      dto,
+    );
   }
 
   @Patch('places/:placeId/promotions/:id')
@@ -119,7 +133,13 @@ export class PromotionsController {
     @Request() req: any,
     @Body() dto: UpdatePromotionDto,
   ) {
-    return this.promotionsService.update(placeId, id, req.user.id, req.user.role, dto);
+    return this.promotionsService.update(
+      placeId,
+      id,
+      req.user.id,
+      req.user.role,
+      dto,
+    );
   }
 
   @Delete('places/:placeId/promotions/:id')
@@ -136,6 +156,11 @@ export class PromotionsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: any,
   ) {
-    return this.promotionsService.remove(placeId, id, req.user.id, req.user.role);
+    return this.promotionsService.remove(
+      placeId,
+      id,
+      req.user.id,
+      req.user.role,
+    );
   }
 }

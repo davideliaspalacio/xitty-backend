@@ -1,12 +1,24 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PromotionsService } from './promotions.service';
 
 function createChain(result: any) {
   const chain: any = {};
   const methods = [
-    'from', 'select', 'insert', 'update', 'delete',
-    'eq', 'order', 'range', 'single', 'maybeSingle',
+    'from',
+    'select',
+    'insert',
+    'update',
+    'delete',
+    'eq',
+    'order',
+    'range',
+    'single',
+    'maybeSingle',
   ];
   methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
   chain.then = (resolve: any, reject?: any) =>
@@ -63,7 +75,9 @@ describe('PromotionsService', () => {
       supabase._on(
         [
           {
-            id: 'p1', title: '2x1', places: { id: 'place-1', name: 'Trattoria', slug: 'trattoria' },
+            id: 'p1',
+            title: '2x1',
+            places: { id: 'place-1', name: 'Trattoria', slug: 'trattoria' },
           },
         ],
         null,
@@ -89,13 +103,23 @@ describe('PromotionsService', () => {
       supabase._on({ owner_id: 'owner-1' }); // ownership check
       supabase._on({ id: 'new-promo', ...validDto });
 
-      const result = await service.create('place-1', 'owner-1', 'business', validDto);
+      const result = await service.create(
+        'place-1',
+        'owner-1',
+        'business',
+        validDto,
+      );
       expect(result.id).toBe('new-promo');
     });
 
     it('admin puede crear promocion en cualquier place', async () => {
       supabase._on({ id: 'new-promo', ...validDto });
-      const result = await service.create('place-1', 'admin-1', 'admin', validDto);
+      const result = await service.create(
+        'place-1',
+        'admin-1',
+        'admin',
+        validDto,
+      );
       expect(result.id).toBe('new-promo');
     });
 
@@ -144,7 +168,9 @@ describe('PromotionsService', () => {
       supabase._on({ owner_id: 'owner-1' });
       supabase._on(null, null);
       await expect(
-        service.update('place-1', 'promo-1', 'owner-1', 'business', { title: 'X' }),
+        service.update('place-1', 'promo-1', 'owner-1', 'business', {
+          title: 'X',
+        }),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -153,45 +179,45 @@ describe('PromotionsService', () => {
 
   describe('getHero', () => {
     it('lee de active_hero_promotions ordenado por hero_priority desc', async () => {
-      const chain = supabase._on(
-        [
-          {
-            id: 'h1',
-            place_id: 'place-1',
-            title: 'Hero 1',
-            description: 'Top hero',
-            discount_percentage: 30,
-            starts_at: '2026-06-01T00:00:00Z',
-            ends_at: '2026-12-01T00:00:00Z',
-            is_active: true,
-            is_hero: true,
-            hero_priority: 90,
-            hero_image_url: 'https://images.unsplash.com/photo-aaa',
-            places: { id: 'place-1', name: 'Trattoria', slug: 'trattoria' },
-          },
-          {
-            id: 'h2',
-            place_id: 'place-2',
-            title: 'Hero 2',
-            description: null,
-            discount_percentage: null,
-            starts_at: '2026-06-01T00:00:00Z',
-            ends_at: '2026-12-01T00:00:00Z',
-            is_active: true,
-            is_hero: true,
-            hero_priority: 50,
-            hero_image_url: 'https://images.unsplash.com/photo-bbb',
-            places: { id: 'place-2', name: 'Bar Caribe', slug: 'bar-caribe' },
-          },
-        ],
-      );
+      const chain = supabase._on([
+        {
+          id: 'h1',
+          place_id: 'place-1',
+          title: 'Hero 1',
+          description: 'Top hero',
+          discount_percentage: 30,
+          starts_at: '2026-06-01T00:00:00Z',
+          ends_at: '2026-12-01T00:00:00Z',
+          is_active: true,
+          is_hero: true,
+          hero_priority: 90,
+          hero_image_url: 'https://images.unsplash.com/photo-aaa',
+          places: { id: 'place-1', name: 'Trattoria', slug: 'trattoria' },
+        },
+        {
+          id: 'h2',
+          place_id: 'place-2',
+          title: 'Hero 2',
+          description: null,
+          discount_percentage: null,
+          starts_at: '2026-06-01T00:00:00Z',
+          ends_at: '2026-12-01T00:00:00Z',
+          is_active: true,
+          is_hero: true,
+          hero_priority: 50,
+          hero_image_url: 'https://images.unsplash.com/photo-bbb',
+          places: { id: 'place-2', name: 'Bar Caribe', slug: 'bar-caribe' },
+        },
+      ]);
 
       const result = await service.getHero();
 
       expect(result).toHaveLength(2);
       expect(supabase.from).toHaveBeenCalledWith('active_hero_promotions');
       // first order should be by hero_priority desc
-      expect(chain.order).toHaveBeenCalledWith('hero_priority', { ascending: false });
+      expect(chain.order).toHaveBeenCalledWith('hero_priority', {
+        ascending: false,
+      });
       const first: any = result[0];
       expect(first.id).toBe('h1');
       expect(first.hero_image_url).toContain('unsplash');
@@ -220,7 +246,12 @@ describe('PromotionsService', () => {
       // 2: insert
       const insertChain = supabase._on({ id: 'int-1' });
 
-      await service.recordImpression('promo-1', 'user-1');
+      await service.recordImpression(
+        'promo-1',
+        'user-1',
+        { anonymous_session_id: 'session-abc-123' },
+        { userAgent: 'Mozilla/5.0' },
+      );
 
       expect(insertChain.insert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -228,7 +259,12 @@ describe('PromotionsService', () => {
           promo_id: 'promo-1',
           place_id: 'place-1',
           user_id: 'user-1',
+          dedup_key: expect.stringContaining('user:user-1'),
+          anonymous_session_hash: expect.any(String),
         }),
+      );
+      expect(JSON.stringify(insertChain.insert.mock.calls[0][0])).not.toContain(
+        'session-abc-123',
       );
     });
 
@@ -236,7 +272,9 @@ describe('PromotionsService', () => {
       supabase._on({ id: 'promo-1', place_id: 'place-1' });
       const insertChain = supabase._on({ id: 'int-2' });
 
-      await service.recordImpression('promo-1');
+      await service.recordImpression('promo-1', undefined, {
+        anonymous_session_id: 'anon-session-xyz',
+      });
 
       expect(insertChain.insert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -244,13 +282,44 @@ describe('PromotionsService', () => {
           promo_id: 'promo-1',
           place_id: 'place-1',
           user_id: null,
+          anonymous_session_hash: expect.any(String),
         }),
       );
     });
 
     it('lanza NotFound si la promo no existe', async () => {
       supabase._on(null);
-      await expect(service.recordImpression('promo-nope')).rejects.toThrow(NotFoundException);
+      await expect(service.recordImpression('promo-nope')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('ignora impresiones de bots sin tocar la base', async () => {
+      await expect(
+        service.recordImpression(
+          'promo-1',
+          undefined,
+          { anonymous_session_id: 'anon-session-xyz' },
+          { userAgent: 'facebookexternalhit/1.1' },
+        ),
+      ).resolves.toEqual({ success: true });
+
+      expect(supabase.from).not.toHaveBeenCalled();
+    });
+
+    it('trata el unique de dedup_key como exito', async () => {
+      supabase._on({ id: 'promo-1', place_id: 'place-1' });
+      supabase._on(null, {
+        code: '23505',
+        message:
+          'duplicate key value violates unique constraint "microsite_interactions_dedup_key_uidx"',
+      });
+
+      await expect(
+        service.recordImpression('promo-1', undefined, {
+          anonymous_session_id: 'anon-session-xyz',
+        }),
+      ).resolves.toEqual({ success: true });
     });
   });
 });
