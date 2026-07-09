@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 1.
-- Errores: 1.
+- Archivos con problemas: 0.
+- Errores: 0.
 - Warnings: 0.
-- Errores auto-fixables: 1.
+- Errores auto-fixables: 0.
 
 Avance aplicado:
 
@@ -302,25 +302,28 @@ Avance aplicado:
 - PR tecnico #123 `chore/backend-lint-promotion-response-dto`:
   `promotion-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- Reduccion neta acumulada: -117 archivos con problemas, -2709 errores y -247 warnings.
+- PR tecnico #124 `chore/backend-lint-scraper-source-interface`:
+  `scraper-source.interface.ts` queda formateado por Prettier y con lint
+  dirigido limpio.
+- Reduccion neta acumulada: -118 archivos con problemas, -2710 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 1 | 0 | Formato historico fuera de Prettier. |
+| Ninguna | 0 | 0 | Full lint backend limpio. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/scraper-source.interface.ts` | 1 | 0 |
+| Ninguno | 0 | 0 |
 
 ## Impacto en Features v2
 
 - Los PRs nuevos corrieron lint dirigido sobre archivos tocados cuando aplicaba.
 - La suite completa backend y build estan verdes.
-- El full lint backend no es aun una gate confiable de release porque falla por deuda previa amplia.
+- El full lint backend queda como gate confiable de release en esta pila.
 
 ## Plan recomendado
 

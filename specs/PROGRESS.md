@@ -144,6 +144,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #121 abierto: `chore/backend-lint-create-place-photo-dto`; create place photo dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #122 abierto: `chore/backend-lint-og-response-dto`; og response dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #123 abierto: `chore/backend-lint-promotion-response-dto`; promotion response dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #124 abierto: `chore/backend-lint-scraper-source-interface`; scraper source interface queda con lint dirigido limpio y full lint backend en verde.
 
 ## Evidencia transversal
 
@@ -226,6 +227,13 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend promotions smoke tests tras promotion response dto: `npm test -- --runInBand src/modules/promotions/promotions.service.spec.ts` -> 1 suite / 23 tests OK.
 - Backend build tras promotion response dto lint: `npm run build` -> OK.
 - Backend full lint tras promotion response dto: 1 archivo / 1 error / 0 warnings; solo queda deuda Prettier.
+- Backend scraper source interface lint: `npx eslint src/modules/scraping/scraper-source.interface.ts` -> OK.
+- Backend runner smoke tests tras scraper source interface: `npm test -- --runInBand src/modules/scraping/scheduler/runner.service.spec.ts` -> 1 suite / 16 tests OK.
+- Backend build tras scraper source interface lint: `npm run build` -> OK.
+- Backend full lint tras scraper source interface: `npx eslint "src/**/*.ts"` -> OK, 0 archivos / 0 errores / 0 warnings.
+- Backend full suite tras cierre de deuda lint: `npm test -- --runInBand` -> 38 suites / 474 tests OK.
+- Backend build final tras cierre de deuda lint: `npm run build` -> OK.
+- Backend full lint final tras cierre de deuda lint: `npx eslint "src/**/*.ts"` -> OK.
 - Backend scraped-items repo spec lint: `npx eslint src/modules/scraping/storage/scraped-items.repo.spec.ts` -> OK.
 - Backend scraped-items repo spec tests: `npm test -- --runInBand src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 1 suite / 20 tests OK.
 - Backend build tras scraped-items lint: `npm run build` -> OK.
