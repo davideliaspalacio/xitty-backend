@@ -12,6 +12,27 @@ import { PreferencesResponseDto } from './dto/preferences-response.dto';
 
 const TABLE = 'user_preferences';
 
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+type PreferenceUpdate = Partial<
+  Pick<
+    PreferencesResponseDto,
+    | 'traveler_type'
+    | 'budget_min'
+    | 'budget_max'
+    | 'available_time'
+    | 'energy_level'
+    | 'companions'
+  >
+>;
+
 @Injectable()
 export class PreferencesService {
   constructor(
@@ -32,7 +53,7 @@ export class PreferencesService {
       );
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .upsert(
         {
@@ -48,15 +69,15 @@ export class PreferencesService {
         { onConflict: 'user_id' },
       )
       .select('*')
-      .single();
+      .single()) as unknown as SupabaseResult<PreferencesResponseDto>;
 
     if (error || !data) {
       throw new BadRequestException(
-        error?.message || 'Could not save preferences',
+        error?.message ?? 'Could not save preferences',
       );
     }
 
-    return data as PreferencesResponseDto;
+    return data;
   }
 
   /**
@@ -64,11 +85,11 @@ export class PreferencesService {
    * default con wizard_completed=false (para que el frontend sepa el estado).
    */
   async getByUserId(userId: string): Promise<PreferencesResponseDto> {
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .select('*')
       .eq('user_id', userId)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseResult<PreferencesResponseDto>;
 
     if (error) {
       throw new BadRequestException(error.message);
@@ -87,7 +108,7 @@ export class PreferencesService {
       };
     }
 
-    return data as PreferencesResponseDto;
+    return data;
   }
 
   /**
@@ -107,28 +128,26 @@ export class PreferencesService {
       );
     }
 
-    const updates: Record<string, any> = {};
-    for (const key of [
-      'traveler_type',
-      'budget_min',
-      'budget_max',
-      'available_time',
-      'energy_level',
-      'companions',
-    ] as const) {
-      if (dto[key] !== undefined) updates[key] = dto[key];
-    }
+    const updates: PreferenceUpdate = {};
+    if (dto.traveler_type !== undefined)
+      updates.traveler_type = dto.traveler_type;
+    if (dto.budget_min !== undefined) updates.budget_min = dto.budget_min;
+    if (dto.budget_max !== undefined) updates.budget_max = dto.budget_max;
+    if (dto.available_time !== undefined)
+      updates.available_time = dto.available_time;
+    if (dto.energy_level !== undefined) updates.energy_level = dto.energy_level;
+    if (dto.companions !== undefined) updates.companions = dto.companions;
 
     if (Object.keys(updates).length === 0) {
       throw new BadRequestException('At least one field is required');
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .update(updates)
       .eq('user_id', userId)
       .select('*')
-      .single();
+      .single()) as unknown as SupabaseResult<PreferencesResponseDto>;
 
     if (error || !data) {
       throw new NotFoundException(
@@ -136,14 +155,14 @@ export class PreferencesService {
       );
     }
 
-    return data as PreferencesResponseDto;
+    return data;
   }
 
   /**
    * Crea un row vacío con wizard_completed=false (idempotente).
    */
   async skip(userId: string): Promise<PreferencesResponseDto> {
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .upsert(
         {
@@ -153,14 +172,12 @@ export class PreferencesService {
         { onConflict: 'user_id', ignoreDuplicates: false },
       )
       .select('*')
-      .single();
+      .single()) as unknown as SupabaseResult<PreferencesResponseDto>;
 
     if (error || !data) {
-      throw new BadRequestException(
-        error?.message || 'Could not skip wizard',
-      );
+      throw new BadRequestException(error?.message ?? 'Could not skip wizard');
     }
 
-    return data as PreferencesResponseDto;
+    return data;
   }
 }

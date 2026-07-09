@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 39.
-- Errores: 89.
+- Archivos con problemas: 38.
+- Errores: 84.
 - Warnings: 5.
-- Errores auto-fixables: 60.
+- Errores auto-fixables: 59.
 
 Avance aplicado:
 
@@ -192,15 +192,18 @@ Avance aplicado:
 - PR tecnico #86 `chore/backend-lint-scraping-runs-repo`:
   `scraping-runs.repo.ts` queda con query condicional tipado, resultado
   Supabase normalizado y lint dirigido limpio.
-- Reduccion neta acumulada: -79 archivos con problemas, -2621 errores y -242 warnings.
+- PR tecnico pendiente `chore/backend-lint-preferences-service`:
+  `preferences.service.ts` queda con resultados Supabase tipados, updates sin
+  `any` y lint dirigido limpio.
+- Reduccion neta acumulada: -80 archivos con problemas, -2626 errores y -242 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 60 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-assignment` | 11 | 0 | Asignaciones desde `any`. |
+| `prettier/prettier` | 59 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-member-access` | 10 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `@typescript-eslint/no-unsafe-assignment` | 7 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-argument` | 0 | 5 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/require-await` | 5 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-redundant-type-constituents` | 1 | 0 | Union de tipos redundante. |
@@ -211,10 +214,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/preferences/preferences.service.ts` | 5 | 0 |
 | `src/modules/scraping/sources/source.factory.ts` | 4 | 1 |
 | `src/modules/chat/providers/mock-provider.ts` | 4 | 0 |
 | `src/modules/favorites/favorites.controller.ts` | 2 | 2 |
+| `src/modules/scraping/enrichment/enrichment.service.spec.ts` | 4 | 0 |
 
 ## Impacto en Features v2
 
