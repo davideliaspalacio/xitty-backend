@@ -1,51 +1,127 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { PlacesService } from './places.service';
 import { PlaceSortBy } from './dto/place-list-query.dto';
 import { TravelerType } from '../preferences/dto/create-preferences.dto';
 
 // ── Supabase mock ───────────────────────────────────────────────
 // Creates a thenable chain so `await supabase.from(...).select(...)...` works
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  message: string;
+  code?: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+  count: number | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+type RpcMethod = jest.MockedFunction<
+  (...args: unknown[]) => Promise<MockDbResult>
+>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  insert: ChainMethod;
+  update: ChainMethod;
+  delete: ChainMethod;
+  eq: ChainMethod;
+  neq: ChainMethod;
+  ilike: ChainMethod;
+  in: ChainMethod;
+  not: ChainMethod;
+  order: ChainMethod;
+  range: ChainMethod;
+  single: ChainMethod;
+  maybeSingle: ChainMethod;
+  textSearch: ChainMethod;
+  contains: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  rpc: RpcMethod;
+  auth: Record<string, never>;
+  _on: (data: unknown, error?: MockDbError | null, count?: number) => MockChain;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
-    'from', 'select', 'insert', 'update', 'delete',
-    'eq', 'neq', 'ilike', 'in', 'not', 'order', 'range',
-    'single', 'maybeSingle', 'textSearch', 'contains',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
+    'from',
+    'select',
+    'insert',
+    'update',
+    'delete',
+    'eq',
+    'neq',
+    'ilike',
+    'in',
+    'not',
+    'order',
+    'range',
+    'single',
+    'maybeSingle',
+    'textSearch',
+    'contains',
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
   // Make the chain awaitable
-  chain.then = (resolve: any, reject?: any) => {
-    try { return Promise.resolve(result).then(resolve, reject); }
-    catch (e) { if (reject) return reject(e); throw e; }
-  };
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
+function createMockSupabase(): MockSupabase {
   // Root object — NO .then() so NestJS doesn't unwrap it
-  const mock: any = {
-    from: jest.fn(),
-    rpc: jest.fn(),
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    rpc: jest.fn<(...args: unknown[]) => Promise<MockDbResult>>(),
     auth: {},
-  };
-  // Queue a result for the next .from() call chain
-  mock._on = (data: any, error?: any, count?: number) => {
-    const c = createChain({ data, error: error || null, count: count ?? null });
-    mock.from.mockReturnValueOnce(c);
-    return c;
+    _on: (data: unknown, error?: MockDbError | null, count?: number) => {
+      const c = createChain({
+        data,
+        error: error ?? null,
+        count: count ?? null,
+      });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
   };
   // Default .from() returns an empty-result chain
   mock.from.mockImplementation(() =>
     createChain({ data: null, error: null, count: null }),
+  );
+  mock.rpc.mockImplementation(() =>
+    Promise.resolve({ data: null, error: null, count: null }),
   );
   return mock;
 }
 
 describe('PlacesService', () => {
   let service: PlacesService;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
@@ -53,7 +129,10 @@ describe('PlacesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PlacesService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
         {
           provide: ConfigService,
           useValue: { get: jest.fn().mockReturnValue('https://xitty.co') },
@@ -69,8 +148,18 @@ describe('PlacesService', () => {
   describe('findAllCategories', () => {
     it('devuelve todas las categorias ordenadas', async () => {
       const cats = [
-        { id: '1', name: 'Bares', slug: 'bares-vida-nocturna', icon: 'glass-cheers' },
-        { id: '2', name: 'Restaurantes', slug: 'restaurantes', icon: 'utensils' },
+        {
+          id: '1',
+          name: 'Bares',
+          slug: 'bares-vida-nocturna',
+          icon: 'glass-cheers',
+        },
+        {
+          id: '2',
+          name: 'Restaurantes',
+          slug: 'restaurantes',
+          icon: 'utensils',
+        },
       ];
       supabase._on(cats);
 
@@ -155,9 +244,10 @@ describe('PlacesService', () => {
 
       const result = await service.search('caribe', 1, 10);
 
-      expect(chain.textSearch).toHaveBeenCalledWith(
-        'search_vector', 'caribe', { type: 'websearch', config: 'spanish' },
-      );
+      expect(chain.textSearch).toHaveBeenCalledWith('search_vector', 'caribe', {
+        type: 'websearch',
+        config: 'spanish',
+      });
       expect(result.data).toHaveLength(1);
     });
   });
@@ -199,7 +289,9 @@ describe('PlacesService', () => {
     });
 
     it('usuario normal no puede crear', async () => {
-      await expect(service.create('u1', 'user', dto)).rejects.toThrow(ForbiddenException);
+      await expect(service.create('u1', 'user', dto)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -207,11 +299,13 @@ describe('PlacesService', () => {
 
   describe('update', () => {
     it('owner puede actualizar', async () => {
-      supabase._on({ owner_id: 'u1' });   // fetch
+      supabase._on({ owner_id: 'u1' }); // fetch
       supabase._on({ id: 'p1', name: 'X' }); // update
-      supabase._on([]);                       // photos
+      supabase._on([]); // photos
 
-      const result = await service.update('p1', 'u1', 'business', { name: 'X' });
+      const result = await service.update('p1', 'u1', 'business', {
+        name: 'X',
+      });
       expect(result.name).toBe('X');
     });
 
@@ -239,7 +333,9 @@ describe('PlacesService', () => {
     });
 
     it('usuario normal no puede', async () => {
-      await expect(service.softDelete('p1', 'user')).rejects.toThrow(ForbiddenException);
+      await expect(service.softDelete('p1', 'user')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -247,7 +343,12 @@ describe('PlacesService', () => {
 
   describe('getOgMetadata', () => {
     it('devuelve metadata para compartir', async () => {
-      supabase._on({ id: 'p1', name: 'La Trattoria', description: 'Italiano', average_rating: 4.5 });
+      supabase._on({
+        id: 'p1',
+        name: 'La Trattoria',
+        description: 'Italiano',
+        average_rating: 4.5,
+      });
       supabase._on({ url: 'https://photo.jpg' });
 
       const result = await service.getOgMetadata('p1');
