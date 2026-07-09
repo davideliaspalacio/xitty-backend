@@ -61,7 +61,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Frontend full suite tras correccion de tokens verdes en PR #24: `npm run test:run` -> 41 files / 207 tests OK.
 - Frontend typecheck tras correccion de tokens verdes en PR #24: `npm run typecheck` -> OK.
 - Frontend build tras correccion de tokens verdes en PR #24: `npm run build` -> OK.
-- Frontend lint tras README flags: `npm run lint` -> 0 errors / 12 warnings historicos de e2e screenshots.
+- Frontend lint tras README flags y limpieza e2e: `npm run lint` -> OK, 0 warnings.
 - Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica documentada en `specs/LINT_DEBT.md`; lint dirigido de archivos tocados sigue OK.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
