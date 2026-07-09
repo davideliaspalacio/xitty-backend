@@ -10,9 +10,9 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 55.
+- Archivos con problemas: 54.
 - Errores: 177.
-- Warnings: 46.
+- Warnings: 35.
 - Errores auto-fixables: 98.
 
 Avance aplicado:
@@ -144,7 +144,10 @@ Avance aplicado:
 - PR tecnico #70 `chore/backend-lint-chat-rate-limit-spec`:
   `chat/rate-limit.service.spec.ts` queda con mock Supabase RPC tipado,
   expectativas formateadas por Prettier y lint dirigido limpio.
-- Reduccion neta acumulada: -63 archivos con problemas, -2533 errores y -201 warnings.
+- PR tecnico #71 `chore/backend-lint-localize-spec`:
+  `localize.spec.ts` queda con fixtures `getLang` tipados, sin casts `any`,
+  y lint dirigido limpio.
+- Reduccion neta acumulada: -64 archivos con problemas, -2533 errores y -212 warnings.
 
 ## Reglas principales
 
@@ -152,7 +155,7 @@ Avance aplicado:
 | --- | ---: | ---: | --- |
 | `prettier/prettier` | 98 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-member-access` | 46 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 45 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 34 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/no-unsafe-assignment` | 15 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-call` | 5 | 0 | Llamadas sobre valores `any`. |
 | `@typescript-eslint/require-await` | 5 | 0 | Funciones async sin await. |
@@ -166,10 +169,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/common/i18n/__tests__/localize.spec.ts` | 0 | 11 |
 | `src/modules/scraping/admin/admin-scraping.controller.ts` | 8 | 3 |
 | `src/modules/notification-settings/notification-settings.controller.ts` | 6 | 4 |
 | `src/main.ts` | 7 | 2 |
+| `src/modules/featured/featured.controller.ts` | 5 | 4 |
 
 ## Impacto en Features v2
 
