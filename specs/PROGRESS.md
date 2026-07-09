@@ -12,7 +12,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 | F6 Preferencias notificaciones | Parcial auditado                     | Pendiente                          | Requiere decision canal/proveedor antes de implementacion final.                    |
 | F7 Ranking inteligente         | PR abierto, pendiente review/merge   | Backend #26 / Frontend #22         | Mergear despues de F3 backend #25 y frontend #21.                                   |
 | F8 Patrocinios                 | PR abierto, pendiente review/merge   | Backend #27 / Frontend #23         | Mergear despues de F7 backend #26 y frontend #22.                                   |
-| F9 Destacado semanal           | Implementado, pendiente PR/QA amplio | `feature/f9-destacados-semanales`  | Abrir PR backend apilado despues de F8.                                             |
+| F9 Destacado semanal           | PR abierto, pendiente review/merge   | Backend #28                        | Mergear despues de F8 backend #27.                                                  |
 
 ## Cambios activos
 
@@ -34,6 +34,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: F8 PRs abiertos: backend #27 y frontend #23, apilados sobre F7.
 - 2026-07-09: iniciado F9 destacado semanal.
 - 2026-07-09: F9 implementado con view que oculta lugares inactivos y fallback semanal de lugares activos mejor calificados.
+- 2026-07-09: F9 PR abierto: backend #28, apilado sobre F8.
 
 ## Evidencia F4
 
@@ -92,3 +93,4 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 
 - Backend tests: `npm test -- --runInBand src/modules/featured/featured.service.spec.ts` -> 1 suite / 15 tests OK.
 - Backend build: `npm run build` -> OK.
+- PR: backend <https://github.com/davideliaspalacio/xitty-backend/pull/28>.

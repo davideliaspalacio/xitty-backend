@@ -7,7 +7,7 @@
 - [x] Migracion para ocultar lugares inactivos en `current_featured`.
 - [x] Fallback backend cuando no hay destacados vigentes.
 - [x] Tests backend de fallback/orden/ocultar inactivos.
-- [ ] PR apilado.
+- [x] PR apilado.
 
 ## Migracion SQL
 
@@ -31,3 +31,4 @@ Archivo: `supabase/migrations/20260709000007_harden_featured_content.sql`
 
 - Backend: `npm test -- --runInBand src/modules/featured/featured.service.spec.ts` -> 1 suite / 15 tests OK.
 - Backend: `npm run build` -> OK.
+- Backend PR: <https://github.com/davideliaspalacio/xitty-backend/pull/28>.
