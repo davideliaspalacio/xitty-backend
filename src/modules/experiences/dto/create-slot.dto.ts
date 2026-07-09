@@ -1,4 +1,11 @@
-import { IsDateString, IsInt, Min, Max, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsDateString,
+  IsInt,
+  Min,
+  Max,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -7,7 +14,10 @@ export class CreateSlotDto {
   @IsDateString()
   starts_at: string;
 
-  @ApiProperty({ example: 8, description: 'Total seats available for this slot' })
+  @ApiProperty({
+    example: 8,
+    description: 'Total seats available for this slot',
+  })
   @Type(() => Number)
   @IsInt()
   @Min(1)
