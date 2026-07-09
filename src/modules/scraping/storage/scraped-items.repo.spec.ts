@@ -3,33 +3,102 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 import { ScrapedItemsRepo } from './scraped-items.repo';
 
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  code?: string;
+  message: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  insert: ChainMethod;
+  update: ChainMethod;
+  delete: ChainMethod;
+  eq: ChainMethod;
+  neq: ChainMethod;
+  in: ChainMethod;
+  order: ChainMethod;
+  range: ChainMethod;
+  limit: ChainMethod;
+  single: ChainMethod;
+  maybeSingle: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  _on: (data: unknown, error?: MockDbError) => MockChain;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
-    'from', 'select', 'insert', 'update', 'delete',
-    'eq', 'neq', 'in', 'order', 'range', 'limit',
-    'single', 'maybeSingle',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+    'from',
+    'select',
+    'insert',
+    'update',
+    'delete',
+    'eq',
+    'neq',
+    'in',
+    'order',
+    'range',
+    'limit',
+    'single',
+    'maybeSingle',
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn() };
-  mock._on = (data: any, error?: any) => {
-    const c = createChain({ data, error: error || null });
-    mock.from.mockReturnValueOnce(c);
-    return c;
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    _on: (data: unknown, error?: MockDbError) => {
+      const c = createChain({ data, error: error ?? null });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
   };
   mock.from.mockImplementation(() => createChain({ data: null, error: null }));
   return mock;
 }
 
+function firstArg<T>(method: ChainMethod): T {
+  const value = method.mock.calls[0]?.[0];
+  return value as T;
+}
+
+function stringField(record: Record<string, unknown>, key: string): string {
+  const value = record[key];
+  if (typeof value !== 'string') {
+    throw new Error(`Expected ${key} to be a string`);
+  }
+  return value;
+}
+
 describe('ScrapedItemsRepo', () => {
   let repo: ScrapedItemsRepo;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
@@ -66,32 +135,41 @@ describe('ScrapedItemsRepo', () => {
       expect(result).not.toBeNull();
       expect(result!.id).toBe('raw-1');
       expect(supabase.from).toHaveBeenCalledWith('scraped_items_raw');
-      const inserted = chain.insert.mock.calls[0][0];
+      const inserted = firstArg<Record<string, unknown>>(chain.insert);
       expect(inserted.run_id).toBe('run-1');
       expect(inserted.source_id).toBe('s1');
       expect(inserted.source_url).toBe('https://x.com/y');
       expect(inserted.source_external_id).toBe('ext-1');
       expect(inserted.raw_payload).toEqual({ foo: 'bar' });
-      expect(typeof inserted.dedup_hash).toBe('string');
-      expect(inserted.dedup_hash.length).toBeGreaterThan(0);
+      expect(stringField(inserted, 'dedup_hash').length).toBeGreaterThan(0);
     });
 
     it('genera el mismo dedup_hash para el mismo source_url+external_id', async () => {
       const chain1 = supabase._on({ id: 'raw-1' });
       await repo.insertRaw({
-        runId: 'run-1', sourceId: 's1',
-        sourceUrl: 'https://x.com/y', sourceExternalId: 'ext-1',
+        runId: 'run-1',
+        sourceId: 's1',
+        sourceUrl: 'https://x.com/y',
+        sourceExternalId: 'ext-1',
         payload: { foo: 1 },
       });
       const chain2 = supabase._on({ id: 'raw-2' });
       await repo.insertRaw({
-        runId: 'run-2', sourceId: 's1',
-        sourceUrl: 'https://x.com/y', sourceExternalId: 'ext-1',
+        runId: 'run-2',
+        sourceId: 's1',
+        sourceUrl: 'https://x.com/y',
+        sourceExternalId: 'ext-1',
         payload: { foo: 2 },
       });
 
-      const h1 = chain1.insert.mock.calls[0][0].dedup_hash;
-      const h2 = chain2.insert.mock.calls[0][0].dedup_hash;
+      const h1 = stringField(
+        firstArg<Record<string, unknown>>(chain1.insert),
+        'dedup_hash',
+      );
+      const h2 = stringField(
+        firstArg<Record<string, unknown>>(chain2.insert),
+        'dedup_hash',
+      );
       expect(h1).toBe(h2);
     });
 
@@ -99,8 +177,10 @@ describe('ScrapedItemsRepo', () => {
       // simular violacion del unique idx
       supabase._on(null, { code: '23505', message: 'duplicate key value' });
       const result = await repo.insertRaw({
-        runId: 'run-1', sourceId: 's1',
-        sourceUrl: 'https://x.com/y', sourceExternalId: 'ext-1',
+        runId: 'run-1',
+        sourceId: 's1',
+        sourceUrl: 'https://x.com/y',
+        sourceExternalId: 'ext-1',
         payload: {},
       });
       expect(result).toBeNull();
@@ -110,8 +190,10 @@ describe('ScrapedItemsRepo', () => {
       supabase._on(null, { code: 'XXX', message: 'db down' });
       await expect(
         repo.insertRaw({
-          runId: 'run-1', sourceId: 's1',
-          sourceUrl: 'https://x.com/y', sourceExternalId: 'ext-1',
+          runId: 'run-1',
+          sourceId: 's1',
+          sourceUrl: 'https://x.com/y',
+          sourceExternalId: 'ext-1',
           payload: {},
         }),
       ).rejects.toThrow(BadRequestException);
@@ -137,7 +219,9 @@ describe('ScrapedItemsRepo', () => {
 
     it('tira BadRequestException si supabase falla', async () => {
       supabase._on(null, { message: 'db down' });
-      await expect(repo.dedupCheck('some-hash')).rejects.toThrow(BadRequestException);
+      await expect(repo.dedupCheck('some-hash')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -171,7 +255,7 @@ describe('ScrapedItemsRepo', () => {
 
       expect(result.id).toBe('enr-1');
       expect(supabase.from).toHaveBeenCalledWith('scraped_items_enriched');
-      const inserted = chain.insert.mock.calls[0][0];
+      const inserted = firstArg<Record<string, unknown>>(chain.insert);
       expect(inserted.raw_id).toBe('raw-1');
       expect(inserted.title).toBe('Tour mural');
       expect(inserted.status).toBe('pending');
@@ -181,7 +265,7 @@ describe('ScrapedItemsRepo', () => {
     it('tira BadRequestException si supabase falla', async () => {
       supabase._on(null, { message: 'db down' });
       await expect(
-        repo.insertEnriched({ rawId: 'raw-1', title: 'x' } as any),
+        repo.insertEnriched({ rawId: 'raw-1', title: 'x' }),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -200,7 +284,9 @@ describe('ScrapedItemsRepo', () => {
 
       expect(result).toHaveLength(2);
       expect(chain.eq).toHaveBeenCalledWith('status', 'pending');
-      expect(chain.order).toHaveBeenCalledWith('created_at', { ascending: false });
+      expect(chain.order).toHaveBeenCalledWith('created_at', {
+        ascending: false,
+      });
     });
 
     it('aplica limit y offset (range)', async () => {
@@ -230,7 +316,7 @@ describe('ScrapedItemsRepo', () => {
       const result = await repo.approve('enr-1', 'admin-uid');
 
       expect(result.status).toBe('approved');
-      const updateArg = updChain.update.mock.calls[0][0];
+      const updateArg = firstArg<Record<string, unknown>>(updChain.update);
       expect(updateArg.status).toBe('approved');
       expect(updateArg.reviewed_by).toBe('admin-uid');
       expect(updateArg.reviewed_at).toBeDefined();
@@ -252,7 +338,7 @@ describe('ScrapedItemsRepo', () => {
       const result = await repo.reject('enr-1', 'admin-uid');
 
       expect(result.status).toBe('rejected');
-      const updateArg = updChain.update.mock.calls[0][0];
+      const updateArg = firstArg<Record<string, unknown>>(updChain.update);
       expect(updateArg.status).toBe('rejected');
       expect(updateArg.reviewed_by).toBe('admin-uid');
     });
@@ -273,7 +359,7 @@ describe('ScrapedItemsRepo', () => {
       const result = await repo.publish('enr-1', { placeId: 'place-1' });
 
       expect(result.status).toBe('published');
-      const updateArg = updChain.update.mock.calls[0][0];
+      const updateArg = firstArg<Record<string, unknown>>(updChain.update);
       expect(updateArg.status).toBe('published');
       expect(updateArg.published_place_id).toBe('place-1');
       expect(updateArg.published_experience_id).toBeNull();
@@ -285,22 +371,22 @@ describe('ScrapedItemsRepo', () => {
 
       await repo.publish('enr-1', { experienceId: 'exp-1' });
 
-      const updateArg = updChain.update.mock.calls[0][0];
+      const updateArg = firstArg<Record<string, unknown>>(updChain.update);
       expect(updateArg.published_experience_id).toBe('exp-1');
       expect(updateArg.published_place_id).toBeNull();
     });
 
     it('exige al menos uno de placeId/experienceId', async () => {
-      await expect(repo.publish('enr-1', {} as any)).rejects.toThrow(
+      await expect(repo.publish('enr-1', {})).rejects.toThrow(
         BadRequestException,
       );
     });
 
     it('tira NotFoundException si el item no existe', async () => {
       supabase._on(null);
-      await expect(
-        repo.publish('missing', { placeId: 'p1' }),
-      ).rejects.toThrow(NotFoundException);
+      await expect(repo.publish('missing', { placeId: 'p1' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

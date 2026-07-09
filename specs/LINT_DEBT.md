@@ -10,27 +10,29 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 116.
-- Errores: 2608.
-- Warnings: 245.
-- Errores auto-fixables: 548.
+- Archivos con problemas: 115.
+- Errores: 2477.
+- Warnings: 241.
+- Errores auto-fixables: 534.
 
 Avance aplicado:
 
 - PR tecnico #33 `chore/backend-lint-google-places`: `google-places-source.ts`
   y `google-places-source.spec.ts` quedaron con lint dirigido limpio.
-- Reduccion neta: -2 archivos con problemas, -102 errores y -2 warnings.
+- PR tecnico `chore/backend-lint-scraped-items-spec`: `scraped-items.repo.spec.ts`
+  queda con lint dirigido limpio.
+- Reduccion neta acumulada: -3 archivos con problemas, -233 errores y -6 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `@typescript-eslint/no-unsafe-member-access` | 982 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `prettier/prettier` | 547 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-assignment` | 427 | 0 | Asignaciones desde `any`. |
-| `@typescript-eslint/no-unsafe-call` | 408 | 0 | Llamadas sobre valores `any`. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 244 | Argumentos `any` en tests/servicios. |
-| `@typescript-eslint/no-unsafe-return` | 161 | 0 | Retornos `any` sin tipar. |
+| `@typescript-eslint/no-unsafe-member-access` | 918 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `prettier/prettier` | 533 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-assignment` | 404 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-call` | 382 | 0 | Llamadas sobre valores `any`. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 240 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-return` | 157 | 0 | Retornos `any` sin tipar. |
 | `@typescript-eslint/unbound-method` | 52 | 0 | Metodos usados sin bind, principalmente mocks. |
 | `@typescript-eslint/require-await` | 18 | 0 | Funciones async sin await. |
 
@@ -38,7 +40,6 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/storage/scraped-items.repo.spec.ts` | 131 | 4 |
 | `src/modules/scraping/admin/admin-scraping.service.spec.ts` | 95 | 34 |
 | `src/modules/promotions/promotions.service.spec.ts` | 114 | 2 |
 | `src/modules/chat/chat.service.spec.ts` | 111 | 2 |
@@ -53,6 +54,7 @@ Avance aplicado:
 | `src/modules/scraping/storage/scraping-runs.repo.spec.ts` | 67 | 2 |
 | `src/modules/scraping/storage/scraping-sources.repo.spec.ts` | 62 | 2 |
 | `src/modules/favorites/favorites.service.spec.ts` | 58 | 2 |
+| `src/modules/scraping/executor/scraping-executor.service.spec.ts` | 30 | 28 |
 
 ## Impacto en Features v2
 
