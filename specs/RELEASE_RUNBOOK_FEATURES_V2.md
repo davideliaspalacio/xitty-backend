@@ -2,6 +2,8 @@
 
 Este runbook ordena los PRs, migraciones y checks operativos para subir el paquete Features v2 sin mezclar pasos.
 
+Checklist de cutover produccion: `specs/FEATURES_V2_PRODUCTION_CUTOVER.md`.
+
 Estado actual: los PRs backend #22-#124 y frontend #18-#24 ya fueron mergeados en `main` el 2026-07-09. No quedan PRs abiertos de este paquete en backend ni frontend.
 
 Verificacion post-merge local:
@@ -188,6 +190,8 @@ Para quien tenga acceso al proyecto Supabase correcto:
 5. Correr en SQL editor: `SELECT public.refresh_place_rankings();`.
 
 ## Post-merge operativo
+
+Checklist ejecutable para produccion/staging: `specs/FEATURES_V2_PRODUCTION_CUTOVER.md`.
 
 1. Confirmar que backend y frontend despliegan contra la misma rama/base ya mergeada.
 2. Aplicar migraciones en orden y verificar que no quedan migraciones pendientes.
