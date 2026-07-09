@@ -86,7 +86,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #63 abierto: `chore/backend-lint-photo-storage-service-spec`; photo storage service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #64 abierto: `chore/backend-lint-metrics-controller`; metrics controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #65 abierto: `chore/backend-lint-eventbrite-source-spec`; Eventbrite source/spec quedan tipados y con lint dirigido limpio.
-- 2026-07-09: PR tecnico #66 preparado: `chore/backend-lint-promotions-controller`; promotions controller queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #66 abierto: `chore/backend-lint-promotions-controller`; promotions controller queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
