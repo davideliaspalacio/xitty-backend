@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 49.
-- Errores: 146.
-- Warnings: 18.
-- Errores auto-fixables: 88.
+- Archivos con problemas: 48.
+- Errores: 140.
+- Warnings: 15.
+- Errores auto-fixables: 85.
 
 Avance aplicado:
 
@@ -162,16 +162,19 @@ Avance aplicado:
 - PR tecnico #76 `chore/backend-lint-local-picks-controller`:
   `local-picks.controller.ts` queda con request autenticado tipado, formato
   Prettier y lint dirigido limpio.
-- Reduccion neta acumulada: -69 archivos con problemas, -2564 errores y -229 warnings.
+- PR tecnico #77 `chore/backend-lint-reviews-controller`:
+  `reviews.controller.ts` queda con request autenticado tipado, formato
+  Prettier y lint dirigido limpio.
+- Reduccion neta acumulada: -70 archivos con problemas, -2570 errores y -232 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 88 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 29 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 18 | Argumentos `any` en tests/servicios. |
+| `prettier/prettier` | 85 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-member-access` | 26 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/no-unsafe-assignment` | 15 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 15 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/require-await` | 5 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unsafe-return` | 3 | 0 | Retornos `any` sin tipar. |
 | `@typescript-eslint/no-unused-vars` | 2 | 0 | Variables/imports historicos sin usar. |
@@ -183,10 +186,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/reviews/reviews.controller.ts` | 6 | 3 |
 | `src/modules/preferences/preferences.controller.ts` | 4 | 4 |
 | `src/modules/scraping/storage/scraping-sources.repo.ts` | 8 | 0 |
 | `src/modules/consents/consents.controller.ts` | 4 | 3 |
+| `src/modules/experiences/dto/experience-list-query.dto.ts` | 7 | 0 |
 
 ## Impacto en Features v2
 
