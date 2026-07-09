@@ -195,7 +195,7 @@ Avance aplicado:
 - PR tecnico #87 `chore/backend-lint-preferences-service`:
   `preferences.service.ts` queda con resultados Supabase tipados, updates sin
   `any` y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-source-factory`:
+- PR tecnico #88 `chore/backend-lint-source-factory`:
   `source.factory.ts` queda con config normalizada desde `unknown`, type guard
   para Google Places y lint dirigido limpio.
 - Reduccion neta acumulada: -81 archivos con problemas, -2630 errores y -243 warnings.
