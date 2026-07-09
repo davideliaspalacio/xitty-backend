@@ -141,7 +141,7 @@ Avance aplicado:
 - PR tecnico #69 `chore/backend-lint-auth-guard`:
   `auth.guard.ts` queda con payload JWT tipado, request autenticado tipado,
   validacion de `sub`, asignacion de usuario sin `any` y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-chat-rate-limit-spec`:
+- PR tecnico #70 `chore/backend-lint-chat-rate-limit-spec`:
   `chat/rate-limit.service.spec.ts` queda con mock Supabase RPC tipado,
   expectativas formateadas por Prettier y lint dirigido limpio.
 - Reduccion neta acumulada: -63 archivos con problemas, -2533 errores y -201 warnings.
