@@ -1,29 +1,88 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { MetricsService } from './metrics.service';
 import { InteractionType } from './dto/track-interaction.dto';
 import { TimeseriesGranularity } from './dto/metrics-timeseries.dto';
 
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  message: string;
+  code?: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+type RpcMethod = jest.MockedFunction<
+  (...args: unknown[]) => Promise<MockDbResult>
+>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  insert: ChainMethod;
+  eq: ChainMethod;
+  maybeSingle: ChainMethod;
+  single: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  rpc: RpcMethod;
+  _on: (data: unknown, error?: MockDbError | null) => MockChain;
+  _onRpc: (data: unknown, error?: MockDbError | null) => void;
+}
+
+interface InsertedInteraction {
+  place_id?: unknown;
+  user_id?: unknown;
+  interaction_type?: unknown;
+  dedup_key?: unknown;
+  user_agent_hash?: unknown;
+  anonymous_session_hash?: unknown;
+}
+
+function firstArg<T>(method: ChainMethod): T {
+  return method.mock.calls[0]?.[0] as T;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = ['from', 'select', 'insert', 'eq', 'maybeSingle', 'single'];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn(), rpc: jest.fn() };
-  mock._on = (data: any, error?: any) => {
-    const c = createChain({ data, error: error || null });
-    mock.from.mockReturnValueOnce(c);
-    return c;
-  };
-  mock._onRpc = (data: any, error?: any) => {
-    mock.rpc.mockReturnValueOnce(
-      Promise.resolve({ data, error: error || null }),
-    );
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    rpc: jest.fn<(...args: unknown[]) => Promise<MockDbResult>>(),
+    _on: (data: unknown, error?: MockDbError | null) => {
+      const c = createChain({ data, error: error ?? null });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
+    _onRpc: (data: unknown, error?: MockDbError | null) => {
+      mock.rpc.mockReturnValueOnce(
+        Promise.resolve({ data, error: error ?? null }),
+      );
+    },
   };
   mock.from.mockImplementation(() => createChain({ data: null, error: null }));
   mock.rpc.mockImplementation(() =>
@@ -34,14 +93,17 @@ function createMockSupabase() {
 
 describe('MetricsService', () => {
   let service: MetricsService;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MetricsService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
       ],
     }).compile();
     service = module.get<MetricsService>(MetricsService);
@@ -65,15 +127,16 @@ describe('MetricsService', () => {
         ),
       ).resolves.toBeUndefined();
 
-      expect(insertChain.insert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          place_id: 'place-1',
-          user_id: 'user-1',
-          interaction_type: InteractionType.CALL_CLICK,
-          dedup_key: expect.stringContaining('user:user-1'),
-          user_agent_hash: expect.any(String),
-        }),
+      const insertedInteraction = firstArg<InsertedInteraction>(
+        insertChain.insert,
       );
+      expect(insertedInteraction.place_id).toBe('place-1');
+      expect(insertedInteraction.user_id).toBe('user-1');
+      expect(insertedInteraction.interaction_type).toBe(
+        InteractionType.CALL_CLICK,
+      );
+      expect(String(insertedInteraction.dedup_key)).toContain('user:user-1');
+      expect(typeof insertedInteraction.user_agent_hash).toBe('string');
       expect(outboxChain.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           recipient_user_id: 'owner-1',
@@ -155,7 +218,9 @@ describe('MetricsService', () => {
         }),
       ).resolves.toBeUndefined();
 
-      expect(supabase.from.mock.calls.map(([table]: [string]) => table)).toEqual([
+      expect(
+        supabase.from.mock.calls.map(([table]: [string]) => table),
+      ).toEqual([
         'places',
         'microsite_interactions',
         'business_notification_settings',
@@ -173,10 +238,9 @@ describe('MetricsService', () => {
         }),
       ).resolves.toBeUndefined();
 
-      expect(supabase.from.mock.calls.map(([table]: [string]) => table)).toEqual([
-        'places',
-        'microsite_interactions',
-      ]);
+      expect(
+        supabase.from.mock.calls.map(([table]: [string]) => table),
+      ).toEqual(['places', 'microsite_interactions']);
     });
 
     it('no rompe tracking si falla el outbox de notificaciones', async () => {
