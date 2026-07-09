@@ -65,7 +65,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 57. #78 - PR tecnico preferences controller lint/typing, base #77.
 58. #79 - PR tecnico consents controller lint/typing, base #78.
 59. #80 - PR tecnico location controller lint/typing, base #79.
-60. Pendiente - PR tecnico scraping sources repo lint/typing, base #80.
+60. #81 - PR tecnico scraping sources repo lint/typing, base #80.
 
 ### Frontend
 

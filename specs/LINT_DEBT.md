@@ -174,7 +174,7 @@ Avance aplicado:
 - PR tecnico #80 `chore/backend-lint-location-controller`:
   `location.controller.ts` queda con request autenticado tipado, formato
   Prettier y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-scraping-sources-repo`:
+- PR tecnico #81 `chore/backend-lint-scraping-sources-repo`:
   `scraping-sources.repo.ts` queda con resultados Supabase tipados, query
   condicional sin `any`, errores de patch tipados y lint dirigido limpio.
 - Reduccion neta acumulada: -74 archivos con problemas, -2590 errores y -242 warnings.

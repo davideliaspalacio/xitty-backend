@@ -101,7 +101,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #78 abierto: `chore/backend-lint-preferences-controller`; preferences controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #79 abierto: `chore/backend-lint-consents-controller`; consents controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #80 abierto: `chore/backend-lint-location-controller`; location controller queda tipado y con lint dirigido limpio.
-- 2026-07-09: PR tecnico preparado: `chore/backend-lint-scraping-sources-repo`; scraping sources repo queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #81 abierto: `chore/backend-lint-scraping-sources-repo`; scraping sources repo queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
