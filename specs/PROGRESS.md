@@ -11,6 +11,8 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: no quedan PRs abiertos en backend ni frontend para el paquete Features v2.
 - 2026-07-09: verificacion post-merge en backend `main`: `npm test -- --runInBand` OK (38 suites / 474 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
 - 2026-07-09: verificacion post-merge en frontend `main`: `npm run test:run` OK (41 files / 207 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
+- 2026-07-09: smoke local post-merge con servidores arriba: frontend `/` responde 200, backend `/categories` responde 200, `/promotions/active` responde 200 y `/featured/current` responde 200.
+- 2026-07-09: smoke local post-merge tambien confirma que la DB conectada aun no tiene migraciones nuevas: `/ranking` falla con `column place_rankings.city does not exist`.
 - Pendiente operativo: aplicar migraciones en produccion, configurar envs, correr scraper con datos reales, refrescar rankings y hacer QA con datos reales.
 
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
