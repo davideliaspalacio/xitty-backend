@@ -9,7 +9,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 | F3 Promociones                 | PR abierto, pendiente review/merge   | Backend #25 / Frontend #21         | Mergear despues de F2 backend #24 y frontend #20.                                   |
 | F4 Tracking de eventos         | Implementado, pendiente PR/QA amplio | `feature/f4-tracking-anti-inflado` | Abrir PR coordinado backend/frontend y correr suite amplia si el tiempo lo permite. |
 | F5 Dashboard metricas          | Implementado, pendiente PR/QA amplio | `feature/f5-metrics-comparativas`  | Abrir PR apilado despues de F4.                                                     |
-| F6 Preferencias notificaciones | Parcial auditado                     | Pendiente                          | Requiere decision canal/proveedor antes de implementacion final.                    |
+| F6 Preferencias notificaciones | Implementado, pendiente PR           | `feature/f6-notification-outbox`   | Abrir PRs apilados despues de F9 backend y F8 frontend.                             |
 | F7 Ranking inteligente         | PR abierto, pendiente review/merge   | Backend #26 / Frontend #22         | Mergear despues de F3 backend #25 y frontend #21.                                   |
 | F8 Patrocinios                 | PR abierto, pendiente review/merge   | Backend #27 / Frontend #23         | Mergear despues de F7 backend #26 y frontend #22.                                   |
 | F9 Destacado semanal           | PR abierto, pendiente review/merge   | Backend #28                        | Mergear despues de F8 backend #27.                                                  |
@@ -35,6 +35,8 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: iniciado F9 destacado semanal.
 - 2026-07-09: F9 implementado con view que oculta lugares inactivos y fallback semanal de lugares activos mejor calificados.
 - 2026-07-09: F9 PR abierto: backend #28, apilado sobre F8.
+- 2026-07-09: iniciado F6 preferencias de notificaciones.
+- 2026-07-09: F6 implementado con outbox neutral, resumen diario programable y tracking que respeta preferencias sin depender aun de proveedor email/push/WhatsApp.
 
 ## Evidencia F4
 
@@ -94,3 +96,12 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - Backend tests: `npm test -- --runInBand src/modules/featured/featured.service.spec.ts` -> 1 suite / 15 tests OK.
 - Backend build: `npm run build` -> OK.
 - PR: backend <https://github.com/davideliaspalacio/xitty-backend/pull/28>.
+
+## Evidencia F6
+
+- Backend tests: `npm test -- --runInBand src/modules/metrics/metrics.service.spec.ts src/modules/notification-settings/notification-settings.service.spec.ts` -> 2 suites / 15 tests OK.
+- Backend build: `npm run build` -> OK.
+- Backend lint dirigido: `npx eslint src/modules/metrics/metrics.service.ts` -> OK.
+- Frontend typecheck: `npm run typecheck` -> OK.
+- Frontend build: `npm run build` -> OK.
+- Frontend lint dirigido: `npx eslint 'src/app/(app)/dashboard/settings/page.tsx'` -> OK.
