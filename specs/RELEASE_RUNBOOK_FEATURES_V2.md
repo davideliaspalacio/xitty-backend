@@ -17,6 +17,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 9. #30 - F1 proveniencia y reporte de completitud, base #29.
 10. #31 - F1 fuentes Cartagena ampliadas, base #30.
 11. #32 - F7 rankings por ciudad/zona, base #31.
+12. #33 - PR tecnico Google Places lint/typing, base #32.
 
 ### Frontend
 
