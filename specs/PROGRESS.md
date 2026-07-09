@@ -10,7 +10,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 | F4 Tracking de eventos         | Implementado, pendiente PR/QA amplio | `feature/f4-tracking-anti-inflado` | Abrir PR coordinado backend/frontend y correr suite amplia si el tiempo lo permite. |
 | F5 Dashboard metricas          | Implementado, pendiente PR/QA amplio | `feature/f5-metrics-comparativas`  | Abrir PR apilado despues de F4.                                                     |
 | F6 Preferencias notificaciones | Parcial auditado                     | Pendiente                          | Requiere decision canal/proveedor antes de implementacion final.                    |
-| F7 Ranking inteligente         | Parcial auditado                     | Pendiente                          | Depende de F4/F5; pesos configurables y ciudad.                                     |
+| F7 Ranking inteligente         | PR abierto, pendiente review/merge   | Backend #26 / Frontend #22         | Mergear despues de F3 backend #25 y frontend #21.                                   |
 | F8 Patrocinios                 | Parcial auditado                     | Pendiente                          | Definir slots comerciales y orden.                                                  |
 | F9 Destacado semanal           | Parcial auditado                     | Pendiente                          | Cerrar fallback/semana Colombia/tests.                                              |
 
@@ -26,6 +26,9 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: iniciado F3 promociones con timezone Colombia y gestion completa.
 - 2026-07-09: F3 implementado con normalizacion date-only en `America/Bogota`, endpoint autenticado de gestion, validacion de updates parciales y vistas publicas que ocultan lugares inactivos.
 - 2026-07-09: F3 PRs abiertos: backend #25 y frontend #21, apilados sobre F2.
+- 2026-07-09: iniciado F7 ranking inteligente.
+- 2026-07-09: F7 implementado con pesos configurables, score bayesiano, ranking global/categoria, snapshots por scope y delta semanal visible en UI.
+- 2026-07-09: F7 PRs abiertos: backend #26 y frontend #22, apilados sobre F3.
 
 ## Evidencia F4
 
@@ -59,3 +62,13 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - Frontend build: `npm run build` -> OK.
 - Frontend lint dirigido: `npx eslint src/features/promotions/api.ts src/features/promotions/hooks/use-promotions.ts src/features/promotions/components/promotion-form.tsx src/features/promotions/__tests__/promotion-form.test.tsx` -> OK.
 - PRs: backend <https://github.com/davideliaspalacio/xitty-backend/pull/25>, frontend <https://github.com/davideliaspalacio/xitty-frontend/pull/21>.
+
+## Evidencia F7
+
+- Backend tests: `npm test -- --runInBand src/modules/ranking/ranking.service.spec.ts` -> 1 suite / 11 tests OK.
+- Backend build: `npm run build` -> OK.
+- Backend lint dirigido: `npx eslint src/modules/ranking/ranking.service.ts` -> OK.
+- Frontend tests: `npm run test:run -- src/features/discover/__tests__/ranking-card.test.tsx` -> 1 file / 3 tests OK.
+- Frontend typecheck: `npm run typecheck` -> OK.
+- Frontend build: `npm run build` -> OK.
+- PRs: backend <https://github.com/davideliaspalacio/xitty-backend/pull/26>, frontend <https://github.com/davideliaspalacio/xitty-frontend/pull/22>.

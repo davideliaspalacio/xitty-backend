@@ -5,8 +5,17 @@ import { RankingService } from './ranking.service';
 function createChain(result: any) {
   const chain: any = {};
   const methods = [
-    'from', 'select', 'update', 'eq', 'in', 'lt',
-    'order', 'limit', 'single', 'maybeSingle',
+    'from',
+    'select',
+    'update',
+    'eq',
+    'in',
+    'is',
+    'lt',
+    'order',
+    'limit',
+    'single',
+    'maybeSingle',
   ];
   methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
   chain.then = (resolve: any, reject?: any) =>
@@ -27,7 +36,9 @@ function createMockSupabase() {
     );
   };
   mock.from.mockImplementation(() => createChain({ data: null, error: null }));
-  mock.rpc.mockImplementation(() => Promise.resolve({ data: null, error: null }));
+  mock.rpc.mockImplementation(() =>
+    Promise.resolve({ data: null, error: null }),
+  );
   return mock;
 }
 
@@ -51,28 +62,62 @@ describe('RankingService', () => {
   describe('getGlobalRanking', () => {
     it('devuelve los items con position_change calculado', async () => {
       // 1) place_rankings view
-      supabase._on([
-        { place_id: 'p1', category_id: 'c1', position: 1, score: 0.85, views_30d: 500, conversions_30d: 50 },
-        { place_id: 'p2', category_id: 'c1', position: 2, score: 0.70, views_30d: 200, conversions_30d: 20 },
+      const rankingChain = supabase._on([
+        {
+          place_id: 'p1',
+          category_id: 'c1',
+          global_position: 1,
+          category_position: 4,
+          position: 1,
+          score: 0.85,
+          views_30d: 500,
+          conversions_30d: 50,
+        },
+        {
+          place_id: 'p2',
+          category_id: 'c1',
+          global_position: 2,
+          category_position: 5,
+          position: 2,
+          score: 0.7,
+          views_30d: 200,
+          conversions_30d: 20,
+        },
       ]);
       // 2) places hydration
       supabase._on([
         {
-          id: 'p1', name: 'Top Place', slug: 'top-place', description: null, address: null,
-          category_id: 'c1', average_rating: 4.5, total_reviews: 100,
-          is_sponsored: false, sponsored_until: null,
-          place_photos: [{ url: 'https://img/p1.jpg', is_cover: true, display_order: 0 }],
+          id: 'p1',
+          name: 'Top Place',
+          slug: 'top-place',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          average_rating: 4.5,
+          total_reviews: 100,
+          is_sponsored: false,
+          sponsored_until: null,
+          place_photos: [
+            { url: 'https://img/p1.jpg', is_cover: true, display_order: 0 },
+          ],
         },
         {
-          id: 'p2', name: 'Second', slug: 'second', description: null, address: null,
-          category_id: 'c1', average_rating: 4.0, total_reviews: 80,
-          is_sponsored: false, sponsored_until: null,
+          id: 'p2',
+          name: 'Second',
+          slug: 'second',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          average_rating: 4.0,
+          total_reviews: 80,
+          is_sponsored: false,
+          sponsored_until: null,
           place_photos: [],
         },
       ]);
       // 3) ranking_snapshots — p1 was at position 3 yesterday (climbed +2),
       //    p2 has no prior snapshot.
-      supabase._on([
+      const snapshotChain = supabase._on([
         { place_id: 'p1', position: 3, snapshot_at: '2026-04-25T08:00:00Z' },
       ]);
 
@@ -86,24 +131,63 @@ describe('RankingService', () => {
       expect(result.data[0].place.cover_photo_url).toBe('https://img/p1.jpg');
       expect(result.data[1].previous_position).toBeNull();
       expect(result.data[1].position_change).toBeNull();
+      expect(rankingChain.order).toHaveBeenCalledWith('global_position', {
+        ascending: true,
+      });
+      expect(snapshotChain.eq).toHaveBeenCalledWith('scope', 'global');
+      expect(snapshotChain.is).toHaveBeenCalledWith('category_id', null);
     });
 
     it('promueve items patrocinados al inicio del ranking', async () => {
       const future = new Date(Date.now() + 86400_000).toISOString();
       supabase._on([
-        { place_id: 'p1', category_id: 'c1', position: 1, score: 0.90, views_30d: 0, conversions_30d: 0 },
-        { place_id: 'p2', category_id: 'c1', position: 2, score: 0.40, views_30d: 0, conversions_30d: 0 },
+        {
+          place_id: 'p1',
+          category_id: 'c1',
+          global_position: 1,
+          category_position: 1,
+          position: 1,
+          score: 0.9,
+          views_30d: 0,
+          conversions_30d: 0,
+        },
+        {
+          place_id: 'p2',
+          category_id: 'c1',
+          global_position: 2,
+          category_position: 2,
+          position: 2,
+          score: 0.4,
+          views_30d: 0,
+          conversions_30d: 0,
+        },
       ]);
       supabase._on([
         {
-          id: 'p1', name: 'Organic leader', slug: 'p1', description: null, address: null,
-          category_id: 'c1', average_rating: 4.8, total_reviews: 200,
-          is_sponsored: false, sponsored_until: null, place_photos: [],
+          id: 'p1',
+          name: 'Organic leader',
+          slug: 'p1',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          average_rating: 4.8,
+          total_reviews: 200,
+          is_sponsored: false,
+          sponsored_until: null,
+          place_photos: [],
         },
         {
-          id: 'p2', name: 'Sponsored', slug: 'p2', description: null, address: null,
-          category_id: 'c1', average_rating: 3.0, total_reviews: 5,
-          is_sponsored: true, sponsored_until: future, place_photos: [],
+          id: 'p2',
+          name: 'Sponsored',
+          slug: 'p2',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          average_rating: 3.0,
+          total_reviews: 5,
+          is_sponsored: true,
+          sponsored_until: future,
+          place_photos: [],
         },
       ]);
       supabase._on([]);
@@ -120,13 +204,30 @@ describe('RankingService', () => {
     it('ignora sponsored expirados (sponsored_until en el pasado)', async () => {
       const past = new Date(Date.now() - 86400_000).toISOString();
       supabase._on([
-        { place_id: 'p1', category_id: 'c1', position: 1, score: 0.50, views_30d: 0, conversions_30d: 0 },
+        {
+          place_id: 'p1',
+          category_id: 'c1',
+          global_position: 1,
+          category_position: 1,
+          position: 1,
+          score: 0.5,
+          views_30d: 0,
+          conversions_30d: 0,
+        },
       ]);
       supabase._on([
         {
-          id: 'p1', name: 'Expired sponsored', slug: 'p1', description: null, address: null,
-          category_id: 'c1', average_rating: 3.0, total_reviews: 1,
-          is_sponsored: true, sponsored_until: past, place_photos: [],
+          id: 'p1',
+          name: 'Expired sponsored',
+          slug: 'p1',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          average_rating: 3.0,
+          total_reviews: 1,
+          is_sponsored: true,
+          sponsored_until: past,
+          place_photos: [],
         },
       ]);
       supabase._on([]);
@@ -147,21 +248,44 @@ describe('RankingService', () => {
 
   describe('getCategoryRanking', () => {
     it('devuelve items filtrados por categoryId', async () => {
-      supabase._on([
-        { place_id: 'p1', category_id: 'cat-1', position: 1, score: 0.8, views_30d: 100, conversions_30d: 10 },
+      const rankingChain = supabase._on([
+        {
+          place_id: 'p1',
+          category_id: 'cat-1',
+          global_position: 8,
+          category_position: 1,
+          position: 8,
+          score: 0.8,
+          views_30d: 100,
+          conversions_30d: 10,
+        },
       ]);
       supabase._on([
         {
-          id: 'p1', name: 'Pizza Place', slug: 'pizza', description: null, address: null,
-          category_id: 'cat-1', average_rating: 4.2, total_reviews: 30,
-          is_sponsored: false, sponsored_until: null, place_photos: [],
+          id: 'p1',
+          name: 'Pizza Place',
+          slug: 'pizza',
+          description: null,
+          address: null,
+          category_id: 'cat-1',
+          average_rating: 4.2,
+          total_reviews: 30,
+          is_sponsored: false,
+          sponsored_until: null,
+          place_photos: [],
         },
       ]);
-      supabase._on([]);
+      const snapshotChain = supabase._on([]);
 
       const result = await service.getCategoryRanking('cat-1', 20);
       expect(result.category_id).toBe('cat-1');
       expect(result.data).toHaveLength(1);
+      expect(result.data[0].position).toBe(1);
+      expect(rankingChain.order).toHaveBeenCalledWith('category_position', {
+        ascending: true,
+      });
+      expect(snapshotChain.eq).toHaveBeenCalledWith('scope', 'category');
+      expect(snapshotChain.eq).toHaveBeenCalledWith('category_id', 'cat-1');
     });
   });
 
