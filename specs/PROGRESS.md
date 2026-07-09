@@ -94,7 +94,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #71 abierto: `chore/backend-lint-localize-spec`; localize spec queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #72 abierto: `chore/backend-lint-admin-scraping-controller`; admin scraping controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #73 abierto: `chore/backend-lint-notification-settings-controller`; notification settings controller queda tipado y con lint dirigido limpio.
-- 2026-07-09: PR tecnico preparado: `chore/backend-lint-main-bootstrap`; main bootstrap queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #74 abierto: `chore/backend-lint-main-bootstrap`; main bootstrap queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 

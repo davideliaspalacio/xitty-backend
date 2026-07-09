@@ -153,7 +153,7 @@ Avance aplicado:
 - PR tecnico #73 `chore/backend-lint-notification-settings-controller`:
   `notification-settings.controller.ts` queda con request autenticado tipado,
   rol permitido tipado y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-main-bootstrap`:
+- PR tecnico #74 `chore/backend-lint-main-bootstrap`:
   `main.ts` queda con callback CORS tipado, bootstrap con `.catch` explicito,
   formato Prettier y lint dirigido limpio.
 - Reduccion neta acumulada: -67 archivos con problemas, -2554 errores y -221 warnings.
