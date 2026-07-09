@@ -98,6 +98,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #75 abierto: `chore/backend-lint-featured-controller`; featured controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #76 abierto: `chore/backend-lint-local-picks-controller`; local picks controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #77 abierto: `chore/backend-lint-reviews-controller`; reviews controller queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico preparado: `chore/backend-lint-preferences-controller`; preferences controller queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -242,7 +243,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend reviews controller lint: `npx eslint src/modules/reviews/reviews.controller.ts` -> OK.
 - Backend reviews smoke tests: `npm test -- --runInBand src/modules/reviews/reviews.service.spec.ts` -> 1 suite / 8 tests OK.
 - Backend build tras reviews controller lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 48 archivos / 140 errores / 15 warnings.
+- Backend preferences controller lint: `npx eslint src/modules/preferences/preferences.controller.ts` -> OK.
+- Backend preferences controller tests: no existe spec de `PreferencesService`/`PreferencesController` en `src/**/*.spec.ts`; verificado con build.
+- Backend build tras preferences controller lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 47 archivos / 136 errores / 11 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
