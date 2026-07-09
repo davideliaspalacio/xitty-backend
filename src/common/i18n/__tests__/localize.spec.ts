@@ -1,4 +1,11 @@
-import { localize, getLang, SupportedLang, DEFAULT_LANG } from '../localize';
+import {
+  localize,
+  getLang,
+  type SupportedLang,
+  DEFAULT_LANG,
+} from '../localize';
+
+type GetLangRequest = Parameters<typeof getLang>[0];
 
 describe('i18n / localize', () => {
   describe('localize()', () => {
@@ -102,18 +109,18 @@ describe('i18n / localize', () => {
       };
 
       expect(localize(record, undefined).name).toBe('La Trattoria');
-      expect(localize(record, null as any).name).toBe('La Trattoria');
+      expect(localize(record, null).name).toBe('La Trattoria');
     });
   });
 
   describe('getLang()', () => {
     it('returns lang from query.lang when present and supported', () => {
-      const req: any = { query: { lang: 'en' }, headers: {} };
+      const req: GetLangRequest = { query: { lang: 'en' }, headers: {} };
       expect(getLang(req)).toBe('en');
     });
 
     it('returns lang from Accept-Language header when query missing', () => {
-      const req: any = {
+      const req: GetLangRequest = {
         query: {},
         headers: { 'accept-language': 'fr-FR,fr;q=0.9,en;q=0.8' },
       };
@@ -121,7 +128,7 @@ describe('i18n / localize', () => {
     });
 
     it('prefers query.lang over Accept-Language header', () => {
-      const req: any = {
+      const req: GetLangRequest = {
         query: { lang: 'pt' },
         headers: { 'accept-language': 'en-US,en;q=0.9' },
       };
@@ -129,36 +136,36 @@ describe('i18n / localize', () => {
     });
 
     it('defaults to "es" when neither query nor header provided', () => {
-      const req: any = { query: {}, headers: {} };
+      const req: GetLangRequest = { query: {}, headers: {} };
       expect(getLang(req)).toBe(DEFAULT_LANG);
       expect(getLang(req)).toBe('es');
     });
 
     it('defaults to "es" when lang is not in the supported set', () => {
-      const req: any = { query: { lang: 'xx' }, headers: {} };
+      const req: GetLangRequest = { query: { lang: 'xx' }, headers: {} };
       expect(getLang(req)).toBe('es');
     });
 
     it('lowercases and trims the lang value', () => {
-      const req: any = { query: { lang: ' EN ' }, headers: {} };
+      const req: GetLangRequest = { query: { lang: ' EN ' }, headers: {} };
       expect(getLang(req)).toBe('en');
     });
 
     it('accepts all four supported langs: es, en, fr, pt', () => {
       const langs: SupportedLang[] = ['es', 'en', 'fr', 'pt'];
       for (const l of langs) {
-        const req: any = { query: { lang: l }, headers: {} };
+        const req: GetLangRequest = { query: { lang: l }, headers: {} };
         expect(getLang(req)).toBe(l);
       }
     });
 
     it('handles missing query object on req', () => {
-      const req: any = { headers: { 'accept-language': 'en' } };
+      const req: GetLangRequest = { headers: { 'accept-language': 'en' } };
       expect(getLang(req)).toBe('en');
     });
 
     it('handles missing headers object on req', () => {
-      const req: any = { query: { lang: 'fr' } };
+      const req: GetLangRequest = { query: { lang: 'fr' } };
       expect(getLang(req)).toBe('fr');
     });
   });
