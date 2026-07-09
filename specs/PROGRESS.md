@@ -6,7 +6,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 | ------------------------------ | ------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------- |
 | F1 Poblacion de lugares        | Parcial auditado                     | Pendiente                          | Esperar politica de fotos/licencias y preparar seed/reporte idempotente.            |
 | F2 Perfil publico URL propia   | Implementado, pendiente PR/QA amplio | `feature/f2-public-slugs-og`       | Abrir PR apilado despues de F5.                                                     |
-| F3 Promociones                 | Parcial auditado                     | Pendiente                          | Tests de timezone/edge cases y ajustes si fallan.                                   |
+| F3 Promociones                 | Implementado, pendiente PR/QA amplio | `feature/f3-promotions-timezone`   | Abrir PRs apilados despues de F2.                                                   |
 | F4 Tracking de eventos         | Implementado, pendiente PR/QA amplio | `feature/f4-tracking-anti-inflado` | Abrir PR coordinado backend/frontend y correr suite amplia si el tiempo lo permite. |
 | F5 Dashboard metricas          | Implementado, pendiente PR/QA amplio | `feature/f5-metrics-comparativas`  | Abrir PR apilado despues de F4.                                                     |
 | F6 Preferencias notificaciones | Parcial auditado                     | Pendiente                          | Requiere decision canal/proveedor antes de implementacion final.                    |
@@ -23,6 +23,8 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: F5 implementado con RPC summary por metrica, timeseries sin huecos y UI de variacion por KPI.
 - 2026-07-09: iniciado F2 microsites con URL corta y slugs reservados.
 - 2026-07-09: F2 implementado con ruta `/:slug`, OG corto y migracion de slugs reservados.
+- 2026-07-09: iniciado F3 promociones con timezone Colombia y gestion completa.
+- 2026-07-09: F3 implementado con normalizacion date-only en `America/Bogota`, endpoint autenticado de gestion, validacion de updates parciales y vistas publicas que ocultan lugares inactivos.
 
 ## Evidencia F4
 
@@ -45,3 +47,13 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - Backend build: `npm run build` -> OK.
 - Frontend typecheck: `npm run typecheck` -> OK.
 - Frontend build: `npm run build` -> OK, incluyendo ruta dinamica `/[slug]`.
+
+## Evidencia F3
+
+- Backend tests: `npm test -- --runInBand src/modules/promotions/promotions.service.spec.ts` -> 1 suite / 23 tests OK.
+- Backend build: `npm run build` -> OK.
+- Backend lint dirigido: `npx eslint src/modules/promotions/promotion-window.util.ts src/modules/promotions/dto/create-promotion.dto.ts` -> OK.
+- Frontend tests: `npm run test:run -- src/features/promotions/__tests__/promotion-form.test.tsx` -> 1 file / 2 tests OK.
+- Frontend typecheck: `npm run typecheck` -> OK.
+- Frontend build: `npm run build` -> OK.
+- Frontend lint dirigido: `npx eslint src/features/promotions/api.ts src/features/promotions/hooks/use-promotions.ts src/features/promotions/components/promotion-form.tsx src/features/promotions/__tests__/promotion-form.test.tsx` -> OK.

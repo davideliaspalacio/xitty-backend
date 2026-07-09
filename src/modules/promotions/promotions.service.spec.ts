@@ -90,6 +90,34 @@ describe('PromotionsService', () => {
     });
   });
 
+  describe('findManageByPlace', () => {
+    it('devuelve todas las promociones del lugar para el owner', async () => {
+      supabase._on({ owner_id: 'owner-1' });
+      supabase._on([
+        { id: 'active-promo', is_active: true },
+        { id: 'expired-promo', is_active: true },
+        { id: 'disabled-promo', is_active: false },
+      ]);
+
+      const result = await service.findManageByPlace(
+        'place-1',
+        'owner-1',
+        'business',
+      );
+
+      expect(result).toHaveLength(3);
+      expect(supabase.from).toHaveBeenCalledWith('promotions');
+    });
+
+    it('rechaza gestion si no es owner ni admin', async () => {
+      supabase._on({ owner_id: 'otro-owner' });
+
+      await expect(
+        service.findManageByPlace('place-1', 'user-1', 'business'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
   // ── Crear promocion ─────────────────────────────────────────────
 
   describe('create', () => {
@@ -140,6 +168,27 @@ describe('PromotionsService', () => {
         }),
       ).rejects.toThrow(BadRequestException);
     });
+
+    it('normaliza fechas date-only como dia completo en America/Bogota', async () => {
+      supabase._on({ owner_id: 'owner-1' });
+      const insertChain = supabase._on({
+        id: 'new-promo',
+        title: 'Promo de un dia',
+      });
+
+      await service.create('place-1', 'owner-1', 'business', {
+        title: 'Promo de un dia',
+        starts_at: '2026-07-09',
+        ends_at: '2026-07-09',
+      });
+
+      expect(insertChain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          starts_at: '2026-07-09T05:00:00.000Z',
+          ends_at: '2026-07-10T04:59:59.999Z',
+        }),
+      );
+    });
   });
 
   // ── Eliminar promocion ──────────────────────────────────────────
@@ -172,6 +221,69 @@ describe('PromotionsService', () => {
           title: 'X',
         }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('rechaza update parcial cuando deja ends_at antes de starts_at existente', async () => {
+      supabase._on({ owner_id: 'owner-1' });
+      supabase._on({
+        id: 'promo-1',
+        starts_at: '2026-07-10T05:00:00.000Z',
+        ends_at: '2026-07-12T04:59:59.999Z',
+      });
+
+      await expect(
+        service.update('place-1', 'promo-1', 'owner-1', 'business', {
+          ends_at: '2026-07-09',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('permite editar una promocion vencida desde gestion', async () => {
+      supabase._on({ owner_id: 'owner-1' });
+      supabase._on({
+        id: 'promo-1',
+        starts_at: '2026-01-01T05:00:00.000Z',
+        ends_at: '2026-01-02T04:59:59.999Z',
+      });
+      const updateChain = supabase._on({
+        id: 'promo-1',
+        title: 'Promo renovada',
+      });
+
+      const result = await service.update(
+        'place-1',
+        'promo-1',
+        'owner-1',
+        'business',
+        { title: 'Promo renovada' },
+      );
+
+      expect(result.title).toBe('Promo renovada');
+      expect(updateChain.update).toHaveBeenCalledWith({
+        title: 'Promo renovada',
+      });
+    });
+
+    it('normaliza fechas date-only en update', async () => {
+      supabase._on({ owner_id: 'owner-1' });
+      supabase._on({
+        id: 'promo-1',
+        starts_at: '2026-07-01T05:00:00.000Z',
+        ends_at: '2026-07-02T04:59:59.999Z',
+      });
+      const updateChain = supabase._on({ id: 'promo-1' });
+
+      await service.update('place-1', 'promo-1', 'owner-1', 'business', {
+        starts_at: '2026-07-09',
+        ends_at: '2026-07-09',
+      });
+
+      expect(updateChain.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          starts_at: '2026-07-09T05:00:00.000Z',
+          ends_at: '2026-07-10T04:59:59.999Z',
+        }),
+      );
     });
   });
 

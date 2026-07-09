@@ -11,6 +11,11 @@ import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
 import { RecordImpressionDto } from './dto/record-impression.dto';
 import {
+  isPromotionWindowValid,
+  normalizePromotionBoundary,
+  normalizePromotionWindow,
+} from './promotion-window.util';
+import {
   buildInteractionTrackingFields,
   isBotUserAgent,
   isDuplicateInteractionError,
@@ -35,6 +40,21 @@ export class PromotionsService {
       .from(ACTIVE_VIEW)
       .select(
         'id, place_id, title, description, discount_percentage, starts_at, ends_at, is_active, created_at, updated_at',
+      )
+      .eq('place_id', placeId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new BadRequestException(error.message);
+    return data || [];
+  }
+
+  async findManageByPlace(placeId: string, userId: string, userRole: string) {
+    await this.assertOwnership(placeId, userId, userRole);
+
+    const { data, error } = await this.supabase
+      .from(TABLE)
+      .select(
+        'id, place_id, title, description, discount_percentage, starts_at, ends_at, is_active, created_at, updated_at, is_hero, hero_priority, hero_image_url',
       )
       .eq('place_id', placeId)
       .order('created_at', { ascending: false });
@@ -138,8 +158,9 @@ export class PromotionsService {
     dto: CreatePromotionDto,
   ) {
     await this.assertOwnership(placeId, userId, userRole);
+    const normalized = normalizePromotionWindow(dto);
 
-    if (new Date(dto.ends_at) <= new Date(dto.starts_at)) {
+    if (!isPromotionWindowValid(normalized.starts_at, normalized.ends_at)) {
       throw new BadRequestException('ends_at must be after starts_at');
     }
 
@@ -147,12 +168,12 @@ export class PromotionsService {
       .from(TABLE)
       .insert({
         place_id: placeId,
-        title: dto.title,
-        description: dto.description,
-        discount_percentage: dto.discount_percentage,
-        starts_at: dto.starts_at,
-        ends_at: dto.ends_at,
-        is_active: dto.is_active ?? true,
+        title: normalized.title,
+        description: normalized.description,
+        discount_percentage: normalized.discount_percentage,
+        starts_at: normalized.starts_at,
+        ends_at: normalized.ends_at,
+        is_active: normalized.is_active ?? true,
       })
       .select('*')
       .single();
@@ -174,14 +195,6 @@ export class PromotionsService {
   ) {
     await this.assertOwnership(placeId, userId, userRole);
 
-    if (
-      dto.starts_at &&
-      dto.ends_at &&
-      new Date(dto.ends_at) <= new Date(dto.starts_at)
-    ) {
-      throw new BadRequestException('ends_at must be after starts_at');
-    }
-
     const updates: Record<string, any> = {};
     const fields = [
       'title',
@@ -195,8 +208,36 @@ export class PromotionsService {
       if ((dto as any)[k] !== undefined) updates[k] = (dto as any)[k];
     }
 
+    if (typeof updates.starts_at === 'string') {
+      updates.starts_at = normalizePromotionBoundary(
+        updates.starts_at,
+        'start',
+      );
+    }
+    if (typeof updates.ends_at === 'string') {
+      updates.ends_at = normalizePromotionBoundary(updates.ends_at, 'end');
+    }
+
     if (Object.keys(updates).length === 0) {
       throw new BadRequestException('At least one field is required');
+    }
+
+    const { data: existing, error: lookupError } = await this.supabase
+      .from(TABLE)
+      .select('id, starts_at, ends_at')
+      .eq('id', promotionId)
+      .eq('place_id', placeId)
+      .maybeSingle();
+
+    if (lookupError) throw new BadRequestException(lookupError.message);
+    if (!existing) throw new NotFoundException('Promotion not found');
+
+    const nextStartsAt =
+      (updates.starts_at as string | undefined) ?? existing.starts_at;
+    const nextEndsAt =
+      (updates.ends_at as string | undefined) ?? existing.ends_at;
+    if (!isPromotionWindowValid(nextStartsAt, nextEndsAt)) {
+      throw new BadRequestException('ends_at must be after starts_at');
     }
 
     const { data, error } = await this.supabase
