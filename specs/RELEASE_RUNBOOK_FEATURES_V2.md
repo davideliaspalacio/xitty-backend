@@ -45,6 +45,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 37. #58 - PR tecnico chat controller/spec lint/typing, base #57.
 38. #59 - PR tecnico suggestions service/spec lint/typing, base #58.
 39. #60 - PR tecnico notification settings service/spec lint/typing, base #59.
+40. #61 - PR tecnico Tavily search source/spec lint/typing, base #60.
 
 ### Frontend
 

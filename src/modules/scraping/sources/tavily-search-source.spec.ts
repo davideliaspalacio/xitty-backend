@@ -17,6 +17,18 @@ import { TavilySearchSource } from './tavily-search-source';
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
+type FetchMock = jest.MockedFunction<typeof fetch>;
+
+interface TavilyRequestBody {
+  api_key?: unknown;
+  query?: unknown;
+  search_depth?: unknown;
+  max_results?: unknown;
+  include_answer?: unknown;
+  include_raw_content?: unknown;
+  include_domains?: unknown;
+}
+
 function okResponse(body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status: 200,
@@ -24,7 +36,10 @@ function okResponse(body: unknown): Response {
   });
 }
 
-function errorResponse(status: number, body: unknown = { error: 'boom' }): Response {
+function errorResponse(
+  status: number,
+  body: unknown = { error: 'boom' },
+): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { 'content-type': 'application/json' },
@@ -32,22 +47,47 @@ function errorResponse(status: number, body: unknown = { error: 'boom' }): Respo
 }
 
 /** Saca el body JSON de la N-esima llamada al mock de fetch. */
-function bodyOfCall(mock: jest.Mock, callIdx = 0): any {
-  const init = mock.mock.calls[callIdx][1] as RequestInit;
-  return JSON.parse(init.body as string);
+function fetchCall(mock: FetchMock, callIdx = 0): Parameters<typeof fetch> {
+  const call = mock.mock.calls[callIdx];
+  if (!call) {
+    throw new Error(`fetch call ${callIdx} not found`);
+  }
+  return call;
+}
+
+function bodyOfCall(mock: FetchMock, callIdx = 0): TavilyRequestBody {
+  const [, init] = fetchCall(mock, callIdx);
+  if (!init || typeof init.body !== 'string') {
+    throw new Error(`fetch call ${callIdx} did not include a JSON body`);
+  }
+  return JSON.parse(init.body) as TavilyRequestBody;
+}
+
+function headerValue(init: RequestInit, name: string): string | null {
+  const headers = init.headers;
+  if (!headers) return null;
+  if (headers instanceof Headers) return headers.get(name);
+  if (Array.isArray(headers)) {
+    return (
+      headers.find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1] ??
+      null
+    );
+  }
+  const headerRecord = headers;
+  return headerRecord[name] ?? headerRecord[name.toLowerCase()] ?? null;
 }
 
 // ── Suite ────────────────────────────────────────────────────────────────
 
 describe('TavilySearchSource', () => {
   let originalFetch: typeof fetch;
-  let fetchMock: jest.Mock;
+  let fetchMock: FetchMock;
   const ORIGINAL_ENV = process.env;
 
   beforeEach(() => {
     originalFetch = global.fetch;
-    fetchMock = jest.fn();
-    global.fetch = fetchMock as unknown as typeof fetch;
+    fetchMock = jest.fn<typeof fetch>();
+    global.fetch = fetchMock;
     process.env = { ...ORIGINAL_ENV };
     delete process.env.TAVILY_API_KEY;
   });
@@ -62,7 +102,9 @@ describe('TavilySearchSource', () => {
 
   describe('ScraperSource shape', () => {
     it('expone id, name y enabled=true por defecto', () => {
-      const src = new TavilySearchSource({ query: 'barranquilla cosas que hacer' });
+      const src = new TavilySearchSource({
+        query: 'barranquilla cosas que hacer',
+      });
       expect(src.id).toBe('tavily-search');
       expect(typeof src.name).toBe('string');
       expect(src.name.length).toBeGreaterThan(0);
@@ -128,10 +170,12 @@ describe('TavilySearchSource', () => {
       await src.fetch();
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      const [url, init] = fetchMock.mock.calls[0];
+      const [url, init] = fetchCall(fetchMock);
       expect(url).toBe('https://api.tavily.com/search');
-      expect(init.method).toBe('POST');
-      expect((init.headers as Record<string, string>)['content-type']).toMatch(/application\/json/);
+      expect(init?.method).toBe('POST');
+      expect(headerValue(init as RequestInit, 'content-type')).toMatch(
+        /application\/json/,
+      );
     });
 
     it('envia el body con api_key, query, search_depth=advanced, include_raw_content=true', async () => {
@@ -196,7 +240,8 @@ describe('TavilySearchSource', () => {
             {
               url: 'https://www.instagram.com/p/ABC123/',
               title: 'Festival de Sabor — Barranquilla',
-              content: 'Festival gastronomico en el Parque Cultural del Caribe.',
+              content:
+                'Festival gastronomico en el Parque Cultural del Caribe.',
               raw_content: null,
               score: 0.92,
             },
@@ -225,7 +270,7 @@ describe('TavilySearchSource', () => {
             { url: 'https://example.com/b', title: 'B', content: 'b' },
           ],
         });
-      fetchMock.mockImplementation(async () => buildResp());
+      fetchMock.mockImplementation(() => Promise.resolve(buildResp()));
 
       const src = new TavilySearchSource({ query: 'q' });
       const items = await src.fetch();
@@ -255,7 +300,9 @@ describe('TavilySearchSource', () => {
 
       const src = new TavilySearchSource({ query: 'q' });
       const items = await src.fetch();
-      expect(items[0].raw_payload?.image).toBe('https://cdn.example.com/img/cover.jpg');
+      expect(items[0].raw_payload?.image).toBe(
+        'https://cdn.example.com/img/cover.jpg',
+      );
     });
 
     it('extrae la primera imagen del raw_content (tag <img src="...">)', async () => {
@@ -266,7 +313,8 @@ describe('TavilySearchSource', () => {
               url: 'https://example.com/post',
               title: 'Post',
               content: 'short',
-              raw_content: '<div><img src="https://cdn.example.com/photo.png" alt="x"/></div>',
+              raw_content:
+                '<div><img src="https://cdn.example.com/photo.png" alt="x"/></div>',
             },
           ],
         }),
@@ -274,7 +322,9 @@ describe('TavilySearchSource', () => {
 
       const src = new TavilySearchSource({ query: 'q' });
       const items = await src.fetch();
-      expect(items[0].raw_payload?.image).toBe('https://cdn.example.com/photo.png');
+      expect(items[0].raw_payload?.image).toBe(
+        'https://cdn.example.com/photo.png',
+      );
     });
 
     it('image es null si no se encuentra imagen en raw_content', async () => {
@@ -337,7 +387,9 @@ describe('TavilySearchSource', () => {
     });
 
     it('tira un Error informativo si la respuesta es no-2xx', async () => {
-      fetchMock.mockResolvedValue(errorResponse(401, { detail: 'Unauthorized' }));
+      fetchMock.mockResolvedValue(
+        errorResponse(401, { detail: 'Unauthorized' }),
+      );
 
       const src = new TavilySearchSource({ query: 'q' });
       await expect(src.fetch()).rejects.toThrow(/tavily/i);
