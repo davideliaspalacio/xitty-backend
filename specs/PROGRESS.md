@@ -8,7 +8,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 
 ## Estado post-merge
 
-- 2026-07-09: merge completado en `main` para backend #22-#124 y frontend #18-#24.
+- 2026-07-09: merge completado en `main` para backend #22-#127 y frontend #18-#26.
 - 2026-07-09: no quedan PRs abiertos en backend ni frontend para el paquete Features v2.
 - 2026-07-09: verificacion post-merge en backend `main`: `npm test -- --runInBand` OK (38 suites / 477 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
 - 2026-07-09: verificacion post-merge en frontend `main`: `npm run test:run` OK (44 files / 215 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
@@ -24,7 +24,8 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: cerrado gap UI F9: agregado `/admin/featured` para programar destacados semanales, activar/pausar y eliminar entradas desde frontend admin.
 - 2026-07-09: mergeado gap operativo F1 en backend #125 y frontend #25: `place_data_completeness` ahora incluye ciudad/zona/categoria/missing_count, el backend expone `/admin/scraping/place-completeness` y el frontend agrega la pestaña "Calidad de datos" dentro de `/admin/scraping`.
 - 2026-07-09: mergeado gap operativo F7 en backend #126 y frontend #26: backend agrega `GET/PATCH /admin/ranking/config`, frontend agrega `/admin/ranking` para ajustar pesos/caps/ventana y ejecutar refresh manual. No requiere migracion nueva; usa `ranking_config`.
-- 2026-07-09: F6 cierre extra PR backend #127 abierto: reservas confirmadas encolan `reservation_created` en `business_notification_outbox` respetando `notify_reservation_click`.
+- 2026-07-09: mergeado cierre extra F6 en backend #127: reservas confirmadas encolan `reservation_created` en `business_notification_outbox` respetando `notify_reservation_click`.
+- 2026-07-09: corregida migracion #14 para recrear `place_data_completeness` sin error de columnas de vista; `supabase db reset` OK en Supabase temporal hasta `20260709000015_add_reservation_created_notifications.sql`. Validacion SQL: 0 columnas faltantes, 0 relaciones faltantes, constraint `reservation_created` presente y `refresh_place_rankings()` sin error.
 - Pendiente operativo: aplicar 15 migraciones `20260709...` en produccion, configurar envs, correr scraper con datos reales, refrescar rankings y hacer QA con datos reales.
 
 | Feature                        | Estado                                                                                          | Rama/PR                                                                | Proximo paso                                                                                                                                                               |
@@ -34,7 +35,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 | F3 Promociones                 | Mergeado en `main`                                                                              | Backend #25 / Frontend #21                                             | Cargar promociones reales o marcar demo segun definicion de negocio.                                                                                                       |
 | F4 Tracking de eventos         | Mergeado en `main`                                                                              | Backend #22 / Frontend #18                                             | Validar eventos reales en produccion/staging.                                                                                                                              |
 | F5 Dashboard metricas          | Mergeado en `main`                                                                              | Backend #23 / Frontend #19                                             | QA con negocios con y sin eventos.                                                                                                                                         |
-| F6 Preferencias notificaciones | Mergeado en `main`, cierre de reservas listo en PR                                              | Backend #29 / Frontend #24 / Backend #127                              | Definir canal/proveedor real; por ahora queda outbox interno/pending.                                                                                                      |
+| F6 Preferencias notificaciones | Mergeado en `main`, incluyendo avisos de reservas                                               | Backend #29 / Frontend #24 / Backend #127                              | Definir canal/proveedor real; por ahora queda outbox interno/pending.                                                                                                      |
 | F7 Ranking inteligente         | Mergeado en `main`, gap admin de configuracion agregado                                         | Backend #26 / Frontend #22 / Backend #32 / Backend #126 / Frontend #26 | Aplicar migraciones, probar `/admin/ranking` y correr `SELECT public.refresh_place_rankings();`.                                                                           |
 | F8 Patrocinios                 | Mergeado en `main`                                                                              | Backend #27 / Frontend #23                                             | QA de sello "Patrocinado", vencimientos y slots.                                                                                                                           |
 | F9 Destacado semanal           | Mergeado en `main`, UI admin agregada                                                           | Backend #28 / Frontend main                                            | QA de fallback semanal, programacion y alta/pausa desde `/admin/featured`.                                                                                                 |
@@ -63,7 +64,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: iniciado F6 preferencias de notificaciones.
 - 2026-07-09: F6 implementado con outbox neutral, resumen diario programable y tracking que respeta preferencias sin depender aun de proveedor email/push/WhatsApp.
 - 2026-07-09: F6 PRs abiertos: backend #29 y frontend #24.
-- 2026-07-09: F6 cierre extra PR abierto: backend #127 escribe `reservation_created` en outbox para reservas confirmadas respetando `notify_reservation_click`.
+- 2026-07-09: F6 cierre extra mergeado: backend #127 escribe `reservation_created` en outbox para reservas confirmadas respetando `notify_reservation_click`.
 - 2026-07-09: iniciado F1 poblacion de lugares.
 - 2026-07-09: F1 avance implementado con proveniencia de fuente, publicacion idempotente por source y reporte SQL de completitud/faltantes.
 - 2026-07-09: F1 PR abierto: backend #30.

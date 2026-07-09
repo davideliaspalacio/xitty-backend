@@ -4,13 +4,14 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 
 Checklist de cutover produccion: `specs/FEATURES_V2_PRODUCTION_CUTOVER.md`.
 
-Estado actual: los PRs backend #22-#126 y frontend #18-#26 ya fueron mergeados en `main` el 2026-07-09. F6 tiene el PR backend #127 para avisos de reservas confirmadas.
+Estado actual: los PRs backend #22-#127 y frontend #18-#26 ya fueron mergeados en `main` el 2026-07-09. F6 ya incluye avisos de reservas confirmadas en outbox.
 
 Verificacion post-merge local:
 
 - Backend `main`: `npm test -- --runInBand` OK (38 suites / 477 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
 - Frontend `main`: `npm run test:run` OK (44 files / 215 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
-- Migraciones locales: `supabase db reset` OK en copia temporal, aplicando todas las migraciones hasta `20260709000013_harden_backend_service_role_and_place_rpc.sql`.
+- Migraciones locales: `supabase db reset` OK en Supabase temporal, aplicando todas las migraciones hasta `20260709000015_add_reservation_created_notifications.sql`.
+- Validacion SQL post-migracion: 0 columnas faltantes, 0 relaciones faltantes, constraint `reservation_created` presente y `refresh_place_rankings()` sin error.
 - Smoke con backend apuntando a DB local migrada: `/categories`, `/places?city=Cartagena`, `/places?sort_by=distance&city=Cartagena` y `/ranking?city=Cartagena` respondieron 200.
 - Frontend envia `city` al ranking, listado y busqueda usando `NEXT_PUBLIC_DEFAULT_CITY`, para consumir rankings/listados por ciudad.
 
@@ -121,6 +122,9 @@ Verificacion post-merge local:
 101. #122 - PR tecnico OG response dto lint/typing, base #121.
 102. #123 - PR tecnico promotion response dto lint/typing, base #122.
 103. #124 - PR tecnico scraper source interface lint/typing, base #123.
+104. #125 - F1 reporte admin de calidad/completitud de datos, base #124.
+105. #126 - F7 configuracion admin del ranking, base #125.
+106. #127 - F6 avisos de reservas confirmadas en outbox, base #126.
 
 ### Frontend
 

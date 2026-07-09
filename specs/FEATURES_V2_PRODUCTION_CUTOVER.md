@@ -5,8 +5,8 @@ Objetivo: aplicar y validar el paquete Features v2 en Supabase produccion/stagin
 Estado probado localmente:
 
 - Codigo backend y frontend mergeado en `main`.
-- `supabase db reset` OK en una DB limpia temporal, aplicando todas las migraciones hasta `20260709000013_harden_backend_service_role_and_place_rpc.sql`.
-- Migraciones adicionales pendientes de aplicar en el siguiente cutover: `20260709000014_extend_place_data_completeness_report.sql` y `20260709000015_add_reservation_created_notifications.sql`.
+- `supabase db reset` OK en una DB limpia temporal, aplicando todas las migraciones hasta `20260709000015_add_reservation_created_notifications.sql`.
+- Validacion SQL post-migracion OK: 0 columnas faltantes, 0 relaciones faltantes, constraint `reservation_created` presente y `refresh_place_rankings()` sin error.
 - Backend contra DB migrada respondio 200 en `/categories`, `/places?city=Cartagena`, `/places?sort_by=distance&city=Cartagena` y `/ranking?city=Cartagena`.
 
 ## 1. Pre-check obligatorio

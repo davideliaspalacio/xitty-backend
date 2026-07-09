@@ -5,7 +5,9 @@
 -- zone and category breakdown inputs without touching place data.
 -- ============================================================================
 
-CREATE OR REPLACE VIEW public.place_data_completeness AS
+DROP VIEW IF EXISTS public.place_data_completeness;
+
+CREATE VIEW public.place_data_completeness AS
 WITH photo_counts AS (
   SELECT
     place_id,
@@ -67,3 +69,5 @@ SELECT
 FROM assessed;
 
 ALTER VIEW public.place_data_completeness SET (security_invoker = true);
+
+GRANT SELECT ON TABLE public.place_data_completeness TO service_role;
