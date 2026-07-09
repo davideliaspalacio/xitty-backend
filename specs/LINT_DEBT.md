@@ -147,7 +147,7 @@ Avance aplicado:
 - PR tecnico #71 `chore/backend-lint-localize-spec`:
   `localize.spec.ts` queda con fixtures `getLang` tipados, sin casts `any`,
   y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-admin-scraping-controller`:
+- PR tecnico #72 `chore/backend-lint-admin-scraping-controller`:
   `admin-scraping.controller.ts` queda con request admin tipado, `assertAdmin`
   como type guard y lint dirigido limpio.
 - Reduccion neta acumulada: -65 archivos con problemas, -2541 errores y -215 warnings.

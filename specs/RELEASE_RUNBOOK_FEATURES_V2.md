@@ -56,7 +56,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 48. #69 - PR tecnico auth guard lint/typing, base #68.
 49. #70 - PR tecnico chat rate limit spec lint/typing, base #69.
 50. #71 - PR tecnico localize spec lint/typing, base #70.
-51. Pendiente - PR tecnico admin scraping controller lint/typing, base #71.
+51. #72 - PR tecnico admin scraping controller lint/typing, base #71.
 
 ### Frontend
 
