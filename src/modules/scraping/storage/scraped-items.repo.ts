@@ -17,6 +17,11 @@ const ENRICHED_TABLE = 'scraped_items_enriched';
 // Codigo Postgres para violacion de unique constraint
 const PG_UNIQUE_VIOLATION = '23505';
 
+interface PostgresError {
+  code?: string;
+  message?: string;
+}
+
 export type EnrichedStatus = 'pending' | 'approved' | 'rejected' | 'published';
 
 // ── Inputs ──────────────────────────────────────────────────────────────────
@@ -47,6 +52,8 @@ export interface InsertEnrichedInput {
   website?: string | null;
   openingHours?: string[] | null;
   priceLevel?: number | null;
+  sourceKind?: string | null;
+  sourceExternalId?: string | null;
   sourceReviews?: SourceReview[] | null;
   sourceUrl?: string | null;
   qualityScore?: number | null;
@@ -112,6 +119,8 @@ export interface ScrapedItemEnriched {
   website: string | null;
   opening_hours: string[] | null;
   price_level: number | null;
+  source_kind: string | null;
+  source_external_id: string | null;
   source_reviews: SourceReview[] | null;
   source_url: string | null;
   quality_score: number | null;
@@ -131,7 +140,7 @@ const RAW_COLS =
 const ENRICHED_COLS =
   'id, raw_id, title, description, category_hint, location_name, lat, lng, ' +
   'starts_at, ends_at, price_cop, image_url, rating, review_count, ' +
-  'phone, website, opening_hours, price_level, source_reviews, source_url, ' +
+  'phone, website, opening_hours, price_level, source_kind, source_external_id, source_reviews, source_url, ' +
   'quality_score, status, ' +
   'reviewed_by, reviewed_at, rejection_reason, published_place_id, published_experience_id, ' +
   'created_at, updated_at';
@@ -187,7 +196,7 @@ export class ScrapedItemsRepo {
 
     if (error) {
       // dedup collision → no es un error, es comportamiento esperado
-      if ((error as any).code === PG_UNIQUE_VIOLATION) {
+      if ((error as PostgresError).code === PG_UNIQUE_VIOLATION) {
         this.logger.debug(
           `dedup hit for ${input.sourceUrl} (run=${input.runId})`,
         );
@@ -234,6 +243,8 @@ export class ScrapedItemsRepo {
       website: input.website ?? null,
       opening_hours: input.openingHours ?? null,
       price_level: input.priceLevel ?? null,
+      source_kind: input.sourceKind ?? null,
+      source_external_id: input.sourceExternalId ?? null,
       source_reviews: input.sourceReviews ?? null,
       source_url: input.sourceUrl ?? null,
       quality_score: input.qualityScore ?? null,
@@ -254,9 +265,7 @@ export class ScrapedItemsRepo {
     return data as unknown as ScrapedItemEnriched;
   }
 
-  async listPending(
-    opts: ListPendingOptions,
-  ): Promise<ScrapedItemEnriched[]> {
+  async listPending(opts: ListPendingOptions): Promise<ScrapedItemEnriched[]> {
     return this.listByStatus({ ...opts, status: 'pending' });
   }
 
@@ -306,8 +315,15 @@ export class ScrapedItemsRepo {
   ): Promise<ScrapedItemEnriched> {
     const updates: Record<string, any> = {};
     const allowed: (keyof UpdateEnrichedFields)[] = [
-      'title', 'description', 'category_hint', 'location_name',
-      'lat', 'lng', 'starts_at', 'ends_at', 'price_cop',
+      'title',
+      'description',
+      'category_hint',
+      'location_name',
+      'lat',
+      'lng',
+      'starts_at',
+      'ends_at',
+      'price_cop',
     ];
     for (const key of allowed) {
       if (fields[key] !== undefined) {
@@ -348,14 +364,9 @@ export class ScrapedItemsRepo {
     return this.transition(id, patch);
   }
 
-  async publish(
-    id: string,
-    input: PublishInput,
-  ): Promise<ScrapedItemEnriched> {
+  async publish(id: string, input: PublishInput): Promise<ScrapedItemEnriched> {
     if (!input.placeId && !input.experienceId) {
-      throw new BadRequestException(
-        'publish requiere placeId o experienceId',
-      );
+      throw new BadRequestException('publish requiere placeId o experienceId');
     }
 
     return this.transition(id, {

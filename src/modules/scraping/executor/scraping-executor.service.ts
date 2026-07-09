@@ -1,10 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
 import { ScrapingSourcesRepo } from '../storage/scraping-sources.repo';
-import {
-  ScrapingRun,
-  ScrapingRunsRepo,
-} from '../storage/scraping-runs.repo';
+import { ScrapingRun, ScrapingRunsRepo } from '../storage/scraping-runs.repo';
 import { ScrapedItemsRepo } from '../storage/scraped-items.repo';
 import { PhotoStorageService } from '../storage/photo-storage.service';
 import { EnrichmentService } from '../enrichment/enrichment.service';
@@ -73,8 +70,8 @@ export class ScrapingExecutorService {
     let rawItems: RawItem[];
     try {
       rawItems = await fetcher.fetch();
-    } catch (err: any) {
-      const message = `fetch() fallo: ${err?.message ?? String(err)}`;
+    } catch (err: unknown) {
+      const message = `fetch() fallo: ${errorMessage(err)}`;
       this.logger.error(`run=${run.id} ${message}`);
       await this.runsRepo.error(run.id, message);
       throw new BadRequestException(message);
@@ -92,7 +89,8 @@ export class ScrapingExecutorService {
 
     for (const raw of rawItems) {
       try {
-        const sourceUrl = raw.source_url ?? `urn:${source.kind}:${raw.external_id}`;
+        const sourceUrl =
+          raw.source_url ?? `urn:${source.kind}:${raw.external_id}`;
 
         const rawRow = await this.itemsRepo.insertRaw({
           runId: run.id,
@@ -152,15 +150,17 @@ export class ScrapingExecutorService {
           website: raw.website ?? null,
           openingHours: raw.opening_hours ?? null,
           priceLevel: raw.price_level ?? null,
+          sourceKind: source.kind,
+          sourceExternalId: raw.external_id ?? null,
           sourceReviews: raw.reviews ?? null,
           sourceUrl: raw.source_url ?? null,
           qualityScore: enriched.quality_score,
         });
         itemsEnriched += 1;
-      } catch (err: any) {
+      } catch (err: unknown) {
         itemsFailed += 1;
         this.logger.warn(
-          `run=${run.id} item "${raw.external_id}" fallo: ${err?.message ?? err}`,
+          `run=${run.id} item "${raw.external_id}" fallo: ${errorMessage(err)}`,
         );
       }
     }
@@ -194,4 +194,8 @@ export class ScrapingExecutorService {
       finished_at: new Date().toISOString(),
     };
   }
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }
