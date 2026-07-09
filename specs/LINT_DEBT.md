@@ -225,7 +225,7 @@ Avance aplicado:
 - PR tecnico #97 `chore/backend-lint-reservation-response-dto`:
   `reservation-response.dto.ts` queda formateado por Prettier y con lint
   dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-microsites-service`:
+- PR tecnico #98 `chore/backend-lint-microsites-service`:
   `microsites.service.ts` queda con resultado Supabase tipado, sin casts `any`,
   y lint dirigido limpio.
 - Reduccion neta acumulada: -92 archivos con problemas, -2667 errores y -246 warnings.
