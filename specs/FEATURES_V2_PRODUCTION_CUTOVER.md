@@ -6,7 +6,7 @@ Estado probado localmente:
 
 - Codigo backend y frontend mergeado en `main`.
 - `supabase db reset` OK en una DB limpia temporal, aplicando todas las migraciones hasta `20260709000013_harden_backend_service_role_and_place_rpc.sql`.
-- Migracion adicional pendiente de aplicar en el siguiente cutover: `20260709000014_extend_place_data_completeness_report.sql`, que no toca datos y solo amplia el reporte F1.
+- Migraciones adicionales pendientes de aplicar en el siguiente cutover: `20260709000014_extend_place_data_completeness_report.sql` y `20260709000015_add_reservation_created_notifications.sql`.
 - Backend contra DB migrada respondio 200 en `/categories`, `/places?city=Cartagena`, `/places?sort_by=distance&city=Cartagena` y `/ranking?city=Cartagena`.
 
 ## 1. Pre-check obligatorio
@@ -35,7 +35,7 @@ Si el equipo no puede usar el CLI y necesita SQL Editor, generar un bundle local
 awk 'FNR == 1 { print "\n-- >>> " FILENAME "\n" } { print }' supabase/migrations/202607090000*.sql > /tmp/xitty-features-v2-migrations.sql
 ```
 
-Luego pegar `/tmp/xitty-features-v2-migrations.sql` completo en el SQL Editor del proyecto correcto y ejecutarlo una sola vez. Si el SQL Editor corta por timeout, ejecutar los archivos en orden cronologico, uno por uno, desde `20260709000001...` hasta `20260709000014...`.
+Luego pegar `/tmp/xitty-features-v2-migrations.sql` completo en el SQL Editor del proyecto correcto y ejecutarlo una sola vez. Si el SQL Editor corta por timeout, ejecutar los archivos en orden cronologico, uno por uno, desde `20260709000001...` hasta `20260709000015...`.
 
 Despues de aplicar:
 
@@ -121,6 +121,12 @@ WHERE pronamespace = 'public'::regnamespace
     'refresh_place_rankings'
   )
 ORDER BY proname, args;
+
+SELECT conname, pg_get_constraintdef(oid) AS definition
+FROM pg_constraint
+WHERE conrelid = 'public.business_notification_outbox'::regclass
+  AND conname = 'business_notification_outbox_notification_type_check'
+  AND pg_get_constraintdef(oid) ILIKE '%reservation_created%';
 ```
 
 Checks esperados:
@@ -128,6 +134,7 @@ Checks esperados:
 - `places.city` y `place_rankings.city` existen.
 - `list_places_near` tiene la firma nueva con `p_city` y `p_zone`.
 - `business_notification_outbox` existe para F6.
+- El check `business_notification_outbox_notification_type_check` acepta `reservation_created`.
 - `place_data_completeness` existe para reporte F1 y expone ciudad/zona/categoria/missing_count.
 - `refresh_place_rankings()` corre sin error.
 
@@ -214,6 +221,7 @@ Validar con datos reales:
 - Tracking anonimo y deduplicacion de doble click.
 - Dashboard de metricas con dias sin eventos en cero.
 - Outbox de notificaciones respetando preferencias.
+- Reservas confirmadas encolan `reservation_created` cuando la preferencia de reservas esta activa.
 - Ranking por ciudad/categoria.
 - Sello "Patrocinado" visible.
 - Destacados semanales y fallback.

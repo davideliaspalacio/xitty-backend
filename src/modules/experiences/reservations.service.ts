@@ -19,6 +19,8 @@ const RESERVATIONS_TABLE = 'experience_reservations';
 const SLOTS_TABLE = 'experience_slots';
 const EXPERIENCES_TABLE = 'experiences';
 const PHOTOS_TABLE = 'experience_photos';
+const NOTIFICATION_SETTINGS_TABLE = 'business_notification_settings';
+const NOTIFICATION_OUTBOX_TABLE = 'business_notification_outbox';
 
 const RESERVATION_SELECT = `
   id, slot_id, experience_id, user_id, participants,
@@ -44,10 +46,12 @@ interface SupabaseListResult<T> {
 
 interface ExperienceRulesRow {
   id: string;
+  operator_place_id: string;
   price_cop: number;
   min_participants: number;
   max_participants: number;
   is_active: boolean;
+  places: { owner_id: string | null } | null;
 }
 
 interface SlotAvailabilityRow {
@@ -86,6 +90,10 @@ interface CoverPhotoRow {
   url: string;
 }
 
+interface NotificationSettingsRow {
+  notify_reservation_click?: boolean;
+}
+
 @Injectable()
 export class ReservationsService {
   constructor(
@@ -101,7 +109,9 @@ export class ReservationsService {
     // Load experience for pricing + participant rules
     const { data: experience, error: expError } = (await this.supabase
       .from(EXPERIENCES_TABLE)
-      .select('id, price_cop, min_participants, max_participants, is_active')
+      .select(
+        'id, operator_place_id, price_cop, min_participants, max_participants, is_active, places:operator_place_id(owner_id)',
+      )
       .eq('id', experienceId)
       .maybeSingle()) as unknown as SupabaseSingleResult<ExperienceRulesRow>;
 
@@ -170,7 +180,7 @@ export class ReservationsService {
       throw new BadRequestException('Could not create reservation');
     }
 
-    // TODO: trigger email + push confirmation when notification infra lands (US-041)
+    await this.queueReservationNotification(data, experience);
 
     return this.hydrateCover(data);
   }
@@ -315,5 +325,50 @@ export class ReservationsService {
           }
         : null,
     }));
+  }
+
+  private async queueReservationNotification(
+    reservation: ReservationRow,
+    experience: ExperienceRulesRow,
+  ): Promise<void> {
+    const ownerId = experience.places?.owner_id ?? null;
+    if (!ownerId) return;
+
+    try {
+      const settingsResult = await this.supabase
+        .from(NOTIFICATION_SETTINGS_TABLE)
+        .select('notify_reservation_click')
+        .eq('user_id', ownerId)
+        .maybeSingle();
+      const settings = settingsResult.data as NotificationSettingsRow | null;
+
+      if (
+        settingsResult.error ||
+        settings?.notify_reservation_click === false
+      ) {
+        return;
+      }
+
+      await this.supabase.from(NOTIFICATION_OUTBOX_TABLE).insert({
+        recipient_user_id: ownerId,
+        place_id: experience.operator_place_id,
+        interaction_id: null,
+        notification_type: 'reservation_created',
+        channel: 'pending',
+        status: 'pending',
+        dedup_key: `reservation_created:${reservation.id}`,
+        payload: {
+          reservation_id: reservation.id,
+          experience_id: reservation.experience_id,
+          experience_title: reservation.experience?.title ?? null,
+          slot_id: reservation.slot_id,
+          starts_at: reservation.slot?.starts_at ?? null,
+          participants: reservation.participants,
+          total_price_cop: reservation.total_price_cop,
+        },
+      });
+    } catch {
+      return;
+    }
   }
 }
