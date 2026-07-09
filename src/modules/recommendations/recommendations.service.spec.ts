@@ -1,35 +1,93 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { RecommendationsService } from './recommendations.service';
 
 // ── Supabase mock ─────────────────────────────────────────────────────────
 // Chain builder for `.from(...).select(...).in(...)...` queries.
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  message: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+type RpcMethod = jest.MockedFunction<
+  (...args: unknown[]) => Promise<MockDbResult>
+>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  insert: ChainMethod;
+  update: ChainMethod;
+  delete: ChainMethod;
+  eq: ChainMethod;
+  in: ChainMethod;
+  order: ChainMethod;
+  limit: ChainMethod;
+  single: ChainMethod;
+  maybeSingle: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  rpc: RpcMethod;
+  _on: (data: unknown, error?: MockDbError | null) => MockChain;
+  _onRpc: (data: unknown, error?: MockDbError | null) => void;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
-    'from', 'select', 'insert', 'update', 'delete',
-    'eq', 'in', 'order', 'limit', 'single', 'maybeSingle',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+    'from',
+    'select',
+    'insert',
+    'update',
+    'delete',
+    'eq',
+    'in',
+    'order',
+    'limit',
+    'single',
+    'maybeSingle',
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn(), rpc: jest.fn() };
-  mock._on = (data: any, error?: any) => {
-    const c = createChain({ data, error: error || null });
-    mock.from.mockReturnValueOnce(c);
-    return c;
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    rpc: jest.fn<(...args: unknown[]) => Promise<MockDbResult>>(),
+    _on: (data: unknown, error?: MockDbError | null) => {
+      const c = createChain({ data, error: error ?? null });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
+    _onRpc: (data: unknown, error?: MockDbError | null) => {
+      mock.rpc.mockReturnValueOnce(
+        Promise.resolve({ data, error: error ?? null }),
+      );
+    },
   };
-  mock._onRpc = (data: any, error?: any) => {
-    mock.rpc.mockReturnValueOnce(
-      Promise.resolve({ data, error: error || null }),
-    );
-  };
-  mock.from.mockImplementation(() =>
-    createChain({ data: null, error: null }),
-  );
+  mock.from.mockImplementation(() => createChain({ data: null, error: null }));
   mock.rpc.mockImplementation(() =>
     Promise.resolve({ data: null, error: null }),
   );
@@ -38,14 +96,17 @@ function createMockSupabase() {
 
 describe('RecommendationsService', () => {
   let service: RecommendationsService;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RecommendationsService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
       ],
     }).compile();
     service = module.get<RecommendationsService>(RecommendationsService);
@@ -163,7 +224,12 @@ describe('RecommendationsService', () => {
           total_reviews: 100,
           tags: ['pareja'],
           category_id: 'c1',
-          categories: { id: 'c1', name: 'Restaurantes', slug: 'restaurantes', icon: 'utensils' },
+          categories: {
+            id: 'c1',
+            name: 'Restaurantes',
+            slug: 'restaurantes',
+            icon: 'utensils',
+          },
           place_photos: [{ url: 'https://photo/p1.jpg', is_cover: true }],
         },
         {
@@ -173,13 +239,18 @@ describe('RecommendationsService', () => {
           description: null,
           address: null,
           latitude: 10.98,
-          longitude: -74.80,
+          longitude: -74.8,
           price_range: 3,
           average_rating: 4.0,
           total_reviews: 50,
           tags: [],
           category_id: 'c1',
-          categories: { id: 'c1', name: 'Restaurantes', slug: 'restaurantes', icon: 'utensils' },
+          categories: {
+            id: 'c1',
+            name: 'Restaurantes',
+            slug: 'restaurantes',
+            icon: 'utensils',
+          },
           place_photos: [],
         },
       ]);
@@ -213,16 +284,36 @@ describe('RecommendationsService', () => {
       // el orden del RPC.
       supabase._on([
         {
-          id: 'p1', name: 'A', slug: 'a', description: null, address: null,
-          latitude: null, longitude: null, price_range: null,
-          average_rating: 3.0, total_reviews: 5, tags: [], category_id: 'c1',
-          categories: null, place_photos: [],
+          id: 'p1',
+          name: 'A',
+          slug: 'a',
+          description: null,
+          address: null,
+          latitude: null,
+          longitude: null,
+          price_range: null,
+          average_rating: 3.0,
+          total_reviews: 5,
+          tags: [],
+          category_id: 'c1',
+          categories: null,
+          place_photos: [],
         },
         {
-          id: 'p2', name: 'B', slug: 'b', description: null, address: null,
-          latitude: null, longitude: null, price_range: null,
-          average_rating: 4.5, total_reviews: 50, tags: [], category_id: 'c1',
-          categories: null, place_photos: [],
+          id: 'p2',
+          name: 'B',
+          slug: 'b',
+          description: null,
+          address: null,
+          latitude: null,
+          longitude: null,
+          price_range: null,
+          average_rating: 4.5,
+          total_reviews: 50,
+          tags: [],
+          category_id: 'c1',
+          categories: null,
+          place_photos: [],
         },
       ]);
 
@@ -238,10 +329,20 @@ describe('RecommendationsService', () => {
       supabase._onRpc([{ place_id: 'p1', score: 0.5, reason: '' }]);
       supabase._on([
         {
-          id: 'p1', name: 'X', slug: 'x', description: null, address: null,
-          latitude: null, longitude: null, price_range: null,
-          average_rating: 3.0, total_reviews: 5, tags: [], category_id: 'c1',
-          categories: null, place_photos: [],
+          id: 'p1',
+          name: 'X',
+          slug: 'x',
+          description: null,
+          address: null,
+          latitude: null,
+          longitude: null,
+          price_range: null,
+          average_rating: 3.0,
+          total_reviews: 5,
+          tags: [],
+          category_id: 'c1',
+          categories: null,
+          place_photos: [],
         },
       ]);
 
