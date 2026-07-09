@@ -49,6 +49,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 41. #62 - PR tecnico auth service lint/typing, base #61.
 42. #63 - PR tecnico photo storage service/spec lint/typing, base #62.
 43. #64 - PR tecnico metrics controller lint/typing, base #63.
+44. #65 - PR tecnico Eventbrite source/spec lint/typing, base #64.
 
 ### Frontend
 

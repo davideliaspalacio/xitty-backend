@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 62.
-- Errores: 251.
-- Warnings: 66.
-- Errores auto-fixables: 127.
+- Archivos con problemas: 60.
+- Errores: 230.
+- Warnings: 65.
+- Errores auto-fixables: 110.
 
 Avance aplicado:
 
@@ -125,27 +125,29 @@ Avance aplicado:
 - PR tecnico #64 `chore/backend-lint-metrics-controller`:
   `metrics.controller.ts` queda con requests/headers/JWT payload tipados,
   extraccion opcional de auth sin `any` y lint dirigido limpio.
-- Reduccion neta acumulada: -56 archivos con problemas, -2459 errores y -181 warnings.
+- PR tecnico #65 `chore/backend-lint-eventbrite-source-spec`:
+  `eventbrite-source.ts` y `eventbrite-source.spec.ts` quedan con formato
+  Prettier, mock `fetch` tipado, helpers de URL/headers tipados y lint dirigido
+  limpio.
+- Reduccion neta acumulada: -58 archivos con problemas, -2480 errores y -182 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 127 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 78 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 65 | Argumentos `any` en tests/servicios. |
+| `prettier/prettier` | 110 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-member-access` | 77 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 64 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/no-unsafe-assignment` | 21 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-call` | 8 | 0 | Llamadas sobre valores `any`. |
 | `@typescript-eslint/require-await` | 6 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unsafe-return` | 4 | 0 | Retornos `any` sin tipar. |
-| `@typescript-eslint/no-base-to-string` | 3 | 0 | Conversion implicita a string. |
 | `@typescript-eslint/no-unused-vars` | 2 | 0 | Variables/imports historicos sin usar. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/sources/eventbrite-source.spec.ts` | 20 | 1 |
 | `src/modules/promotions/promotions.controller.ts` | 11 | 9 |
 | `src/modules/places/places.controller.ts` | 10 | 7 |
 | `src/modules/auth/auth.controller.ts` | 10 | 3 |
