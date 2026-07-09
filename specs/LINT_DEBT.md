@@ -299,7 +299,7 @@ Avance aplicado:
 - PR tecnico #122 `chore/backend-lint-og-response-dto`:
   `og-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-promotion-response-dto`:
+- PR tecnico #123 `chore/backend-lint-promotion-response-dto`:
   `promotion-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -117 archivos con problemas, -2709 errores y -247 warnings.
