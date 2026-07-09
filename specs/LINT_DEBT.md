@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 20.
-- Errores: 28.
+- Archivos con problemas: 19.
+- Errores: 26.
 - Warnings: 0.
-- Errores auto-fixables: 23.
+- Errores auto-fixables: 21.
 
 Avance aplicado:
 
@@ -246,13 +246,15 @@ Avance aplicado:
 - PR tecnico #104 `chore/backend-lint-chat-rate-limit-service`:
   `rate-limit.service.ts` queda con resultado RPC tipado, formato Prettier y
   lint dirigido limpio.
-- Reduccion neta acumulada: -98 archivos con problemas, -2682 errores y -247 warnings.
+- PR tecnico pendiente `chore/backend-lint-create-slot-dto`:
+  `create-slot.dto.ts` queda formateado por Prettier y con lint dirigido limpio.
+- Reduccion neta acumulada: -99 archivos con problemas, -2684 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 23 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 21 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/require-await` | 3 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unused-vars` | 1 | 0 | Variables/imports historicos sin usar. |
 | `@typescript-eslint/no-unsafe-member-access` | 1 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
@@ -261,10 +263,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/experiences/dto/create-slot.dto.ts` | 2 | 0 |
 | `src/modules/local-picks/dto/create-local-pick.dto.ts` | 2 | 0 |
 | `src/modules/scraping/enrichment/providers/mock-enrichment-provider.ts` | 2 | 0 |
 | `src/modules/scraping/enrichment/providers/openai-enrichment-provider.ts` | 2 | 0 |
+| `src/modules/scraping/enrichment/quality-scorer.service.ts` | 2 | 0 |
 
 ## Impacto en Features v2
 
