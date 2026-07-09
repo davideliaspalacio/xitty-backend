@@ -141,7 +141,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #118 abierto: `chore/backend-lint-experiences-module`; experiences module queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #119 abierto: `chore/backend-lint-favorite-response-dto`; favorite response dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #120 abierto: `chore/backend-lint-category-response-dto`; category response dto queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico pendiente: `chore/backend-lint-create-place-photo-dto`; create place photo dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #121 abierto: `chore/backend-lint-create-place-photo-dto`; create place photo dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
