@@ -5,17 +5,25 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 Runbook de release: `specs/RELEASE_RUNBOOK_FEATURES_V2.md`.
 Deuda de lint backend: `specs/LINT_DEBT.md`.
 
+## Estado post-merge
+
+- 2026-07-09: merge completado en `main` para backend #22-#124 y frontend #18-#24.
+- 2026-07-09: no quedan PRs abiertos en backend ni frontend para el paquete Features v2.
+- 2026-07-09: verificacion post-merge en backend `main`: `npm test -- --runInBand` OK (38 suites / 474 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
+- 2026-07-09: verificacion post-merge en frontend `main`: `npm run test:run` OK (41 files / 207 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
+- Pendiente operativo: aplicar migraciones en produccion, configurar envs, correr scraper con datos reales, refrescar rankings y hacer QA con datos reales.
+
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
 | ------------------------------ | ------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------- |
-| F1 Poblacion de lugares        | PRs abiertos, pendiente review/merge | Backend #30 / Backend #31         | Mergear #30 despues de F6 backend #29; luego #31. Aplicar `GOOGLE_MAPS_API_KEY` en backend antes de correr scraper. Fotos/licencias quedan pendientes. |
-| F2 Perfil publico URL propia   | PRs abiertos, pendiente review/merge | Backend #24 / Frontend #20         | Mergear despues de F5 backend #23 y frontend #19.                                   |
-| F3 Promociones                 | PR abierto, pendiente review/merge   | Backend #25 / Frontend #21         | Mergear despues de F2 backend #24 y frontend #20.                                   |
-| F4 Tracking de eventos         | PRs abiertos, pendiente review/merge | Backend #22 / Frontend #18         | Mergear primero desde `main`; base de F5/F2/F3/F7/F8/F6.                            |
-| F5 Dashboard metricas          | PRs abiertos, pendiente review/merge | Backend #23 / Frontend #19         | Mergear despues de F4 backend #22 y frontend #18.                                   |
-| F6 Preferencias notificaciones | PR abierto, pendiente review/merge   | Backend #29 / Frontend #24         | Mergear despues de F9 backend #28 y F8 frontend #23.                                |
-| F7 Ranking inteligente         | PRs abiertos, pendiente review/merge | Backend #26 / Frontend #22 / Backend #32 | Mergear #26/#22 en orden; #32 despues de backend #31 por city/zone.                 |
-| F8 Patrocinios                 | PR abierto, pendiente review/merge   | Backend #27 / Frontend #23         | Mergear despues de F7 backend #26 y frontend #22.                                   |
-| F9 Destacado semanal           | PR abierto, pendiente review/merge   | Backend #28                        | Mergear despues de F8 backend #27.                                                  |
+| F1 Poblacion de lugares        | Mergeado en `main`, pendiente operacion con datos reales | Backend #30 / Backend #31 | Aplicar `GOOGLE_MAPS_API_KEY`, correr scraper gradualmente, revisar completitud y no publicar fotos masivamente sin politica/licencia aprobada. |
+| F2 Perfil publico URL propia   | Mergeado en `main`                   | Backend #24 / Frontend #20         | QA con slugs reales, CTAs y Open Graph.                                             |
+| F3 Promociones                 | Mergeado en `main`                   | Backend #25 / Frontend #21         | Cargar promociones reales o marcar demo segun definicion de negocio.                |
+| F4 Tracking de eventos         | Mergeado en `main`                   | Backend #22 / Frontend #18         | Validar eventos reales en produccion/staging.                                       |
+| F5 Dashboard metricas          | Mergeado en `main`                   | Backend #23 / Frontend #19         | QA con negocios con y sin eventos.                                                  |
+| F6 Preferencias notificaciones | Mergeado en `main`, proveedor externo pendiente | Backend #29 / Frontend #24 | Definir canal/proveedor real; por ahora queda outbox interno/pending.               |
+| F7 Ranking inteligente         | Mergeado en `main`                   | Backend #26 / Frontend #22 / Backend #32 | Aplicar migraciones y correr `SELECT public.refresh_place_rankings();`.             |
+| F8 Patrocinios                 | Mergeado en `main`                   | Backend #27 / Frontend #23         | QA de sello "Patrocinado", vencimientos y slots.                                    |
+| F9 Destacado semanal           | Mergeado en `main`                   | Backend #28                        | QA de fallback semanal y programacion.                                              |
 
 ## Cambios activos
 

@@ -1,8 +1,15 @@
 # Runbook de release - Features v2
 
-Este runbook ordena los PRs, migraciones y checks operativos para subir el paquete Features v2 sin mezclar pasos. No reemplaza la revision de PR; Xitty mergea manualmente.
+Este runbook ordena los PRs, migraciones y checks operativos para subir el paquete Features v2 sin mezclar pasos.
 
-## Orden de merge
+Estado actual: los PRs backend #22-#124 y frontend #18-#24 ya fueron mergeados en `main` el 2026-07-09. No quedan PRs abiertos de este paquete en backend ni frontend.
+
+Verificacion post-merge local:
+
+- Backend `main`: `npm test -- --runInBand` OK (38 suites / 474 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
+- Frontend `main`: `npm run test:run` OK (41 files / 207 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
+
+## Orden de merge completado
 
 ### Backend
 
