@@ -76,7 +76,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #53 abierto: `chore/backend-lint-reviews-service-spec`; reviews service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #54 abierto: `chore/backend-lint-consents-service-spec`; consents service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #55 abierto: `chore/backend-lint-experiences-controller`; experiences controller queda tipado y con lint dirigido limpio.
-- 2026-07-09: PR tecnico #56 preparado: `chore/backend-lint-chat-rag-context`; chat RAG context service/spec quedan tipados y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #56 abierto: `chore/backend-lint-chat-rag-context`; chat RAG context service/spec quedan tipados y con lint dirigido limpio.
 
 ## Evidencia transversal
 
