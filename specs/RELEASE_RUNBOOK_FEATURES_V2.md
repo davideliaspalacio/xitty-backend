@@ -43,6 +43,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 35. #56 - PR tecnico chat RAG context service/spec lint/typing, base #55.
 36. #57 - PR tecnico location service/spec lint/typing, base #56.
 37. #58 - PR tecnico chat controller/spec lint/typing, base #57.
+38. #59 - PR tecnico suggestions service/spec lint/typing, base #58.
 
 ### Frontend
 

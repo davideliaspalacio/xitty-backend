@@ -10,6 +10,15 @@ import {
 
 const RPC_NAME = 'suggestions_for';
 
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseRpcResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
 @Injectable()
 export class SuggestionsService {
   constructor(
@@ -24,10 +33,10 @@ export class SuggestionsService {
   async getContext(lat: number, lng: number): Promise<SuggestionResponseDto> {
     this.validateCoords(lat, lng);
 
-    const { data, error } = await this.supabase.rpc(RPC_NAME, {
+    const { data, error } = (await this.supabase.rpc(RPC_NAME, {
       p_lat: lat,
       p_lng: lng,
-    });
+    })) as unknown as SupabaseRpcResult<unknown>;
 
     if (error) {
       throw new BadRequestException(error.message);
@@ -53,15 +62,16 @@ export class SuggestionsService {
     }
   }
 
-  private shape(raw: any): SuggestionResponseDto {
-    if (!raw || typeof raw !== 'object') {
+  private shape(raw: unknown): SuggestionResponseDto {
+    if (!isRecord(raw)) {
       return { safety_zone: null, nearby_beach_m: null, price_band: null };
     }
 
     const safetyZone = this.shapeSafetyZone(raw.safety_zone);
+    const rawNearbyBeach = raw.nearby_beach_m;
     const nearbyBeach =
-      typeof raw.nearby_beach_m === 'number' && !Number.isNaN(raw.nearby_beach_m)
-        ? raw.nearby_beach_m
+      typeof rawNearbyBeach === 'number' && !Number.isNaN(rawNearbyBeach)
+        ? rawNearbyBeach
         : null;
     const priceBand = this.shapePriceBand(raw.price_band);
 
@@ -72,20 +82,28 @@ export class SuggestionsService {
     };
   }
 
-  private shapeSafetyZone(raw: any): SafetyZoneDto | null {
-    if (!raw || typeof raw !== 'object') return null;
-    if (!raw.neighborhood) return null;
+  private shapeSafetyZone(raw: unknown): SafetyZoneDto | null {
+    if (!isRecord(raw)) return null;
+    const neighborhood = primitiveToString(raw.neighborhood);
+    if (!neighborhood) return null;
 
     const score = Number(raw.score ?? 0);
+    const rawTone = raw.tone;
     const tone: SafetyTone =
-      raw.tone === 'good' || raw.tone === 'ok' || raw.tone === 'caution'
-        ? raw.tone
+      rawTone === 'good' || rawTone === 'ok' || rawTone === 'caution'
+        ? rawTone
         : this.toneFromScore(score);
+    const rawTags = raw.tags;
 
     return {
-      neighborhood: String(raw.neighborhood),
+      neighborhood,
       score,
-      tags: Array.isArray(raw.tags) ? raw.tags.map(String) : [],
+      tags: Array.isArray(rawTags)
+        ? rawTags.flatMap((tag: unknown) => {
+            const value = primitiveToString(tag);
+            return value ? [value] : [];
+          })
+        : [],
       tone,
     };
   }
@@ -96,10 +114,25 @@ export class SuggestionsService {
     return 'caution';
   }
 
-  private shapePriceBand(raw: any): PriceBand | null {
+  private shapePriceBand(raw: unknown): PriceBand | null {
     if (raw === 'asequible' || raw === 'medio' || raw === 'premium') {
       return raw;
     }
     return null;
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function primitiveToString(value: unknown): string | null {
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return String(value);
+  }
+  return null;
 }

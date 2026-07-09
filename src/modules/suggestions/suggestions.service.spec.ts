@@ -1,31 +1,54 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { SuggestionsService } from './suggestions.service';
 
+interface MockDbError {
+  message: string;
+}
+
+interface MockRpcResult {
+  data: unknown;
+  error: MockDbError | null;
+}
+
+type RpcMethod = jest.MockedFunction<
+  (fn: string, params?: Record<string, unknown>) => Promise<MockRpcResult>
+>;
+
+interface MockSupabase {
+  rpc: RpcMethod;
+  _onRpc: (data: unknown, error?: MockDbError | null) => void;
+}
+
 // ── Supabase mock ─────────────────────────────────────────────────────────
-function createMockSupabase() {
-  const mock: any = { from: jest.fn(), rpc: jest.fn() };
-  mock._onRpc = (data: any, error?: any) => {
-    mock.rpc.mockReturnValueOnce(
-      Promise.resolve({ data, error: error || null }),
-    );
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    rpc: jest.fn<
+      (fn: string, params?: Record<string, unknown>) => Promise<MockRpcResult>
+    >(),
+    _onRpc: (data: unknown, error?: MockDbError | null) => {
+      mock.rpc.mockResolvedValueOnce({ data, error: error ?? null });
+    },
   };
-  mock.rpc.mockImplementation(() =>
-    Promise.resolve({ data: null, error: null }),
-  );
+  mock.rpc.mockResolvedValue({ data: null, error: null });
   return mock;
 }
 
 describe('SuggestionsService', () => {
   let service: SuggestionsService;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SuggestionsService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
       ],
     }).compile();
     service = module.get<SuggestionsService>(SuggestionsService);
@@ -34,7 +57,12 @@ describe('SuggestionsService', () => {
   describe('getContext', () => {
     it('llama al RPC suggestions_for con lat/lng exactos', async () => {
       supabase._onRpc({
-        safety_zone: { neighborhood: 'El Prado', score: 78, tags: [], tone: 'good' },
+        safety_zone: {
+          neighborhood: 'El Prado',
+          score: 78,
+          tags: [],
+          tone: 'good',
+        },
         nearby_beach_m: null,
         price_band: null,
       });
@@ -128,12 +156,12 @@ describe('SuggestionsService', () => {
     });
 
     it('lanza BadRequestException si lat o lng no son numeros', async () => {
-      await expect(
-        service.getContext(NaN as any, -74.8),
-      ).rejects.toThrow(BadRequestException);
-      await expect(
-        service.getContext(11.0, NaN as any),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.getContext(Number.NaN, -74.8)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.getContext(11.0, Number.NaN)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('lanza BadRequestException si el RPC retorna error', async () => {
