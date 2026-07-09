@@ -5,6 +5,8 @@ import helmet from 'helmet';
 import basicAuth from 'express-basic-auth';
 import { AppModule } from './app.module';
 
+type CorsOriginCallback = (error: Error | null, allow?: boolean) => void;
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -27,8 +29,11 @@ async function bootstrap() {
   const allowedOrigins = corsOrigin.split(',').map((origin) => origin.trim());
 
   app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
+    origin: (origin: string | undefined, callback: CorsOriginCallback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
 
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -53,7 +58,9 @@ async function bootstrap() {
   const swaggerPassword = process.env.SWAGGER_PASSWORD;
 
   if (!swaggerPassword) {
-    console.warn('⚠️  SWAGGER_PASSWORD not set — /api/docs will be unreachable');
+    console.warn(
+      '⚠️  SWAGGER_PASSWORD not set — /api/docs will be unreachable',
+    );
   } else {
     app.use(
       ['/api/docs', '/api/docs-json'],
@@ -66,7 +73,9 @@ async function bootstrap() {
 
     const config = new DocumentBuilder()
       .setTitle('Xitty API')
-      .setDescription('API de Xitty - Plataforma de turismo para Barranquilla, Colombia')
+      .setDescription(
+        'API de Xitty - Plataforma de turismo para Barranquilla, Colombia',
+      )
       .setVersion('1.0')
       .addBearerAuth()
       .build();
@@ -79,6 +88,11 @@ async function bootstrap() {
   await app.listen(port);
 
   console.log(`🚀 Server running on http://localhost:${port}`);
-  console.log(`📚 API Documentation available at http://localhost:${port}/api/docs`);
+  console.log(
+    `📚 API Documentation available at http://localhost:${port}/api/docs`,
+  );
 }
-bootstrap();
+bootstrap().catch((error: unknown) => {
+  console.error('Failed to start Xitty API', error);
+  process.exit(1);
+});

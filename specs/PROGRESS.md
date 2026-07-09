@@ -94,6 +94,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #71 abierto: `chore/backend-lint-localize-spec`; localize spec queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #72 abierto: `chore/backend-lint-admin-scraping-controller`; admin scraping controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #73 abierto: `chore/backend-lint-notification-settings-controller`; notification settings controller queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico preparado: `chore/backend-lint-main-bootstrap`; main bootstrap queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -226,7 +227,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend notification settings controller lint: `npx eslint src/modules/notification-settings/notification-settings.controller.ts` -> OK.
 - Backend notification settings smoke tests: `npm test -- --runInBand src/modules/notification-settings/notification-settings.service.spec.ts` -> 1 suite / 3 tests OK.
 - Backend build tras notification settings controller lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 52 archivos / 163 errores / 28 warnings.
+- Backend main bootstrap lint: `npx eslint src/main.ts` -> OK.
+- Backend main bootstrap tests: no existe spec directa de `main.ts`; verificado con build.
+- Backend build tras main bootstrap lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 51 archivos / 156 errores / 26 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

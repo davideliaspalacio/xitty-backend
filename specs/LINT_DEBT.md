@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 52.
-- Errores: 163.
-- Warnings: 28.
-- Errores auto-fixables: 93.
+- Archivos con problemas: 51.
+- Errores: 156.
+- Warnings: 26.
+- Errores auto-fixables: 90.
 
 Avance aplicado:
 
@@ -153,21 +153,23 @@ Avance aplicado:
 - PR tecnico #73 `chore/backend-lint-notification-settings-controller`:
   `notification-settings.controller.ts` queda con request autenticado tipado,
   rol permitido tipado y lint dirigido limpio.
-- Reduccion neta acumulada: -66 archivos con problemas, -2547 errores y -219 warnings.
+- PR tecnico pendiente `chore/backend-lint-main-bootstrap`:
+  `main.ts` queda con callback CORS tipado, bootstrap con `.catch` explicito,
+  formato Prettier y lint dirigido limpio.
+- Reduccion neta acumulada: -67 archivos con problemas, -2554 errores y -221 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 93 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 90 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-member-access` | 37 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 27 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 26 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/no-unsafe-assignment` | 15 | 0 | Asignaciones desde `any`. |
-| `@typescript-eslint/no-unsafe-call` | 5 | 0 | Llamadas sobre valores `any`. |
 | `@typescript-eslint/require-await` | 5 | 0 | Funciones async sin await. |
-| `@typescript-eslint/no-unsafe-return` | 4 | 0 | Retornos `any` sin tipar. |
+| `@typescript-eslint/no-unsafe-return` | 3 | 0 | Retornos `any` sin tipar. |
 | `@typescript-eslint/no-unused-vars` | 2 | 0 | Variables/imports historicos sin usar. |
-| `@typescript-eslint/no-floating-promises` | 0 | 1 | Promesa sin manejo explicito. |
+| `@typescript-eslint/no-unsafe-call` | 2 | 0 | Llamadas sobre valores `any`. |
 | `@typescript-eslint/no-redundant-type-constituents` | 1 | 0 | Union de tipos redundante. |
 | `@typescript-eslint/restrict-template-expressions` | 1 | 0 | Template string con valor no string. |
 
@@ -175,10 +177,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/main.ts` | 7 | 2 |
 | `src/modules/featured/featured.controller.ts` | 5 | 4 |
 | `src/modules/local-picks/local-picks.controller.ts` | 5 | 4 |
 | `src/modules/reviews/reviews.controller.ts` | 6 | 3 |
+| `src/modules/preferences/preferences.controller.ts` | 4 | 4 |
 
 ## Impacto en Features v2
 
