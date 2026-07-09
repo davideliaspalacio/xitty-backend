@@ -134,10 +134,7 @@ export class EventbriteSource implements ScraperSource {
   private buildSearchUrl(): string {
     const url = new URL('/v3/events/search/', EVENTBRITE_API_BASE);
     url.searchParams.set('location.address', this.cfg.location_address);
-    url.searchParams.set(
-      'location.within',
-      `${this.cfg.location_within_km}km`,
-    );
+    url.searchParams.set('location.within', `${this.cfg.location_within_km}km`);
     // Necesario para que la respuesta incluya `venue` (lat/lng + address).
     url.searchParams.set('expand', 'venue');
     if (this.cfg.categories.length > 0) {

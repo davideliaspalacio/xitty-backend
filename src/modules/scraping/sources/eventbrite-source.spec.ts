@@ -1,31 +1,65 @@
 import { EventbriteSource, EventbriteSourceConfig } from './eventbrite-source';
 
+type FetchSpy = jest.SpiedFunction<typeof fetch>;
+
 /**
  * Helper: response shape de la Eventbrite API v3 /v3/events/search/.
  * Solo modelamos los campos que la source extrae.
  */
 function fakeEventbriteResponse(
-  events: Array<Partial<{
-    id: string;
-    name: { text: string };
-    description: { text: string };
-    url: string;
-    start: { utc: string };
-    end: { utc: string };
-    category_id: string;
-    venue: {
-      address: {
-        localized_address_display?: string;
-        latitude?: string;
-        longitude?: string;
+  events: Array<
+    Partial<{
+      id: string;
+      name: { text: string };
+      description: { text: string };
+      url: string;
+      start: { utc: string };
+      end: { utc: string };
+      category_id: string;
+      venue: {
+        address: {
+          localized_address_display?: string;
+          latitude?: string;
+          longitude?: string;
+        };
       };
-    };
-  }>>,
+    }>
+  >,
 ) {
   return {
     events,
     pagination: { object_count: events.length, has_more_items: false },
   };
+}
+
+function fetchCall(spy: FetchSpy, callIdx = 0): Parameters<typeof fetch> {
+  const call = spy.mock.calls[callIdx];
+  if (!call) {
+    throw new Error(`fetch call ${callIdx} not found`);
+  }
+  return call;
+}
+
+function requestUrl(input: Parameters<typeof fetch>[0]): string {
+  if (typeof input === 'string') return input;
+  if (input instanceof URL) return input.toString();
+  return input.url;
+}
+
+function headerValue(
+  init: RequestInit | undefined,
+  name: string,
+): string | null {
+  const headers = init?.headers;
+  if (!headers) return null;
+  if (headers instanceof Headers) return headers.get(name);
+  if (Array.isArray(headers)) {
+    return (
+      headers.find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1] ??
+      null
+    );
+  }
+  return headers[name] ?? headers[name.toLowerCase()] ?? null;
 }
 
 describe('EventbriteSource', () => {
@@ -138,7 +172,7 @@ describe('EventbriteSource', () => {
         new Response(JSON.stringify(payload), {
           status,
           headers: { 'content-type': 'application/json' },
-        }) as any,
+        }),
       );
     }
 
@@ -149,10 +183,9 @@ describe('EventbriteSource', () => {
       await src.fetch();
 
       expect(spy).toHaveBeenCalledTimes(1);
-      const [url, init] = spy.mock.calls[0];
-      expect(String(url)).toContain('/v3/events/search/');
-      const headers = (init as any).headers as Record<string, string>;
-      expect(headers.Authorization).toBe('Bearer test-token-abc');
+      const [url, init] = fetchCall(spy);
+      expect(requestUrl(url)).toContain('/v3/events/search/');
+      expect(headerValue(init, 'Authorization')).toBe('Bearer test-token-abc');
     });
 
     it('arma query string con location.address, location.within (km) y expand=venue', async () => {
@@ -165,7 +198,8 @@ describe('EventbriteSource', () => {
 
       await src.fetch();
 
-      const url = new URL(String(spy.mock.calls[0][0]));
+      const [input] = fetchCall(spy);
+      const url = new URL(requestUrl(input));
       expect(url.searchParams.get('location.address')).toBe(
         'Barranquilla, Colombia',
       );
@@ -180,7 +214,8 @@ describe('EventbriteSource', () => {
 
       await src.fetch();
 
-      const url = new URL(String(spy.mock.calls[0][0]));
+      const [input] = fetchCall(spy);
+      const url = new URL(requestUrl(input));
       // Eventbrite usa parametro `categories`
       expect(url.searchParams.get('categories')).toBe('food,music');
     });
