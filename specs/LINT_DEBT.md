@@ -248,7 +248,7 @@ Avance aplicado:
   lint dirigido limpio.
 - PR tecnico #105 `chore/backend-lint-create-slot-dto`:
   `create-slot.dto.ts` queda formateado por Prettier y con lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-create-local-pick-dto`:
+- PR tecnico #106 `chore/backend-lint-create-local-pick-dto`:
   `create-local-pick.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -100 archivos con problemas, -2686 errores y -247 warnings.
