@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 68.
-- Errores: 341.
+- Archivos con problemas: 66.
+- Errores: 313.
 - Warnings: 80.
-- Errores auto-fixables: 150.
+- Errores auto-fixables: 142.
 
 Avance aplicado:
 
@@ -110,19 +110,23 @@ Avance aplicado:
   `notification-settings.service.ts` y `notification-settings.service.spec.ts`
   quedan con resultados Supabase tipados, updates sin `any`, mock chain
   Supabase tipado y lint dirigido limpio.
-- Reduccion neta acumulada: -50 archivos con problemas, -2369 errores y -167 warnings.
+- PR tecnico #61 `chore/backend-lint-tavily-search-source-spec`:
+  `tavily-search-source.ts` y `tavily-search-source.spec.ts` quedan con
+  errores `unknown`, helper de mensaje seguro, mock `fetch` tipado, body
+  Tavily tipado y lint dirigido limpio.
+- Reduccion neta acumulada: -52 archivos con problemas, -2397 errores y -167 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 149 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 113 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `prettier/prettier` | 141 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-member-access` | 99 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/no-unsafe-argument` | 0 | 79 | Argumentos `any` en tests/servicios. |
-| `@typescript-eslint/no-unsafe-assignment` | 45 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-assignment` | 40 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-call` | 10 | 0 | Llamadas sobre valores `any`. |
 | `@typescript-eslint/no-unsafe-return` | 7 | 0 | Retornos `any` sin tipar. |
-| `@typescript-eslint/require-await` | 9 | 0 | Funciones async sin await. |
+| `@typescript-eslint/require-await` | 8 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-base-to-string` | 3 | 0 | Conversion implicita a string. |
 | `@typescript-eslint/no-unused-vars` | 2 | 0 | Variables/imports historicos sin usar. |
 
@@ -130,7 +134,6 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/sources/tavily-search-source.spec.ts` | 26 | 0 |
 | `src/modules/auth/auth.service.ts` | 23 | 2 |
 | `src/modules/scraping/storage/photo-storage.service.spec.ts` | 18 | 6 |
 | `src/modules/metrics/metrics.controller.ts` | 17 | 5 |

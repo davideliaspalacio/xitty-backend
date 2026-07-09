@@ -82,10 +82,10 @@ export class TavilySearchSource implements ScraperSource {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body),
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Network-level error (DNS, conexion, timeout) — relanzar con contexto.
       throw new Error(
-        `Tavily request failed: ${err?.message ?? 'unknown network error'}`,
+        `Tavily request failed: ${errorMessage(err, 'unknown network error')}`,
       );
     }
 
@@ -107,9 +107,9 @@ export class TavilySearchSource implements ScraperSource {
     let payload: TavilyResponse;
     try {
       payload = (await res.json()) as TavilyResponse;
-    } catch (err: any) {
+    } catch (err: unknown) {
       throw new Error(
-        `Tavily response was not valid JSON: ${err?.message ?? 'parse error'}`,
+        `Tavily response was not valid JSON: ${errorMessage(err, 'parse error')}`,
       );
     }
 
@@ -257,4 +257,8 @@ function extractFirstImage(raw: string | null): string | null {
   if (html && html[1]) return html[1];
 
   return null;
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }
