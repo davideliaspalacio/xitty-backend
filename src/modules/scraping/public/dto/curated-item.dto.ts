@@ -11,7 +11,10 @@ export class CuratedItemCardDto {
   @ApiProperty() id: string;
   @ApiProperty() title: string;
   @ApiProperty({ nullable: true }) description: string | null;
-  @ApiProperty({ nullable: true, description: 'Hint de categoria libre (ej. evento, restaurante, tour)' })
+  @ApiProperty({
+    nullable: true,
+    description: 'Hint de categoria libre (ej. evento, restaurante, tour)',
+  })
   category: string | null;
   @ApiProperty({ nullable: true }) location_name: string | null;
   @ApiProperty({ nullable: true }) latitude: number | null;
@@ -20,7 +23,9 @@ export class CuratedItemCardDto {
   @ApiProperty({ nullable: true }) image_url: string | null;
   @ApiProperty({ nullable: true }) starts_at: string | null;
   @ApiProperty({ nullable: true }) ends_at: string | null;
-  @ApiProperty({ description: 'Score 0..1 asignado por el pipeline de quality' })
+  @ApiProperty({
+    description: 'Score 0..1 asignado por el pipeline de quality',
+  })
   quality_score: number;
 }
 
