@@ -302,7 +302,7 @@ Avance aplicado:
 - PR tecnico #123 `chore/backend-lint-promotion-response-dto`:
   `promotion-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-scraper-source-interface`:
+- PR tecnico #124 `chore/backend-lint-scraper-source-interface`:
   `scraper-source.interface.ts` queda formateado por Prettier y con lint
   dirigido limpio.
 - Reduccion neta acumulada: -118 archivos con problemas, -2710 errores y -247 warnings.

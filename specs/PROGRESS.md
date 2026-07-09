@@ -144,7 +144,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #121 abierto: `chore/backend-lint-create-place-photo-dto`; create place photo dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #122 abierto: `chore/backend-lint-og-response-dto`; og response dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #123 abierto: `chore/backend-lint-promotion-response-dto`; promotion response dto queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico pendiente: `chore/backend-lint-scraper-source-interface`; scraper source interface queda con lint dirigido limpio y full lint backend en verde.
+- 2026-07-09: PR tecnico #124 abierto: `chore/backend-lint-scraper-source-interface`; scraper source interface queda con lint dirigido limpio y full lint backend en verde.
 
 ## Evidencia transversal
 
