@@ -24,12 +24,15 @@ export class ReservationResponseDto {
   @ApiProperty({ nullable: true }) cancelled_at: string | null;
   @ApiProperty() created_at: string;
   @ApiProperty() updated_at: string;
-  @ApiProperty({ nullable: true, type: ReservationSlotDto }) slot: ReservationSlotDto | null;
-  @ApiProperty({ nullable: true, type: ReservationExperienceDto }) experience: ReservationExperienceDto | null;
+  @ApiProperty({ nullable: true, type: ReservationSlotDto })
+  slot: ReservationSlotDto | null;
+  @ApiProperty({ nullable: true, type: ReservationExperienceDto })
+  experience: ReservationExperienceDto | null;
 }
 
 export class ReservationListResponseDto {
-  @ApiProperty({ type: [ReservationResponseDto] }) data: ReservationResponseDto[];
+  @ApiProperty({ type: [ReservationResponseDto] })
+  data: ReservationResponseDto[];
   @ApiProperty() total: number;
   @ApiProperty() page: number;
   @ApiProperty() limit: number;
