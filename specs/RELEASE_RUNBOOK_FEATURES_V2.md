@@ -133,7 +133,7 @@ Verificacion post-merge local:
 7. #24 - F6 copy de notificaciones y tokens verdes, base #23.
 8. `fdd97ad` - ciudad operativa por defecto para discovery.
 9. `<post-merge>` - UI admin de destacados semanales en `/admin/featured`.
-10. `<post-merge>` - reporte admin F1 de calidad/completitud en `/admin/scraping`.
+10. Backend #125 / Frontend #25 - reporte admin F1 de calidad/completitud en `/admin/scraping`.
 
 ## Migraciones backend nuevas
 

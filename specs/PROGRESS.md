@@ -22,12 +22,12 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: cerrado gap de ciudad en frontend/backend: `GET /places/search` acepta `city/zone`, y el frontend envia `NEXT_PUBLIC_DEFAULT_CITY` al ranking, listado y busqueda.
 - 2026-07-09: agregado smoke automatizado `npm run smoke:features-v2` para validar endpoints Features v2 y detectar migraciones faltantes por mensajes de schema.
 - 2026-07-09: cerrado gap UI F9: agregado `/admin/featured` para programar destacados semanales, activar/pausar y eliminar entradas desde frontend admin.
-- 2026-07-09: cerrado gap operativo F1: `place_data_completeness` ahora incluye ciudad/zona/categoria/missing_count, el backend expone `/admin/scraping/place-completeness` y el frontend agrega la pestaña "Calidad de datos" dentro de `/admin/scraping`.
+- 2026-07-09: abierto gap operativo F1 en PRs backend #125 y frontend #25: `place_data_completeness` ahora incluye ciudad/zona/categoria/missing_count, el backend expone `/admin/scraping/place-completeness` y el frontend agrega la pestaña "Calidad de datos" dentro de `/admin/scraping`.
 - Pendiente operativo: aplicar 14 migraciones `20260709...` en produccion, configurar envs, correr scraper con datos reales, refrescar rankings y hacer QA con datos reales.
 
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
 | ------------------------------ | ------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------- |
-| F1 Poblacion de lugares        | Mergeado en `main`, reporte admin de completitud agregado, pendiente operacion con datos reales | Backend #30 / Backend #31 / Backend+Frontend main | Aplicar `GOOGLE_MAPS_API_KEY`, correr scraper gradualmente, revisar `/admin/scraping` > "Calidad de datos" y no publicar fotos masivamente sin politica/licencia aprobada. |
+| F1 Poblacion de lugares        | Mergeado en `main`, reporte admin de completitud en PR, pendiente operacion con datos reales | Backend #30 / Backend #31 / Backend #125 / Frontend #25 | Aplicar `GOOGLE_MAPS_API_KEY`, correr scraper gradualmente, revisar `/admin/scraping` > "Calidad de datos" y no publicar fotos masivamente sin politica/licencia aprobada. |
 | F2 Perfil publico URL propia   | Mergeado en `main`                   | Backend #24 / Frontend #20         | QA con slugs reales, CTAs y Open Graph.                                             |
 | F3 Promociones                 | Mergeado en `main`                   | Backend #25 / Frontend #21         | Cargar promociones reales o marcar demo segun definicion de negocio.                |
 | F4 Tracking de eventos         | Mergeado en `main`                   | Backend #22 / Frontend #18         | Validar eventos reales en produccion/staging.                                       |
@@ -66,7 +66,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: F1 PR abierto: backend #30.
 - 2026-07-09: F1 datos iniciado con seed ampliado de fuentes Cartagena por zonas, sin publicar fotos/lugares automaticamente.
 - 2026-07-09: F1 datos PR abierto: backend #31.
-- 2026-07-09: F1 reporte operativo ampliado con migracion `20260709000014_extend_place_data_completeness_report.sql`, endpoint admin y UI de calidad de datos.
+- 2026-07-09: F1 reporte operativo ampliado en PRs backend #125 / frontend #25 con migracion `20260709000014_extend_place_data_completeness_report.sql`, endpoint admin y UI de calidad de datos.
 - 2026-07-09: F7 gap ciudad implementado: `places.city/zone`, ranking filtrable por ciudad y snapshots city/city_category.
 - 2026-07-09: F7 city PR abierto: backend #32.
 - 2026-07-09: validacion full frontend en PR #24 tras alinear test de tokens con marca verde actual.
