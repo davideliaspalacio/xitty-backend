@@ -219,7 +219,7 @@ Avance aplicado:
 - PR tecnico #95 `chore/backend-lint-localize`:
   `localize.ts` queda con records `unknown`, header validado y lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-chat-response-dto`:
+- PR tecnico #96 `chore/backend-lint-chat-response-dto`:
   `message-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -90 archivos con problemas, -2661 errores y -246 warnings.

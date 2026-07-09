@@ -80,7 +80,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 72. #93 - PR tecnico source factory spec lint/typing, base #92.
 73. #94 - PR tecnico scraping module spec lint/typing, base #93.
 74. #95 - PR tecnico localize lint/typing, base #94.
-75. Pendiente - PR tecnico chat response dto lint/typing, base #95.
+75. #96 - PR tecnico chat response dto lint/typing, base #95.
 
 ### Frontend
 
