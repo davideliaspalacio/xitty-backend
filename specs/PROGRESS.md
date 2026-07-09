@@ -11,7 +11,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: merge completado en `main` para backend #22-#124 y frontend #18-#24.
 - 2026-07-09: no quedan PRs abiertos en backend ni frontend para el paquete Features v2.
 - 2026-07-09: verificacion post-merge en backend `main`: `npm test -- --runInBand` OK (38 suites / 477 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
-- 2026-07-09: verificacion post-merge en frontend `main`: `npm run test:run` OK (43 files / 210 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
+- 2026-07-09: verificacion post-merge en frontend `main`: `npm run test:run` OK (44 files / 215 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
 - 2026-07-09: smoke local post-merge con servidores arriba: frontend `/` responde 200, backend `/categories` responde 200, `/promotions/active` responde 200 y `/featured/current` responde 200.
 - 2026-07-09: smoke local post-merge tambien confirma que la DB conectada aun no tiene migraciones nuevas: `/ranking` falla con `column place_rankings.city does not exist`.
 - 2026-07-09: cerrado gap post-smoke de `/places?city=&zone=`: el endpoint ya acepta filtros de ciudad/zona y el RPC `list_places_near` queda versionado para respetarlos con `sort_by=distance` (`20260709000012_filter_nearby_places_by_city_zone.sql`).
@@ -21,6 +21,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: agregado `specs/FEATURES_V2_PRODUCTION_CUTOVER.md` con pasos de produccion, alternativa SQL Editor, validaciones SQL, smoke HTTP y QA final.
 - 2026-07-09: cerrado gap de ciudad en frontend/backend: `GET /places/search` acepta `city/zone`, y el frontend envia `NEXT_PUBLIC_DEFAULT_CITY` al ranking, listado y busqueda.
 - 2026-07-09: agregado smoke automatizado `npm run smoke:features-v2` para validar endpoints Features v2 y detectar migraciones faltantes por mensajes de schema.
+- 2026-07-09: cerrado gap UI F9: agregado `/admin/featured` para programar destacados semanales, activar/pausar y eliminar entradas desde frontend admin.
 - Pendiente operativo: aplicar migraciones en produccion, configurar envs, correr scraper con datos reales, refrescar rankings y hacer QA con datos reales.
 
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
@@ -33,7 +34,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 | F6 Preferencias notificaciones | Mergeado en `main`, proveedor externo pendiente | Backend #29 / Frontend #24 | Definir canal/proveedor real; por ahora queda outbox interno/pending.               |
 | F7 Ranking inteligente         | Mergeado en `main`                   | Backend #26 / Frontend #22 / Backend #32 | Aplicar migraciones y correr `SELECT public.refresh_place_rankings();`.             |
 | F8 Patrocinios                 | Mergeado en `main`                   | Backend #27 / Frontend #23         | QA de sello "Patrocinado", vencimientos y slots.                                    |
-| F9 Destacado semanal           | Mergeado en `main`                   | Backend #28                        | QA de fallback semanal y programacion.                                              |
+| F9 Destacado semanal           | Mergeado en `main`, UI admin agregada | Backend #28 / Frontend main        | QA de fallback semanal, programacion y alta/pausa desde `/admin/featured`.          |
 
 ## Cambios activos
 
@@ -540,6 +541,9 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend tests: `npm test -- --runInBand src/modules/featured/featured.service.spec.ts` -> 1 suite / 15 tests OK.
 - Backend build: `npm run build` -> OK.
 - PR: backend <https://github.com/davideliaspalacio/xitty-backend/pull/28>.
+- Frontend admin tests: `npm run test:run -- src/features/admin/__tests__/api.test.ts src/app/__tests__/admin-featured.test.tsx src/shared/layout/__tests__/sidebar.test.tsx` -> 3 files / 9 tests OK.
+- Frontend full suite tras UI admin F9: `npm run test:run` -> 44 files / 215 tests OK.
+- Frontend typecheck/lint/build tras UI admin F9: `npm run typecheck`, `npm run lint`, `npm run build` -> OK.
 
 ## Evidencia F6
 

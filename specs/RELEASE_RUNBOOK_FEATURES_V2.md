@@ -9,7 +9,7 @@ Estado actual: los PRs backend #22-#124 y frontend #18-#24 ya fueron mergeados e
 Verificacion post-merge local:
 
 - Backend `main`: `npm test -- --runInBand` OK (38 suites / 477 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
-- Frontend `main`: `npm run test:run` OK (43 files / 210 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
+- Frontend `main`: `npm run test:run` OK (44 files / 215 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
 - Migraciones locales: `supabase db reset` OK en copia temporal, aplicando todas las migraciones hasta `20260709000013_harden_backend_service_role_and_place_rpc.sql`.
 - Smoke con backend apuntando a DB local migrada: `/categories`, `/places?city=Cartagena`, `/places?sort_by=distance&city=Cartagena` y `/ranking?city=Cartagena` respondieron 200.
 - Frontend envia `city` al ranking, listado y busqueda usando `NEXT_PUBLIC_DEFAULT_CITY`, para consumir rankings/listados por ciudad.
@@ -131,6 +131,8 @@ Verificacion post-merge local:
 5. #22 - F7 movimiento semanal de ranking, base #21.
 6. #23 - F8 gestion/visual de patrocinios, base #22.
 7. #24 - F6 copy de notificaciones y tokens verdes, base #23.
+8. `fdd97ad` - ciudad operativa por defecto para discovery.
+9. `<post-merge>` - UI admin de destacados semanales en `/admin/featured`.
 
 ## Migraciones backend nuevas
 
@@ -217,6 +219,7 @@ Smoke automatizado: `npm run smoke:features-v2 -- --api-url "$API_URL" --city Ca
 - Ranking general y por categoria no muestra lugares desactivados.
 - Patrocinados siempre muestran sello "Patrocinado".
 - Destacados semanales tienen fallback si no hay programacion.
+- Admin puede programar, pausar y eliminar destacados en `/admin/featured`.
 - Reporte F1 lista faltantes sin inventar datos.
 
 ## Pendientes explicitamente no cerrados
