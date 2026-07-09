@@ -8,6 +8,12 @@ import {
 import { SupabaseClient } from '@supabase/supabase-js';
 
 import { CreateReservationDto } from './dto/create-reservation.dto';
+import {
+  ReservationExperienceDto,
+  ReservationListResponseDto,
+  ReservationResponseDto,
+  ReservationSlotDto,
+} from './dto/reservation-response.dto';
 
 const RESERVATIONS_TABLE = 'experience_reservations';
 const SLOTS_TABLE = 'experience_slots';
@@ -21,6 +27,65 @@ const RESERVATION_SELECT = `
   experience:experience_id(id, title, slug, duration_minutes)
 `;
 
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseSingleResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+interface SupabaseListResult<T> {
+  data: T[] | null;
+  error: SupabaseError | null;
+  count?: number | null;
+}
+
+interface ExperienceRulesRow {
+  id: string;
+  price_cop: number;
+  min_participants: number;
+  max_participants: number;
+  is_active: boolean;
+}
+
+interface SlotAvailabilityRow {
+  id: string;
+  experience_id: string;
+  starts_at: string;
+  capacity: number;
+  seats_taken: number;
+  is_active: boolean;
+}
+
+type ReservationExperienceRow = Omit<
+  ReservationExperienceDto,
+  'cover_photo_url'
+>;
+
+interface ReservationRow extends Omit<
+  ReservationResponseDto,
+  'slot' | 'experience'
+> {
+  slot: ReservationSlotDto | null;
+  experience: ReservationExperienceRow | null;
+}
+
+interface ReservationCancelRow {
+  id: string;
+  user_id: string;
+  status: string;
+  slot_id: string;
+  slot: Pick<ReservationSlotDto, 'starts_at'> | null;
+  experience: { cancellation_hours: number | null } | null;
+}
+
+interface CoverPhotoRow {
+  experience_id?: string;
+  url: string;
+}
+
 @Injectable()
 export class ReservationsService {
   constructor(
@@ -28,17 +93,23 @@ export class ReservationsService {
     private readonly supabase: SupabaseClient,
   ) {}
 
-  async create(experienceId: string, userId: string, dto: CreateReservationDto) {
+  async create(
+    experienceId: string,
+    userId: string,
+    dto: CreateReservationDto,
+  ): Promise<ReservationResponseDto> {
     // Load experience for pricing + participant rules
-    const { data: experience, error: expError } = await this.supabase
+    const { data: experience, error: expError } = (await this.supabase
       .from(EXPERIENCES_TABLE)
       .select('id, price_cop, min_participants, max_participants, is_active')
       .eq('id', experienceId)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseSingleResult<ExperienceRulesRow>;
 
     if (expError) throw new BadRequestException(expError.message);
     if (!experience) throw new NotFoundException('Experience not found');
-    if (!experience.is_active) throw new BadRequestException('Experience is not active');
+    if (!experience.is_active) {
+      throw new BadRequestException('Experience is not active');
+    }
 
     if (dto.participants < experience.min_participants) {
       throw new BadRequestException(
@@ -52,11 +123,11 @@ export class ReservationsService {
     }
 
     // Validate the slot belongs to this experience and is bookable
-    const { data: slot } = await this.supabase
+    const { data: slot } = (await this.supabase
       .from(SLOTS_TABLE)
       .select('id, experience_id, starts_at, capacity, seats_taken, is_active')
       .eq('id', dto.slot_id)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseSingleResult<SlotAvailabilityRow>;
 
     if (!slot) throw new NotFoundException('Slot not found');
     if (slot.experience_id !== experienceId) {
@@ -72,7 +143,7 @@ export class ReservationsService {
 
     const totalPriceCop = experience.price_cop * dto.participants;
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(RESERVATIONS_TABLE)
       .insert({
         slot_id: dto.slot_id,
@@ -83,14 +154,20 @@ export class ReservationsService {
         status: 'confirmed',
       })
       .select(RESERVATION_SELECT)
-      .single();
+      .single()) as unknown as SupabaseSingleResult<ReservationRow>;
 
     if (error) {
       // The trigger raises 'Slot is full' if a concurrent booking ate the cupo.
       if (error.message?.toLowerCase().includes('slot is full')) {
-        throw new BadRequestException('Slot just filled up, please pick another one');
+        throw new BadRequestException(
+          'Slot just filled up, please pick another one',
+        );
       }
       throw new BadRequestException(error.message);
+    }
+
+    if (!data) {
+      throw new BadRequestException('Could not create reservation');
     }
 
     // TODO: trigger email + push confirmation when notification infra lands (US-041)
@@ -98,15 +175,22 @@ export class ReservationsService {
     return this.hydrateCover(data);
   }
 
-  async findMine(userId: string, page = 1, limit = 10) {
+  async findMine(
+    userId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<ReservationListResponseDto> {
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await this.supabase
+    const { data, error, count } = (await this.supabase
       .from(RESERVATIONS_TABLE)
       .select(RESERVATION_SELECT, { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(
+        offset,
+        offset + limit - 1,
+      )) as unknown as SupabaseListResult<ReservationRow>;
 
     if (error) throw new BadRequestException(error.message);
 
@@ -122,16 +206,22 @@ export class ReservationsService {
     };
   }
 
-  async cancel(reservationId: string, userId: string, userRole: string) {
-    const { data: reservation } = await this.supabase
+  async cancel(
+    reservationId: string,
+    userId: string,
+    userRole: string,
+  ): Promise<void> {
+    const { data: reservation } = (await this.supabase
       .from(RESERVATIONS_TABLE)
-      .select(`
+      .select(
+        `
         id, user_id, status, slot_id,
         slot:slot_id(starts_at),
         experience:experience_id(cancellation_hours)
-      `)
+      `,
+      )
       .eq('id', reservationId)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseSingleResult<ReservationCancelRow>;
 
     if (!reservation) throw new NotFoundException('Reservation not found');
 
@@ -139,11 +229,13 @@ export class ReservationsService {
       throw new ForbiddenException('You can only cancel your own reservations');
     }
     if (reservation.status !== 'confirmed') {
-      throw new BadRequestException(`Reservation already ${reservation.status}`);
+      throw new BadRequestException(
+        `Reservation already ${reservation.status}`,
+      );
     }
 
-    const startsAt = new Date((reservation as any).slot?.starts_at);
-    const cancellationHours = (reservation as any).experience?.cancellation_hours ?? 24;
+    const startsAt = new Date(reservation.slot?.starts_at ?? '');
+    const cancellationHours = reservation.experience?.cancellation_hours ?? 24;
     const hoursUntilStart = (startsAt.getTime() - Date.now()) / 3600_000;
 
     if (hoursUntilStart < cancellationHours) {
@@ -162,14 +254,20 @@ export class ReservationsService {
 
   // ── helpers ───────────────────────────────────────────────────────────
 
-  private async hydrateCover(reservation: any) {
-    if (!reservation?.experience?.id) return reservation;
-    const { data: cover } = await this.supabase
+  private async hydrateCover(
+    reservation: ReservationRow,
+  ): Promise<ReservationResponseDto> {
+    if (!reservation.experience?.id) {
+      return { ...reservation, experience: null };
+    }
+
+    const { data: cover } = (await this.supabase
       .from(PHOTOS_TABLE)
       .select('url')
       .eq('experience_id', reservation.experience.id)
       .eq('is_cover', true)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseSingleResult<CoverPhotoRow>;
+
     return {
       ...reservation,
       experience: {
@@ -179,21 +277,42 @@ export class ReservationsService {
     };
   }
 
-  private async hydrateCovers(reservations: any[]) {
+  private async hydrateCovers(
+    reservations: ReservationRow[],
+  ): Promise<ReservationResponseDto[]> {
     const ids = Array.from(
-      new Set(reservations.map((r: any) => r.experience?.id).filter(Boolean)),
+      new Set(
+        reservations
+          .map((reservation) => reservation.experience?.id)
+          .filter((id): id is string => Boolean(id)),
+      ),
     );
-    if (ids.length === 0) return reservations;
-    const { data: covers } = await this.supabase
+    if (ids.length === 0) {
+      return reservations.map((reservation) => ({
+        ...reservation,
+        experience: reservation.experience
+          ? { ...reservation.experience, cover_photo_url: null }
+          : null,
+      }));
+    }
+
+    const { data: covers } = (await this.supabase
       .from(PHOTOS_TABLE)
       .select('experience_id, url')
       .in('experience_id', ids)
-      .eq('is_cover', true);
-    const map = new Map((covers || []).map((c: any) => [c.experience_id, c.url]));
-    return reservations.map((r: any) => ({
-      ...r,
-      experience: r.experience
-        ? { ...r.experience, cover_photo_url: map.get(r.experience.id) ?? null }
+      .eq('is_cover', true)) as unknown as SupabaseListResult<CoverPhotoRow>;
+
+    const map = new Map(
+      (covers || []).map((cover) => [cover.experience_id, cover.url]),
+    );
+
+    return reservations.map((reservation) => ({
+      ...reservation,
+      experience: reservation.experience
+        ? {
+            ...reservation.experience,
+            cover_photo_url: map.get(reservation.experience.id) ?? null,
+          }
         : null,
     }));
   }
