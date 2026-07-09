@@ -72,6 +72,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 64. #85 - PR tecnico create featured dto lint/typing, base #84.
 65. #86 - PR tecnico scraping runs repo lint/typing, base #85.
 66. #87 - PR tecnico preferences service lint/typing, base #86.
+67. #88 - PR tecnico source factory lint/typing, base #87.
 
 ### Frontend
 
