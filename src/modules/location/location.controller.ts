@@ -22,6 +22,12 @@ import { SaveSnapshotsDto } from './dto/save-snapshots.dto';
 import { LocationSnapshotDto } from './dto/location-snapshot.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
+interface AuthenticatedLocationRequest {
+  user: {
+    id: string;
+  };
+}
+
 @ApiTags('location')
 @ApiBearerAuth()
 @Controller('location')
@@ -43,7 +49,7 @@ export class LocationController {
   @ApiResponse({ status: 400, description: 'Validation error' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async create(
-    @Request() req: any,
+    @Request() req: AuthenticatedLocationRequest,
     @Body() dto: SaveSnapshotsDto,
   ): Promise<{ inserted: number }> {
     return this.locationService.saveSnapshots(req.user.id, dto);
@@ -60,7 +66,9 @@ export class LocationController {
     schema: { example: { deleted: true } },
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async deleteMine(@Request() req: any): Promise<{ deleted: true }> {
+  async deleteMine(
+    @Request() req: AuthenticatedLocationRequest,
+  ): Promise<{ deleted: true }> {
     return this.locationService.deleteMine(req.user.id);
   }
 
@@ -75,7 +83,7 @@ export class LocationController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getLatest(
-    @Request() req: any,
+    @Request() req: AuthenticatedLocationRequest,
   ): Promise<LocationSnapshotDto | null> {
     return this.locationService.getLatest(req.user.id);
   }
