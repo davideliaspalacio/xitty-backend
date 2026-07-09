@@ -26,7 +26,8 @@ export class ActivePromotionListDto {
 }
 
 export class PromotionListResponseDto {
-  @ApiProperty({ type: [ActivePromotionListDto] }) data: ActivePromotionListDto[];
+  @ApiProperty({ type: [ActivePromotionListDto] })
+  data: ActivePromotionListDto[];
   @ApiProperty() total: number;
   @ApiProperty() page: number;
   @ApiProperty() limit: number;
