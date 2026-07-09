@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 6.
-- Errores: 6.
+- Archivos con problemas: 5.
+- Errores: 5.
 - Warnings: 0.
-- Errores auto-fixables: 6.
+- Errores auto-fixables: 5.
 
 Avance aplicado:
 
@@ -287,22 +287,25 @@ Avance aplicado:
 - PR tecnico #118 `chore/backend-lint-experiences-module`:
   `experiences.module.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- Reduccion neta acumulada: -112 archivos con problemas, -2704 errores y -247 warnings.
+- PR tecnico pendiente `chore/backend-lint-favorite-response-dto`:
+  `favorite-response.dto.ts` queda formateado por Prettier y con lint dirigido
+  limpio.
+- Reduccion neta acumulada: -113 archivos con problemas, -2705 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 6 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 5 | 0 | Formato historico fuera de Prettier. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/favorites/dto/favorite-response.dto.ts` | 1 | 0 |
 | `src/modules/places/dto/category-response.dto.ts` | 1 | 0 |
 | `src/modules/places/dto/create-place-photo.dto.ts` | 1 | 0 |
 | `src/modules/places/dto/og-response.dto.ts` | 1 | 0 |
+| `src/modules/promotions/dto/promotion-response.dto.ts` | 1 | 0 |
 
 ## Impacto en Features v2
 
