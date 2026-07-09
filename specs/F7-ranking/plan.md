@@ -8,7 +8,7 @@
 - [x] Ajustar servicio para ranking global real y delta semanal.
 - [x] Ajustar UI para delta visible.
 - [x] Agregar tests backend/frontend.
-- [ ] Abrir PRs apilados.
+- [x] Abrir PRs apilados.
 
 ## Migracion SQL
 
@@ -54,3 +54,5 @@ No borra datos de lugares/interacciones. Recalcula la view.
 - Frontend: `npm run test:run -- src/features/discover/__tests__/ranking-card.test.tsx` -> 1 file / 3 tests OK.
 - Frontend: `npm run typecheck` -> OK.
 - Frontend: `npm run build` -> OK.
+- Backend PR: <https://github.com/davideliaspalacio/xitty-backend/pull/26>.
+- Frontend PR: <https://github.com/davideliaspalacio/xitty-frontend/pull/22>.
