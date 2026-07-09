@@ -20,6 +20,15 @@ import { UpdateNotificationSettingsDto } from './dto/update-notification-setting
 import { NotificationSettingsDto } from './dto/notification-settings.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
+type NotificationSettingsRole = 'business' | 'admin';
+
+interface AuthenticatedNotificationSettingsRequest {
+  user: {
+    id: string;
+    role: string;
+  };
+}
+
 @ApiTags('notification-settings')
 @ApiBearerAuth()
 @Controller('me/notification-settings')
@@ -28,10 +37,14 @@ export class NotificationSettingsController {
   constructor(private readonly service: NotificationSettingsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get notification settings (defaults if not set) — US-025' })
+  @ApiOperation({
+    summary: 'Get notification settings (defaults if not set) — US-025',
+  })
   @ApiResponse({ status: 200, type: NotificationSettingsDto })
   @ApiResponse({ status: 403, description: 'Only business owners or admins' })
-  async getMe(@Request() req: any): Promise<NotificationSettingsDto> {
+  async getMe(
+    @Request() req: AuthenticatedNotificationSettingsRequest,
+  ): Promise<NotificationSettingsDto> {
     this.assertBusinessOrAdmin(req.user.role);
     return this.service.getOrDefaults(req.user.id);
   }
@@ -42,16 +55,20 @@ export class NotificationSettingsController {
   @ApiResponse({ status: 200, type: NotificationSettingsDto })
   @ApiResponse({ status: 403, description: 'Only business owners or admins' })
   async updateMe(
-    @Request() req: any,
+    @Request() req: AuthenticatedNotificationSettingsRequest,
     @Body() dto: UpdateNotificationSettingsDto,
   ): Promise<NotificationSettingsDto> {
     this.assertBusinessOrAdmin(req.user.role);
     return this.service.upsert(req.user.id, dto);
   }
 
-  private assertBusinessOrAdmin(role: string) {
+  private assertBusinessOrAdmin(
+    role: string,
+  ): asserts role is NotificationSettingsRole {
     if (role !== 'business' && role !== 'admin') {
-      throw new ForbiddenException('Only business owners or admins can manage notification settings');
+      throw new ForbiddenException(
+        'Only business owners or admins can manage notification settings',
+      );
     }
   }
 }
