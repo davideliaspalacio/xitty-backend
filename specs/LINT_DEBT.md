@@ -281,7 +281,7 @@ Avance aplicado:
 - PR tecnico #116 `chore/backend-lint-create-experience-review-dto`:
   `create-experience-review.dto.ts` queda formateado por Prettier y con lint
   dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-experience-review-response-dto`:
+- PR tecnico #117 `chore/backend-lint-experience-review-response-dto`:
   `experience-review-response.dto.ts` queda formateado por Prettier y con lint
   dirigido limpio.
 - Reduccion neta acumulada: -111 archivos con problemas, -2703 errores y -247 warnings.

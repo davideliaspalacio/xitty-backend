@@ -137,7 +137,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #114 abierto: `chore/backend-lint-refresh-token-dto`; refresh token dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #115 abierto: `chore/backend-lint-create-conversation-dto`; create conversation dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #116 abierto: `chore/backend-lint-create-experience-review-dto`; create experience review dto queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico pendiente: `chore/backend-lint-experience-review-response-dto`; experience review response dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #117 abierto: `chore/backend-lint-experience-review-response-dto`; experience review response dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
