@@ -129,6 +129,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #106 abierto: `chore/backend-lint-create-local-pick-dto`; create local pick dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #107 abierto: `chore/backend-lint-mock-enrichment-provider`; mock enrichment provider queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #108 abierto: `chore/backend-lint-openai-enrichment-provider`; openai enrichment provider queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #109 abierto: `chore/backend-lint-quality-scorer-service`; quality scorer service queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -153,6 +154,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend enrichment smoke tests tras OpenAI provider: `npm test -- --runInBand src/modules/scraping/enrichment/enrichment.service.spec.ts` -> 1 suite / 14 tests OK.
 - Backend build tras OpenAI enrichment provider lint: `npm run build` -> OK.
 - Backend full lint tras OpenAI enrichment provider: 16 archivos / 20 errores / 0 warnings; baja deuda historica, no queda aun en verde global.
+- Backend quality scorer service lint: `npx eslint src/modules/scraping/enrichment/quality-scorer.service.ts` -> OK.
+- Backend quality scorer tests: `npm test -- --runInBand src/modules/scraping/enrichment/quality-scorer.spec.ts` -> 1 suite / 12 tests OK.
+- Backend build tras quality scorer service lint: `npm run build` -> OK.
+- Backend full lint tras quality scorer service: 15 archivos / 18 errores / 0 warnings; baja deuda historica, no queda aun en verde global.
 - Backend scraped-items repo spec lint: `npx eslint src/modules/scraping/storage/scraped-items.repo.spec.ts` -> OK.
 - Backend scraped-items repo spec tests: `npm test -- --runInBand src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 1 suite / 20 tests OK.
 - Backend build tras scraped-items lint: `npm run build` -> OK.

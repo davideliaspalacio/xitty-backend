@@ -33,7 +33,10 @@ export class QualityScorerService {
 
     // ── Texto / completitud (IA) ──────────────────────────────────────
     if (this.hasText(item.title)) s += 0.15;
-    if (this.hasText(item.description) && item.description!.trim().length > 80) {
+    if (
+      this.hasText(item.description) &&
+      item.description!.trim().length > 80
+    ) {
       s += 0.15;
     }
     if (this.hasText(item.location_name)) s += 0.1;
@@ -52,7 +55,8 @@ export class QualityScorerService {
       s += Math.max(0, Math.min(0.15, (signals.rating / 5) * 0.15));
     }
 
-    const rc = typeof signals.reviewCount === 'number' ? signals.reviewCount : 0;
+    const rc =
+      typeof signals.reviewCount === 'number' ? signals.reviewCount : 0;
     if (rc >= 500) s += 0.3;
     else if (rc >= 100) s += 0.22;
     else if (rc >= 20) s += 0.14;
