@@ -33,6 +33,8 @@ Given un lugar no tiene fotos/licencia aprobada, when se consulta el reporte, th
 - `scraped_items_enriched.source_kind`
 - `scraped_items_enriched.source_external_id`
 - Vista `place_data_completeness`.
+- `scraping_sources.config` conserva metadata operativa de ciudad, zona y
+  categoria esperada para los runs de Cartagena.
 
 ## API
 
@@ -56,6 +58,7 @@ Sin cambios de UI en este PR. El reporte queda disponible como vista SQL para op
 - Lugares sin telefono/WhatsApp/web/horarios/fotos: quedan `null` y aparecen en reporte.
 - Categorias nuevas: este PR no cambia el mapeo; se conservan tags/category_hint.
 - Re-ejecucion/publicacion repetida: no duplica por identidad externa o source_url.
+- Re-ejecucion del seed de fuentes: `ON CONFLICT (name) DO UPDATE`, sin duplicar.
 - Caracteres especiales: se conserva el flujo existente de slug/nombre.
 
 ## Fuera de alcance

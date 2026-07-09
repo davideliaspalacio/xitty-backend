@@ -4,7 +4,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
 | ------------------------------ | ------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------- |
-| F1 Poblacion de lugares        | PR abierto, pendiente review/merge   | Backend #30                       | Mergear despues de F6 backend #29; fotos/licencias quedan pendientes.               |
+| F1 Poblacion de lugares        | PRs abiertos, pendiente review/merge | Backend #30 / Backend #31         | Mergear #30 despues de F6 backend #29; luego #31. Fotos/licencias quedan pendientes. |
 | F2 Perfil publico URL propia   | Implementado, pendiente PR/QA amplio | `feature/f2-public-slugs-og`       | Abrir PR apilado despues de F5.                                                     |
 | F3 Promociones                 | PR abierto, pendiente review/merge   | Backend #25 / Frontend #21         | Mergear despues de F2 backend #24 y frontend #20.                                   |
 | F4 Tracking de eventos         | Implementado, pendiente PR/QA amplio | `feature/f4-tracking-anti-inflado` | Abrir PR coordinado backend/frontend y correr suite amplia si el tiempo lo permite. |
@@ -41,6 +41,8 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: iniciado F1 poblacion de lugares.
 - 2026-07-09: F1 avance implementado con proveniencia de fuente, publicacion idempotente por source y reporte SQL de completitud/faltantes.
 - 2026-07-09: F1 PR abierto: backend #30.
+- 2026-07-09: F1 datos iniciado con seed ampliado de fuentes Cartagena por zonas, sin publicar fotos/lugares automaticamente.
+- 2026-07-09: F1 datos PR abierto: backend #31.
 
 ## Evidencia F4
 
@@ -117,3 +119,6 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - Backend build: `npm run build` -> OK.
 - Backend lint dirigido: `npx eslint src/modules/scraping/admin/admin-scraping.service.ts src/modules/scraping/executor/scraping-executor.service.ts src/modules/scraping/storage/scraped-items.repo.ts` -> OK.
 - PR: backend <https://github.com/davideliaspalacio/xitty-backend/pull/30>.
+- Seed Cartagena: validacion local de 27 configs JSON -> OK.
+- Backend build tras seed: `npm run build` -> OK.
+- PR datos: backend <https://github.com/davideliaspalacio/xitty-backend/pull/31>.
