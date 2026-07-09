@@ -6,11 +6,20 @@ import { ConsentResponseDto } from './dto/consent-response.dto';
 
 const TABLE = 'user_consents';
 
-const VALID_CONSENT_TYPES: string[] = [
+const VALID_CONSENT_TYPES: ConsentType[] = [
   ConsentType.LOCATION_TRACKING,
   ConsentType.CHAT_ANALYTICS,
   ConsentType.MARKETING,
 ];
+
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
 
 @Injectable()
 export class ConsentsService {
@@ -35,7 +44,7 @@ export class ConsentsService {
 
     const now = new Date().toISOString();
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .upsert(
         {
@@ -48,7 +57,7 @@ export class ConsentsService {
         { onConflict: 'user_id,consent_type' },
       )
       .select('*')
-      .single();
+      .single()) as unknown as SupabaseResult<ConsentResponseDto>;
 
     if (error || !data) {
       throw new BadRequestException(
@@ -56,7 +65,7 @@ export class ConsentsService {
       );
     }
 
-    return data as ConsentResponseDto;
+    return data;
   }
 
   /**
@@ -80,7 +89,7 @@ export class ConsentsService {
     // la de revocación, perdiendo el rastro de auditoría que exige la Ley 1581.
     // Al omitirlo: en UPDATE (conflict) se preserva el granted_at original; en
     // INSERT nuevo (revoke idempotente) toma el DEFAULT now() de la columna.
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .upsert(
         {
@@ -92,7 +101,7 @@ export class ConsentsService {
         { onConflict: 'user_id,consent_type' },
       )
       .select('*')
-      .single();
+      .single()) as unknown as SupabaseResult<ConsentResponseDto>;
 
     if (error || !data) {
       throw new BadRequestException(
@@ -100,7 +109,7 @@ export class ConsentsService {
       );
     }
 
-    return data as ConsentResponseDto;
+    return data;
   }
 
   /**
@@ -108,16 +117,18 @@ export class ConsentsService {
    * El frontend filtra los activos por (granted = true).
    */
   async getByUser(userId: string): Promise<ConsentResponseDto[]> {
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .select('*')
       .eq('user_id', userId)
-      .order('granted_at', { ascending: false });
+      .order('granted_at', { ascending: false })) as unknown as SupabaseResult<
+      ConsentResponseDto[]
+    >;
 
     if (error) {
       throw new BadRequestException(error.message);
     }
 
-    return (data || []) as ConsentResponseDto[];
+    return data || [];
   }
 }
