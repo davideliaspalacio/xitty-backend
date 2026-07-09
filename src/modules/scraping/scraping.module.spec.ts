@@ -77,18 +77,26 @@ describe('ScrapingModule (umbrella)', () => {
     expect(moduleRef.get(ScrapingRunsRepo, { strict: false })).toBeDefined();
     expect(moduleRef.get(ScrapingSourcesRepo, { strict: false })).toBeDefined();
     expect(moduleRef.get(EnrichmentService, { strict: false })).toBeDefined();
-    expect(moduleRef.get(QualityScorerService, { strict: false })).toBeDefined();
+    expect(
+      moduleRef.get(QualityScorerService, { strict: false }),
+    ).toBeDefined();
     expect(moduleRef.get(DedupService, { strict: false })).toBeDefined();
     expect(moduleRef.get(RunnerService, { strict: false })).toBeDefined();
-    expect(moduleRef.get(AdminScrapingService, { strict: false })).toBeDefined();
+    expect(
+      moduleRef.get(AdminScrapingService, { strict: false }),
+    ).toBeDefined();
     expect(moduleRef.get(DiscoverService, { strict: false })).toBeDefined();
 
     await moduleRef.close();
   });
 
   it('NO declara providers o controllers propios — solo agrupa submodulos', () => {
-    const providers = Reflect.getMetadata('providers', ScrapingModule) as unknown[] | undefined;
-    const controllers = Reflect.getMetadata('controllers', ScrapingModule) as unknown[] | undefined;
+    const providers = Reflect.getMetadata('providers', ScrapingModule) as
+      | unknown[]
+      | undefined;
+    const controllers = Reflect.getMetadata('controllers', ScrapingModule) as
+      | unknown[]
+      | undefined;
     expect(providers ?? []).toEqual([]);
     expect(controllers ?? []).toEqual([]);
   });

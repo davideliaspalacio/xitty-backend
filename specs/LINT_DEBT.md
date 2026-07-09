@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 31.
-- Errores: 58.
+- Archivos con problemas: 30.
+- Errores: 54.
 - Warnings: 2.
-- Errores auto-fixables: 47.
+- Errores auto-fixables: 43.
 
 Avance aplicado:
 
@@ -213,13 +213,16 @@ Avance aplicado:
 - PR tecnico #93 `chore/backend-lint-source-factory-spec`:
   `source.factory.spec.ts` queda con fixture tipada, sin casts `any`, formato
   Prettier y lint dirigido limpio.
-- Reduccion neta acumulada: -87 archivos con problemas, -2652 errores y -245 warnings.
+- PR tecnico pendiente `chore/backend-lint-scraping-module-spec`:
+  `scraping.module.spec.ts` queda formateado por Prettier y con lint dirigido
+  limpio.
+- Reduccion neta acumulada: -88 archivos con problemas, -2656 errores y -245 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 47 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 43 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-member-access` | 4 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/no-unsafe-assignment` | 3 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/require-await` | 3 | 0 | Funciones async sin await. |
@@ -230,10 +233,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/scraping/scraping.module.spec.ts` | 4 | 0 |
 | `src/common/i18n/localize.ts` | 2 | 1 |
 | `src/modules/chat/dto/message-response.dto.ts` | 3 | 0 |
 | `src/modules/experiences/dto/reservation-response.dto.ts` | 3 | 0 |
+| `src/modules/microsites/microsites.service.ts` | 3 | 0 |
 
 ## Impacto en Features v2
 

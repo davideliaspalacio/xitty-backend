@@ -114,6 +114,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #91 abierto: `chore/backend-lint-enrichment-service`; enrichment service y spec quedan con lint dirigido limpio.
 - 2026-07-09: PR tecnico #92 abierto: `chore/backend-lint-runner-service`; runner service queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #93 abierto: `chore/backend-lint-source-factory-spec`; source factory spec queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico preparado: `chore/backend-lint-scraping-module-spec`; scraping module spec queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -305,7 +306,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend source factory spec lint: `npx eslint src/modules/scraping/sources/source.factory.spec.ts` -> OK.
 - Backend source factory spec tests: `npm test -- --runInBand src/modules/scraping/sources/source.factory.spec.ts` -> 1 suite / 8 tests OK.
 - Backend build tras source factory spec lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 31 archivos / 58 errores / 2 warnings.
+- Backend scraping module spec lint: `npx eslint src/modules/scraping/scraping.module.spec.ts` -> OK.
+- Backend scraping module spec tests: `npm test -- --runInBand src/modules/scraping/scraping.module.spec.ts` -> 1 suite / 4 tests OK.
+- Backend build tras scraping module spec lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 30 archivos / 54 errores / 2 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
