@@ -145,7 +145,19 @@ describe('MetricsService', () => {
           total_directions: 30,
           total_promo_views: 10,
           total_interactions: 180,
+          prev_total_views: 50,
+          prev_total_calls: 10,
+          prev_total_whatsapp: 5,
+          prev_total_reservations: 0,
+          prev_total_directions: 25,
+          prev_total_promo_views: 5,
           prev_total_interactions: 150,
+          views_change_percent: 100.0,
+          calls_change_percent: 100.0,
+          whatsapp_change_percent: 200.0,
+          reservations_change_percent: 100.0,
+          directions_change_percent: 20.0,
+          promo_views_change_percent: 100.0,
           change_percent: 20.0,
         },
       ]);
@@ -159,6 +171,9 @@ describe('MetricsService', () => {
       );
 
       expect(result.total_interactions).toBe(180);
+      expect(result.prev_total_views).toBe(50);
+      expect(result.views_change_percent).toBe(100.0);
+      expect(result.reservations_change_percent).toBe(100.0);
       expect(result.change_percent).toBe(20.0);
       expect(result.period.from).toBe('2026-04-01');
     });
@@ -186,7 +201,19 @@ describe('MetricsService', () => {
           total_directions: 0,
           total_promo_views: 0,
           total_interactions: 0,
+          prev_total_views: 0,
+          prev_total_calls: 0,
+          prev_total_whatsapp: 0,
+          prev_total_reservations: 0,
+          prev_total_directions: 0,
+          prev_total_promo_views: 0,
           prev_total_interactions: 0,
+          views_change_percent: 0,
+          calls_change_percent: 0,
+          whatsapp_change_percent: 0,
+          reservations_change_percent: 0,
+          directions_change_percent: 0,
+          promo_views_change_percent: 0,
           change_percent: 0,
         },
       ]);
