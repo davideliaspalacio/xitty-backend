@@ -272,7 +272,7 @@ Avance aplicado:
 - PR tecnico #113 `chore/backend-lint-database-module`:
   `database.module.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-refresh-token-dto`:
+- PR tecnico #114 `chore/backend-lint-refresh-token-dto`:
   `refresh-token.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -108 archivos con problemas, -2700 errores y -247 warnings.

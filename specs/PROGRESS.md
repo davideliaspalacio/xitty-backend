@@ -134,7 +134,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #111 abierto: `chore/backend-lint-curated-item-dto`; curated item dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #112 abierto: `chore/backend-lint-scheduler-module`; scheduler module queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #113 abierto: `chore/backend-lint-database-module`; database module queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico pendiente: `chore/backend-lint-refresh-token-dto`; refresh token dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #114 abierto: `chore/backend-lint-refresh-token-dto`; refresh token dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
