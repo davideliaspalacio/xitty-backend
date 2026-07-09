@@ -102,6 +102,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #79 abierto: `chore/backend-lint-consents-controller`; consents controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #80 abierto: `chore/backend-lint-location-controller`; location controller queda tipado y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #81 abierto: `chore/backend-lint-scraping-sources-repo`; scraping sources repo queda tipado y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #82 abierto: `chore/backend-lint-experience-list-query-dto`; experience list query dto queda tipado y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -258,7 +259,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend scraping sources repo lint: `npx eslint src/modules/scraping/storage/scraping-sources.repo.ts` -> OK.
 - Backend scraping sources repo tests: `npm test -- --runInBand src/modules/scraping/storage/scraping-sources.repo.spec.ts` -> 1 suite / 11 tests OK.
 - Backend build tras scraping sources repo lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 44 archivos / 120 errores / 5 warnings.
+- Backend experience list query dto lint: `npx eslint src/modules/experiences/dto/experience-list-query.dto.ts` -> OK.
+- Backend experience list query smoke tests: `npm test -- --runInBand src/modules/experiences/experiences.service.spec.ts` -> 1 suite / 12 tests OK.
+- Backend build tras experience list query dto lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 43 archivos / 113 errores / 5 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 44.
-- Errores: 120.
+- Archivos con problemas: 43.
+- Errores: 113.
 - Warnings: 5.
-- Errores auto-fixables: 82.
+- Errores auto-fixables: 77.
 
 Avance aplicado:
 
@@ -177,13 +177,16 @@ Avance aplicado:
 - PR tecnico #81 `chore/backend-lint-scraping-sources-repo`:
   `scraping-sources.repo.ts` queda con resultados Supabase tipados, query
   condicional sin `any`, errores de patch tipados y lint dirigido limpio.
-- Reduccion neta acumulada: -74 archivos con problemas, -2590 errores y -242 warnings.
+- PR tecnico #82 `chore/backend-lint-experience-list-query-dto`:
+  `experience-list-query.dto.ts` queda con transform de tags tipado, import
+  sin usar removido, formato Prettier y lint dirigido limpio.
+- Reduccion neta acumulada: -75 archivos con problemas, -2597 errores y -242 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 82 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 77 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-assignment` | 13 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-member-access` | 12 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/no-unsafe-argument` | 0 | 5 | Argumentos `any` en tests/servicios. |
@@ -198,10 +201,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/experiences/dto/experience-list-query.dto.ts` | 7 | 0 |
 | `src/config/supabase.config.ts` | 6 | 0 |
 | `src/modules/experiences/dto/create-experience.dto.ts` | 6 | 0 |
 | `src/modules/featured/dto/create-featured.dto.ts` | 6 | 0 |
+| `src/modules/scraping/storage/scraping-runs.repo.ts` | 6 | 0 |
 
 ## Impacto en Features v2
 
