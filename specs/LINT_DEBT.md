@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 28.
-- Errores: 49.
+- Archivos con problemas: 27.
+- Errores: 46.
 - Warnings: 1.
-- Errores auto-fixables: 39.
+- Errores auto-fixables: 36.
 
 Avance aplicado:
 
@@ -222,13 +222,16 @@ Avance aplicado:
 - PR tecnico #96 `chore/backend-lint-chat-response-dto`:
   `message-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- Reduccion neta acumulada: -90 archivos con problemas, -2661 errores y -246 warnings.
+- PR tecnico pendiente `chore/backend-lint-reservation-response-dto`:
+  `reservation-response.dto.ts` queda formateado por Prettier y con lint
+  dirigido limpio.
+- Reduccion neta acumulada: -91 archivos con problemas, -2664 errores y -246 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 39 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 36 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-member-access` | 4 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/require-await` | 3 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unsafe-assignment` | 2 | 0 | Asignaciones desde `any`. |
@@ -239,10 +242,10 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/experiences/dto/reservation-response.dto.ts` | 3 | 0 |
 | `src/modules/microsites/microsites.service.ts` | 3 | 0 |
 | `src/modules/places/dto/place-list-query.dto.ts` | 3 | 0 |
 | `src/modules/recommendations/dto/recommendation-item.dto.ts` | 3 | 0 |
+| `src/modules/recommendations/recommendations.controller.ts` | 2 | 1 |
 
 ## Impacto en Features v2
 
