@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 70.
-- Errores: 370.
-- Warnings: 82.
-- Errores auto-fixables: 155.
+- Archivos con problemas: 68.
+- Errores: 341.
+- Warnings: 80.
+- Errores auto-fixables: 150.
 
 Avance aplicado:
 
@@ -106,18 +106,22 @@ Avance aplicado:
   `suggestions.service.ts` y `suggestions.service.spec.ts` quedan con payload
   RPC tratado como `unknown`, normalizadores tipados, mock Supabase RPC tipado
   y lint dirigido limpio.
-- Reduccion neta acumulada: -48 archivos con problemas, -2340 errores y -165 warnings.
+- PR tecnico #60 `chore/backend-lint-notification-settings-service-spec`:
+  `notification-settings.service.ts` y `notification-settings.service.spec.ts`
+  quedan con resultados Supabase tipados, updates sin `any`, mock chain
+  Supabase tipado y lint dirigido limpio.
+- Reduccion neta acumulada: -50 archivos con problemas, -2369 errores y -167 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 154 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 121 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 81 | Argumentos `any` en tests/servicios. |
-| `@typescript-eslint/no-unsafe-assignment` | 52 | 0 | Asignaciones desde `any`. |
-| `@typescript-eslint/no-unsafe-call` | 15 | 0 | Llamadas sobre valores `any`. |
-| `@typescript-eslint/no-unsafe-return` | 11 | 0 | Retornos `any` sin tipar. |
+| `prettier/prettier` | 149 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-member-access` | 113 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 79 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-assignment` | 45 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-call` | 10 | 0 | Llamadas sobre valores `any`. |
+| `@typescript-eslint/no-unsafe-return` | 7 | 0 | Retornos `any` sin tipar. |
 | `@typescript-eslint/require-await` | 9 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-base-to-string` | 3 | 0 | Conversion implicita a string. |
 | `@typescript-eslint/no-unused-vars` | 2 | 0 | Variables/imports historicos sin usar. |
@@ -126,7 +130,6 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/notification-settings/notification-settings.service.spec.ts` | 24 | 2 |
 | `src/modules/scraping/sources/tavily-search-source.spec.ts` | 26 | 0 |
 | `src/modules/auth/auth.service.ts` | 23 | 2 |
 | `src/modules/scraping/storage/photo-storage.service.spec.ts` | 18 | 6 |

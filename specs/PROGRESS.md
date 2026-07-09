@@ -80,6 +80,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #57 abierto: `chore/backend-lint-location-service-spec`; location service/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #58 abierto: `chore/backend-lint-chat-controller-spec`; chat controller/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #59 abierto: `chore/backend-lint-suggestions-service-spec`; suggestions service/spec quedan tipados y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #60 preparado: `chore/backend-lint-notification-settings-service-spec`; notification settings service/spec quedan tipados y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -170,7 +171,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend suggestions lint: `npx eslint src/modules/suggestions/suggestions.service.ts src/modules/suggestions/suggestions.service.spec.ts` -> OK.
 - Backend suggestions tests: `npm test -- --runInBand src/modules/suggestions/suggestions.service.spec.ts` -> 1 suite / 10 tests OK.
 - Backend build tras suggestions lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 70 archivos / 370 errores / 82 warnings.
+- Backend notification settings lint: `npx eslint src/modules/notification-settings/notification-settings.service.ts src/modules/notification-settings/notification-settings.service.spec.ts` -> OK.
+- Backend notification settings tests: `npm test -- --runInBand src/modules/notification-settings/notification-settings.service.spec.ts` -> 1 suite / 3 tests OK.
+- Backend build tras notification settings lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 68 archivos / 341 errores / 80 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
