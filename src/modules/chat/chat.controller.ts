@@ -31,6 +31,12 @@ import {
   MessageResponseDto,
 } from './dto/message-response.dto';
 
+interface AuthenticatedRequest {
+  user: {
+    id: string;
+  };
+}
+
 @ApiTags('chat')
 @ApiBearerAuth()
 @Controller('chat')
@@ -39,10 +45,14 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Get('conversations')
-  @ApiOperation({ summary: 'Lista las conversaciones del usuario (mas reciente primero)' })
+  @ApiOperation({
+    summary: 'Lista las conversaciones del usuario (mas reciente primero)',
+  })
   @ApiResponse({ status: 200, type: [ConversationResponseDto] })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async list(@Request() req: any): Promise<ConversationResponseDto[]> {
+  async list(
+    @Request() req: AuthenticatedRequest,
+  ): Promise<ConversationResponseDto[]> {
     return this.chatService.listConversations(req.user.id);
   }
 
@@ -58,21 +68,23 @@ export class ChatController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Rate limit excedido' })
   async create(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Body() dto: CreateConversationDto,
   ): Promise<CreateConversationResponseDto> {
     return this.chatService.createConversation(req.user.id, dto);
   }
 
   @Get('conversations/:id')
-  @ApiOperation({ summary: 'Trae la conversacion con todos sus mensajes ordenados' })
+  @ApiOperation({
+    summary: 'Trae la conversacion con todos sus mensajes ordenados',
+  })
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiResponse({ status: 200, type: ConversationWithMessagesDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'No es tu conversacion' })
   @ApiResponse({ status: 404, description: 'Conversation not found' })
   async getOne(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<ConversationWithMessagesDto> {
     return this.chatService.getConversation(req.user.id, id);
@@ -89,10 +101,13 @@ export class ChatController {
   @ApiResponse({ status: 201, type: MessageResponseDto })
   @ApiResponse({ status: 400, description: 'Validation error' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Rate limit excedido o no es tu conversacion' })
+  @ApiResponse({
+    status: 403,
+    description: 'Rate limit excedido o no es tu conversacion',
+  })
   @ApiResponse({ status: 404, description: 'Conversation not found' })
   async postMessage(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: PostMessageDto,
   ): Promise<MessageResponseDto> {
@@ -101,14 +116,16 @@ export class ChatController {
 
   @Delete('conversations/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Elimina la conversacion y todos sus mensajes (cascade)' })
+  @ApiOperation({
+    summary: 'Elimina la conversacion y todos sus mensajes (cascade)',
+  })
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiResponse({ status: 204, description: 'Eliminada' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'No es tu conversacion' })
   @ApiResponse({ status: 404, description: 'Conversation not found' })
   async delete(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<void> {
     await this.chatService.deleteConversation(req.user.id, id);
