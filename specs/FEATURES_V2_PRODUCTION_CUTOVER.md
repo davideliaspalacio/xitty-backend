@@ -129,6 +129,14 @@ Checks esperados:
 Con backend levantado contra esa misma DB:
 
 ```bash
+npm run smoke:features-v2 -- --api-url "$API_URL" --city Cartagena
+```
+
+El comando sale con codigo `3` cuando detecta errores tipicos de migraciones faltantes (`places.city`, `place_rankings.city` o RPC `list_places_near`).
+
+Equivalente manual:
+
+```bash
 API_URL="${API_URL:-https://api.xitty.co}"
 
 curl -i "$API_URL/categories"

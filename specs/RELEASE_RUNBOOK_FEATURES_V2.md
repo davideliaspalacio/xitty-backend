@@ -194,6 +194,7 @@ Para quien tenga acceso al proyecto Supabase correcto:
 ## Post-merge operativo
 
 Checklist ejecutable para produccion/staging: `specs/FEATURES_V2_PRODUCTION_CUTOVER.md`.
+Smoke automatizado: `npm run smoke:features-v2 -- --api-url "$API_URL" --city Cartagena`.
 
 1. Confirmar que backend y frontend despliegan contra la misma rama/base ya mergeada.
 2. Aplicar migraciones en orden y verificar que no quedan migraciones pendientes.

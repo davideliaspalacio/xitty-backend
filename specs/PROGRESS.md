@@ -20,6 +20,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: cerrada brecha de permisos en DB limpia: la migracion #13 concede privilegios a `service_role` sobre objetos propios de Xitty y elimina overloads antiguos de `list_places_near`.
 - 2026-07-09: agregado `specs/FEATURES_V2_PRODUCTION_CUTOVER.md` con pasos de produccion, alternativa SQL Editor, validaciones SQL, smoke HTTP y QA final.
 - 2026-07-09: cerrado gap de ciudad en frontend/backend: `GET /places/search` acepta `city/zone`, y el frontend envia `NEXT_PUBLIC_DEFAULT_CITY` al ranking, listado y busqueda.
+- 2026-07-09: agregado smoke automatizado `npm run smoke:features-v2` para validar endpoints Features v2 y detectar migraciones faltantes por mensajes de schema.
 - Pendiente operativo: aplicar migraciones en produccion, configurar envs, correr scraper con datos reales, refrescar rankings y hacer QA con datos reales.
 
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
@@ -170,6 +171,9 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend full lint tras cierre de ciudad frontend/backend: `npx eslint "src/**/*.ts"` -> OK.
 - Frontend full suite tras cierre de ciudad frontend/backend: `npm run test:run` -> 43 files / 210 tests OK.
 - Frontend typecheck/lint/build tras cierre de ciudad frontend/backend: `npm run typecheck`, `npm run lint`, `npm run build` -> OK.
+- Smoke runner syntax: `node --check tools/features-v2-smoke.mjs` -> OK.
+- Smoke runner dry-run: `npm run smoke:features-v2 -- --dry-run --api-url http://localhost:3001 --city Cartagena` -> OK.
+- Smoke runner contra DB actual: `npm run smoke:features-v2 -- --api-url http://localhost:3001 --city Cartagena` -> exit 3 esperado, detectando migraciones faltantes en `places.city`, `place_rankings.city`/RPC.
 - Backend full suite tras F7 city: `npm test -- --runInBand` -> 38 suites / 474 tests OK.
 - Backend build tras F7 city: `npm run build` -> OK.
 - Frontend full suite tras correccion de tokens verdes en PR #24: `npm run test:run` -> 41 files / 207 tests OK.
