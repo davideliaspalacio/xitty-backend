@@ -180,7 +180,7 @@ Avance aplicado:
 - PR tecnico #82 `chore/backend-lint-experience-list-query-dto`:
   `experience-list-query.dto.ts` queda con transform de tags tipado, import
   sin usar removido, formato Prettier y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-supabase-config`:
+- PR tecnico #83 `chore/backend-lint-supabase-config`:
   `supabase.config.ts` queda con tipo real de `createClient`, formato Prettier
   y lint dirigido limpio.
 - Reduccion neta acumulada: -76 archivos con problemas, -2603 errores y -242 warnings.
