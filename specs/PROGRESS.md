@@ -60,7 +60,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #37 abierto: `chore/backend-lint-scraping-admin-spec`; admin scraping spec queda con mocks Supabase/repos tipados y lint dirigido limpio.
 - 2026-07-09: PR tecnico #38 abierto: `chore/backend-lint-scraping-runner-spec`; runner legacy spec queda con mocks tipados y lint dirigido limpio.
 - 2026-07-09: PR tecnico #39 abierto: `chore/backend-lint-dedup-spec`; dedup service/spec quedan tipados y con lint dirigido limpio.
-- 2026-07-09: PR tecnico #40 preparado: `chore/backend-lint-discover-spec`; discover service/spec quedan tipados y con lint dirigido limpio.
+- 2026-07-09: PR tecnico #40 abierto: `chore/backend-lint-discover-spec`; discover service/spec quedan tipados y con lint dirigido limpio.
 
 ## Evidencia transversal
 
