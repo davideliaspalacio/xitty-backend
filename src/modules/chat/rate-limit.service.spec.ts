@@ -1,11 +1,47 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { ChatRateLimitService } from './rate-limit.service';
 
+interface MockDbError {
+  message: string;
+}
+
+interface MockRpcResult {
+  data: number | string | null;
+  error: MockDbError | null;
+}
+
+type RpcMethod = jest.MockedFunction<
+  (
+    fn: string,
+    params: {
+      p_user_id: string;
+    },
+  ) => Promise<MockRpcResult>
+>;
+
+interface MockSupabase {
+  rpc: RpcMethod;
+}
+
+function createMockSupabase(): MockSupabase {
+  return {
+    rpc: jest.fn<
+      (
+        fn: string,
+        params: {
+          p_user_id: string;
+        },
+      ) => Promise<MockRpcResult>
+    >(),
+  };
+}
+
 describe('ChatRateLimitService', () => {
   let service: ChatRateLimitService;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   async function buildService(env: Record<string, string | undefined> = {}) {
     const prev: Record<string, string | undefined> = {};
@@ -15,12 +51,15 @@ describe('ChatRateLimitService', () => {
       else process.env[k] = v;
     }
 
-    supabase = { rpc: jest.fn() };
+    supabase = createMockSupabase();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ChatRateLimitService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
       ],
     }).compile();
     service = module.get<ChatRateLimitService>(ChatRateLimitService);
@@ -50,20 +89,27 @@ describe('ChatRateLimitService', () => {
     supabase.rpc.mockResolvedValueOnce({ data: 3, error: null });
     const count = await service.checkAndIncrement('u1');
     expect(count).toBe(3);
-    expect(supabase.rpc).toHaveBeenCalledWith('increment_chat_usage', { p_user_id: 'u1' });
+    expect(supabase.rpc).toHaveBeenCalledWith('increment_chat_usage', {
+      p_user_id: 'u1',
+    });
     restore();
   });
 
   it('tira ForbiddenException cuando supera el limite', async () => {
     const restore = await buildService({ CHAT_DAILY_LIMIT: '5' });
     supabase.rpc.mockResolvedValueOnce({ data: 6, error: null });
-    await expect(service.checkAndIncrement('u1')).rejects.toThrow(ForbiddenException);
+    await expect(service.checkAndIncrement('u1')).rejects.toThrow(
+      ForbiddenException,
+    );
     restore();
   });
 
   it('no tira pero devuelve 0 si el RPC falla (no bloquea al user)', async () => {
     const restore = await buildService();
-    supabase.rpc.mockResolvedValueOnce({ data: null, error: { message: 'rpc not found' } });
+    supabase.rpc.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'rpc not found' },
+    });
     const count = await service.checkAndIncrement('u1');
     expect(count).toBe(0);
     restore();
