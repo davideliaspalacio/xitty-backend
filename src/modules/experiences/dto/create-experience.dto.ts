@@ -18,10 +18,15 @@ import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const EXPERIENCE_TYPES = [
-  'tour', 'workshop', 'gastronomy', 'adventure',
-  'wellness', 'cultural', 'nightlife',
+  'tour',
+  'workshop',
+  'gastronomy',
+  'adventure',
+  'wellness',
+  'cultural',
+  'nightlife',
 ] as const;
-export type ExperienceType = typeof EXPERIENCE_TYPES[number];
+export type ExperienceType = (typeof EXPERIENCE_TYPES)[number];
 
 export class CreateExperienceDto {
   @ApiProperty({ description: 'Operator place id (the host business)' })
@@ -34,7 +39,9 @@ export class CreateExperienceDto {
   @MaxLength(200)
   title: string;
 
-  @ApiPropertyOptional({ description: 'URL slug — auto-generated from title if omitted' })
+  @ApiPropertyOptional({
+    description: 'URL slug — auto-generated from title if omitted',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(200)
@@ -50,7 +57,10 @@ export class CreateExperienceDto {
   @IsIn(EXPERIENCE_TYPES as unknown as string[])
   experience_type: ExperienceType;
 
-  @ApiPropertyOptional({ type: [String], example: ['romantico', 'gastronomico'] })
+  @ApiPropertyOptional({
+    type: [String],
+    example: ['romantico', 'gastronomico'],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
@@ -103,7 +113,10 @@ export class CreateExperienceDto {
   @IsLongitude()
   meeting_point_longitude?: number;
 
-  @ApiPropertyOptional({ default: 24, description: 'Hours before start to allow cancellation' })
+  @ApiPropertyOptional({
+    default: 24,
+    description: 'Hours before start to allow cancellation',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
