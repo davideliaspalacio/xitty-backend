@@ -25,9 +25,18 @@ import {
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { ReviewResponseDto, ReviewListResponseDto } from './dto/review-response.dto';
+import {
+  ReviewResponseDto,
+  ReviewListResponseDto,
+} from './dto/review-response.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+
+interface AuthenticatedReviewRequest {
+  user: {
+    id: string;
+  };
+}
 
 @ApiTags('reviews')
 @Controller('places/:placeId/reviews')
@@ -53,16 +62,21 @@ export class ReviewsController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a review (one per user per place) — US-014' })
+  @ApiOperation({
+    summary: 'Create a review (one per user per place) — US-014',
+  })
   @ApiParam({ name: 'placeId', description: 'Place ID' })
   @ApiBody({ type: CreateReviewDto })
   @ApiResponse({ status: 201, type: ReviewResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Place not found' })
-  @ApiResponse({ status: 409, description: 'Already reviewed — use PATCH to update' })
+  @ApiResponse({
+    status: 409,
+    description: 'Already reviewed — use PATCH to update',
+  })
   async create(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedReviewRequest,
     @Body() dto: CreateReviewDto,
   ) {
     return this.reviewsService.create(placeId, req.user.id, dto);
@@ -79,7 +93,7 @@ export class ReviewsController {
   @ApiResponse({ status: 404, description: 'Review not found' })
   async update(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedReviewRequest,
     @Body() dto: UpdateReviewDto,
   ) {
     return this.reviewsService.update(placeId, req.user.id, dto);
@@ -95,7 +109,7 @@ export class ReviewsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async remove(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedReviewRequest,
   ) {
     return this.reviewsService.remove(placeId, req.user.id);
   }
