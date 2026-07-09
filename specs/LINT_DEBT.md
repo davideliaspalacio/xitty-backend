@@ -213,7 +213,7 @@ Avance aplicado:
 - PR tecnico #93 `chore/backend-lint-source-factory-spec`:
   `source.factory.spec.ts` queda con fixture tipada, sin casts `any`, formato
   Prettier y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-scraping-module-spec`:
+- PR tecnico #94 `chore/backend-lint-scraping-module-spec`:
   `scraping.module.spec.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -88 archivos con problemas, -2656 errores y -245 warnings.
