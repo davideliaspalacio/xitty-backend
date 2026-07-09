@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 2.
-- Errores: 2.
+- Archivos con problemas: 1.
+- Errores: 1.
 - Warnings: 0.
-- Errores auto-fixables: 2.
+- Errores auto-fixables: 1.
 
 Avance aplicado:
 
@@ -299,19 +299,21 @@ Avance aplicado:
 - PR tecnico #122 `chore/backend-lint-og-response-dto`:
   `og-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- Reduccion neta acumulada: -116 archivos con problemas, -2708 errores y -247 warnings.
+- PR tecnico #123 `chore/backend-lint-promotion-response-dto`:
+  `promotion-response.dto.ts` queda formateado por Prettier y con lint dirigido
+  limpio.
+- Reduccion neta acumulada: -117 archivos con problemas, -2709 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 2 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 1 | 0 | Formato historico fuera de Prettier. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/promotions/dto/promotion-response.dto.ts` | 1 | 0 |
 | `src/modules/scraping/scraper-source.interface.ts` | 1 | 0 |
 
 ## Impacto en Features v2

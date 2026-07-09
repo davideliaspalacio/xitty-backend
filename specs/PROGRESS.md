@@ -143,6 +143,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #120 abierto: `chore/backend-lint-category-response-dto`; category response dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #121 abierto: `chore/backend-lint-create-place-photo-dto`; create place photo dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #122 abierto: `chore/backend-lint-og-response-dto`; og response dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #123 abierto: `chore/backend-lint-promotion-response-dto`; promotion response dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -221,6 +222,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend places smoke tests tras OG response dto: `npm test -- --runInBand src/modules/places/places.service.spec.ts` -> 1 suite / 19 tests OK.
 - Backend build tras OG response dto lint: `npm run build` -> OK.
 - Backend full lint tras OG response dto: 2 archivos / 2 errores / 0 warnings; solo queda deuda Prettier.
+- Backend promotion response dto lint: `npx eslint src/modules/promotions/dto/promotion-response.dto.ts` -> OK.
+- Backend promotions smoke tests tras promotion response dto: `npm test -- --runInBand src/modules/promotions/promotions.service.spec.ts` -> 1 suite / 23 tests OK.
+- Backend build tras promotion response dto lint: `npm run build` -> OK.
+- Backend full lint tras promotion response dto: 1 archivo / 1 error / 0 warnings; solo queda deuda Prettier.
 - Backend scraped-items repo spec lint: `npx eslint src/modules/scraping/storage/scraped-items.repo.spec.ts` -> OK.
 - Backend scraped-items repo spec tests: `npm test -- --runInBand src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 1 suite / 20 tests OK.
 - Backend build tras scraped-items lint: `npm run build` -> OK.
