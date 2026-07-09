@@ -263,7 +263,7 @@ Avance aplicado:
 - PR tecnico #110 `chore/backend-lint-discover-controller`:
   `discover.controller.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-curated-item-dto`:
+- PR tecnico #111 `chore/backend-lint-curated-item-dto`:
   `curated-item.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -105 archivos con problemas, -2696 errores y -247 warnings.
