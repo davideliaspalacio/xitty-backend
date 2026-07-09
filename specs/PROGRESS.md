@@ -231,6 +231,9 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend runner smoke tests tras scraper source interface: `npm test -- --runInBand src/modules/scraping/scheduler/runner.service.spec.ts` -> 1 suite / 16 tests OK.
 - Backend build tras scraper source interface lint: `npm run build` -> OK.
 - Backend full lint tras scraper source interface: `npx eslint "src/**/*.ts"` -> OK, 0 archivos / 0 errores / 0 warnings.
+- Backend full suite tras cierre de deuda lint: `npm test -- --runInBand` -> 38 suites / 474 tests OK.
+- Backend build final tras cierre de deuda lint: `npm run build` -> OK.
+- Backend full lint final tras cierre de deuda lint: `npx eslint "src/**/*.ts"` -> OK.
 - Backend scraped-items repo spec lint: `npx eslint src/modules/scraping/storage/scraped-items.repo.spec.ts` -> OK.
 - Backend scraped-items repo spec tests: `npm test -- --runInBand src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 1 suite / 20 tests OK.
 - Backend build tras scraped-items lint: `npm run build` -> OK.
