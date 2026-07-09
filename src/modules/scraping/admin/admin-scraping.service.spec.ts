@@ -1,8 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 import { AdminScrapingService } from './admin-scraping.service';
 import { ScrapingSourcesRepo } from '../storage/scraping-sources.repo';
@@ -14,9 +11,20 @@ import { ScrapingExecutorService } from '../executor/scraping-executor.service';
 function createChain(result: any) {
   const chain: any = {};
   const methods = [
-    'from', 'select', 'insert', 'update', 'delete', 'upsert',
-    'eq', 'neq', 'in', 'order', 'range', 'limit',
-    'single', 'maybeSingle',
+    'from',
+    'select',
+    'insert',
+    'update',
+    'delete',
+    'upsert',
+    'eq',
+    'neq',
+    'in',
+    'order',
+    'range',
+    'limit',
+    'single',
+    'maybeSingle',
   ];
   methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
   chain.then = (resolve: any, reject?: any) =>
@@ -128,7 +136,9 @@ describe('AdminScrapingService', () => {
       supabase._on(null);
       supabase.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({ count: 12, data: null, error: null }),
+          eq: jest
+            .fn()
+            .mockResolvedValue({ count: 12, data: null, error: null }),
         }),
       });
 
@@ -144,14 +154,26 @@ describe('AdminScrapingService', () => {
     it('si el conteo falla, items_count cae a 0 (no rompe la lista)', async () => {
       sourcesRepo.findAll.mockResolvedValue([
         {
-          id: 's1', name: 'a', kind: 'manual', config: {}, enabled: true,
-          schedule_cron: null, last_run_at: null,
-          created_at: 't', updated_at: 't',
+          id: 's1',
+          name: 'a',
+          kind: 'manual',
+          config: {},
+          enabled: true,
+          schedule_cron: null,
+          last_run_at: null,
+          created_at: 't',
+          updated_at: 't',
         } as any,
       ]);
       supabase.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({ count: null, data: null, error: { message: 'boom' } }),
+          eq: jest
+            .fn()
+            .mockResolvedValue({
+              count: null,
+              data: null,
+              error: { message: 'boom' },
+            }),
         }),
       });
 
@@ -168,9 +190,15 @@ describe('AdminScrapingService', () => {
   describe('upsertSource', () => {
     it('delega al repo con los defaults aplicados', async () => {
       sourcesRepo.upsert.mockResolvedValue({
-        id: 'new', name: 'x', kind: 'manual', config: {}, enabled: true,
-        schedule_cron: null, last_run_at: null,
-        created_at: 't', updated_at: 't',
+        id: 'new',
+        name: 'x',
+        kind: 'manual',
+        config: {},
+        enabled: true,
+        schedule_cron: null,
+        last_run_at: null,
+        created_at: 't',
+        updated_at: 't',
       } as any);
 
       const result = await service.upsertSource({
@@ -349,7 +377,8 @@ describe('AdminScrapingService', () => {
     it('llama repo.updateFields con los campos definidos', async () => {
       itemsRepo.findById.mockResolvedValue({ id: 'i1' } as any);
       itemsRepo.updateFields.mockResolvedValue({
-        id: 'i1', title: 'nuevo titulo',
+        id: 'i1',
+        title: 'nuevo titulo',
       } as any);
 
       const result = await service.patchItem('i1', {
@@ -378,7 +407,9 @@ describe('AdminScrapingService', () => {
   describe('approveItem', () => {
     it('mueve a approved con reviewer_id', async () => {
       itemsRepo.approve.mockResolvedValue({
-        id: 'i1', status: 'approved', reviewed_by: 'admin-uid',
+        id: 'i1',
+        status: 'approved',
+        reviewed_by: 'admin-uid',
       } as any);
 
       const result = await service.approveItem('i1', 'admin-uid');
@@ -394,7 +425,9 @@ describe('AdminScrapingService', () => {
   describe('rejectItem', () => {
     it('mueve a rejected con reviewer y razon', async () => {
       itemsRepo.reject.mockResolvedValue({
-        id: 'i1', status: 'rejected', reviewed_by: 'admin-uid',
+        id: 'i1',
+        status: 'rejected',
+        reviewed_by: 'admin-uid',
         rejection_reason: 'duplicado',
       } as any);
 
@@ -410,7 +443,8 @@ describe('AdminScrapingService', () => {
 
     it('acepta razon vacia o no provista (campo opcional)', async () => {
       itemsRepo.reject.mockResolvedValue({
-        id: 'i1', status: 'rejected',
+        id: 'i1',
+        status: 'rejected',
       } as any);
       await service.rejectItem('i1', 'admin-uid', undefined);
       expect(itemsRepo.reject).toHaveBeenCalledWith(
@@ -444,18 +478,26 @@ describe('AdminScrapingService', () => {
         title: 'La Trattoria',
         description: 'pasta',
         location_name: 'Calle 84',
-        lat: 10.99, lng: -74.79,
+        lat: 10.99,
+        lng: -74.79,
         price_cop: 50000,
         category_hint: 'restaurante',
-        starts_at: null, ends_at: null,
+        starts_at: null,
+        ends_at: null,
+        source_kind: 'google_places',
+        source_external_id: 'g-1',
         source_url: 'https://x.com',
         image_url: 'https://x.com/img.jpg',
         status: 'approved',
       } as any);
 
+      supabase._on(null); // source identity lookup
+      supabase._on(null); // source_url lookup
       const insertChain = mockInsertReturning('place-new');
       itemsRepo.publish.mockResolvedValue({
-        id: 'i1', status: 'published', published_place_id: 'place-new',
+        id: 'i1',
+        status: 'published',
+        published_place_id: 'place-new',
       } as any);
 
       const result = await service.publishItem('i1');
@@ -466,6 +508,15 @@ describe('AdminScrapingService', () => {
       expect(inserted.description).toBe('pasta');
       expect(inserted.latitude).toBe(10.99);
       expect(inserted.longitude).toBe(-74.79);
+      expect(inserted.source_kind).toBe('google_places');
+      expect(inserted.source_external_id).toBe('g-1');
+      expect(inserted.source_url).toBe('https://x.com');
+      expect(inserted.data_provenance.source).toEqual({
+        kind: 'google_places',
+        external_id: 'g-1',
+        url: 'https://x.com',
+        enriched_item_id: 'i1',
+      });
       expect(itemsRepo.publish).toHaveBeenCalledWith('i1', {
         placeId: 'place-new',
       });
@@ -474,12 +525,17 @@ describe('AdminScrapingService', () => {
 
     it('si category_hint es "bar" o "hotel" tambien crea PLACE', async () => {
       itemsRepo.findById.mockResolvedValue({
-        id: 'i1', title: 'Bar X', category_hint: 'bar',
-        lat: 10, lng: -74,
+        id: 'i1',
+        title: 'Bar X',
+        category_hint: 'bar',
+        lat: 10,
+        lng: -74,
       } as any);
       mockInsertReturning('place-bar');
       itemsRepo.publish.mockResolvedValue({
-        id: 'i1', status: 'published', published_place_id: 'place-bar',
+        id: 'i1',
+        status: 'published',
+        published_place_id: 'place-bar',
       } as any);
 
       await service.publishItem('i1');
@@ -496,7 +552,8 @@ describe('AdminScrapingService', () => {
         title: 'Tour mural Centro',
         description: 'recorrido',
         location_name: 'Centro',
-        lat: 10.99, lng: -74.79,
+        lat: 10.99,
+        lng: -74.79,
         price_cop: 80000,
         category_hint: 'tour',
         starts_at: '2026-07-01T15:00:00Z',
@@ -506,7 +563,9 @@ describe('AdminScrapingService', () => {
 
       const insertChain = mockInsertReturning('exp-new');
       itemsRepo.publish.mockResolvedValue({
-        id: 'i1', status: 'published', published_experience_id: 'exp-new',
+        id: 'i1',
+        status: 'published',
+        published_experience_id: 'exp-new',
       } as any);
 
       const result = await service.publishItem('i1');
@@ -525,12 +584,16 @@ describe('AdminScrapingService', () => {
 
     it('si category_hint es "evento" o "workshop" tambien crea EXPERIENCE', async () => {
       itemsRepo.findById.mockResolvedValue({
-        id: 'i1', title: 'Workshop salsa', category_hint: 'workshop',
+        id: 'i1',
+        title: 'Workshop salsa',
+        category_hint: 'workshop',
         price_cop: 30000,
       } as any);
       mockInsertReturning('exp-w');
       itemsRepo.publish.mockResolvedValue({
-        id: 'i1', status: 'published', published_experience_id: 'exp-w',
+        id: 'i1',
+        status: 'published',
+        published_experience_id: 'exp-w',
       } as any);
 
       await service.publishItem('i1');
@@ -543,12 +606,17 @@ describe('AdminScrapingService', () => {
 
     it('si category_hint es desconocido cae en PLACE por default', async () => {
       itemsRepo.findById.mockResolvedValue({
-        id: 'i1', title: 'Misterio', category_hint: 'algo-raro',
-        lat: 10, lng: -74,
+        id: 'i1',
+        title: 'Misterio',
+        category_hint: 'algo-raro',
+        lat: 10,
+        lng: -74,
       } as any);
       mockInsertReturning('place-def');
       itemsRepo.publish.mockResolvedValue({
-        id: 'i1', status: 'published', published_place_id: 'place-def',
+        id: 'i1',
+        status: 'published',
+        published_place_id: 'place-def',
       } as any);
 
       await service.publishItem('i1');
@@ -561,12 +629,17 @@ describe('AdminScrapingService', () => {
 
     it('si category_hint es null cae en PLACE por default', async () => {
       itemsRepo.findById.mockResolvedValue({
-        id: 'i1', title: 'Lugar X', category_hint: null,
-        lat: 10, lng: -74,
+        id: 'i1',
+        title: 'Lugar X',
+        category_hint: null,
+        lat: 10,
+        lng: -74,
       } as any);
       mockInsertReturning('place-null');
       itemsRepo.publish.mockResolvedValue({
-        id: 'i1', status: 'published', published_place_id: 'place-null',
+        id: 'i1',
+        status: 'published',
+        published_place_id: 'place-null',
       } as any);
 
       await service.publishItem('i1');
@@ -574,9 +647,62 @@ describe('AdminScrapingService', () => {
       expect(supabase.from).toHaveBeenCalledWith('places');
     });
 
+    it('si ya existe un place con la misma identidad externa, lo reutiliza', async () => {
+      itemsRepo.findById.mockResolvedValue({
+        id: 'i1',
+        title: 'Castillo de San Felipe',
+        category_hint: 'lugar',
+        source_kind: 'google_places',
+        source_external_id: 'ChIJ123',
+        source_url: 'https://maps.google.com/?cid=123',
+        status: 'approved',
+      } as any);
+      supabase._on({ id: 'place-existing' });
+      itemsRepo.publish.mockResolvedValue({
+        id: 'i1',
+        status: 'published',
+        published_place_id: 'place-existing',
+      } as any);
+
+      const result = await service.publishItem('i1');
+
+      expect(supabase.from).toHaveBeenCalledTimes(1);
+      expect(itemsRepo.publish).toHaveBeenCalledWith('i1', {
+        placeId: 'place-existing',
+      });
+      expect(result.published_place_id).toBe('place-existing');
+    });
+
+    it('si no hay identidad externa, deduplica por source_url', async () => {
+      itemsRepo.findById.mockResolvedValue({
+        id: 'i1',
+        title: 'Lugar con URL',
+        category_hint: 'restaurante',
+        source_kind: null,
+        source_external_id: null,
+        source_url: 'https://maps.google.com/?cid=999',
+        status: 'approved',
+      } as any);
+      supabase._on({ id: 'place-by-url' });
+      itemsRepo.publish.mockResolvedValue({
+        id: 'i1',
+        status: 'published',
+        published_place_id: 'place-by-url',
+      } as any);
+
+      await service.publishItem('i1');
+
+      expect(supabase.from).toHaveBeenCalledTimes(1);
+      expect(itemsRepo.publish).toHaveBeenCalledWith('i1', {
+        placeId: 'place-by-url',
+      });
+    });
+
     it('rechaza publicar si el item esta en status=rejected', async () => {
       itemsRepo.findById.mockResolvedValue({
-        id: 'i1', title: 'x', category_hint: 'restaurante',
+        id: 'i1',
+        title: 'x',
+        category_hint: 'restaurante',
         status: 'rejected',
       } as any);
 
@@ -588,8 +714,11 @@ describe('AdminScrapingService', () => {
 
     it('si el insert en places/experiences falla, NO marca el item como published', async () => {
       itemsRepo.findById.mockResolvedValue({
-        id: 'i1', title: 'x', category_hint: 'restaurante',
-        lat: 10, lng: -74,
+        id: 'i1',
+        title: 'x',
+        category_hint: 'restaurante',
+        lat: 10,
+        lng: -74,
         status: 'approved',
       } as any);
 

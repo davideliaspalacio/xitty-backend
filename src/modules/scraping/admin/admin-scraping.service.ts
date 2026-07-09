@@ -30,6 +30,20 @@ const RAW_TABLE = 'scraped_items_raw';
 const PLACES_TABLE = 'places';
 const EXPERIENCES_TABLE = 'experiences';
 
+interface PublishedPlaceResult {
+  id: string;
+  created: boolean;
+}
+
+interface IdRow {
+  id: string;
+}
+
+interface CountResult {
+  count: number | null;
+  error: { message: string } | null;
+}
+
 /**
  * Categorias de hint que se mapean a `experiences`. El resto cae en `places`
  * por default — places es el tipo "lugar fisico" y experiences es la cosa
@@ -92,15 +106,15 @@ export class AdminScrapingService {
 
   private async countRawItems(sourceId: string): Promise<number> {
     try {
-      const { count, error } = (await this.supabase
+      const result = (await this.supabase
         .from(RAW_TABLE)
         .select('id', { count: 'exact', head: true })
-        .eq('source_id', sourceId)) as any;
-      if (error) return 0;
-      return count ?? 0;
-    } catch (err: any) {
+        .eq('source_id', sourceId)) as unknown as CountResult;
+      if (result.error) return 0;
+      return result.count ?? 0;
+    } catch (err: unknown) {
       this.logger.warn(
-        `countRawItems(${sourceId}) failed (ignored): ${err?.message ?? err}`,
+        `countRawItems(${sourceId}) failed (ignored): ${errorMessage(err)}`,
       );
       return 0;
     }
@@ -124,9 +138,9 @@ export class AdminScrapingService {
     await this.sourcesRepo.findById(id);
 
     const hasAny =
-      dto.enabled !== undefined
-      || dto.schedule_cron !== undefined
-      || dto.config !== undefined;
+      dto.enabled !== undefined ||
+      dto.schedule_cron !== undefined ||
+      dto.config !== undefined;
     if (!hasAny) {
       throw new BadRequestException(
         'patch requiere al menos un campo (enabled, schedule_cron, config)',
@@ -142,7 +156,10 @@ export class AdminScrapingService {
    * el pipeline real contra la DB (sources → runs → raw → enrich → enriched).
    * El `triggeredBy` (id del admin) queda registrado en la fila de `scraping_runs`.
    */
-  async runSourceNow(sourceId: string, triggeredBy: string): Promise<ScrapingRunRow> {
+  async runSourceNow(
+    sourceId: string,
+    triggeredBy: string,
+  ): Promise<ScrapingRunRow> {
     this.logger.log(
       `runSourceNow source=${sourceId} triggered_by=${triggeredBy}`,
     );
@@ -179,14 +196,22 @@ export class AdminScrapingService {
   ): Promise<ScrapedItemEnriched> {
     await this.itemsRepo.findById(id);
 
-    const fields: Record<string, any> = {};
+    const fields: Partial<UpdateScrapedItemDto> = {};
     const allowed = [
-      'title', 'description', 'category_hint', 'location_name',
-      'lat', 'lng', 'starts_at', 'ends_at', 'price_cop',
+      'title',
+      'description',
+      'category_hint',
+      'location_name',
+      'lat',
+      'lng',
+      'starts_at',
+      'ends_at',
+      'price_cop',
     ] as const;
     for (const key of allowed) {
-      if ((dto as any)[key] !== undefined) {
-        fields[key] = (dto as any)[key];
+      const value = dto[key];
+      if (value !== undefined) {
+        fields[key] = value as never;
       }
     }
     if (Object.keys(fields).length === 0) {
@@ -250,9 +275,11 @@ export class AdminScrapingService {
       await this.attachCover('experience_photos', 'experience_id', expId, item);
       return this.itemsRepo.publish(id, { experienceId: expId });
     }
-    const placeId = await this.insertPlace(item);
-    await this.attachCover('place_photos', 'place_id', placeId, item);
-    return this.itemsRepo.publish(id, { placeId });
+    const place = await this.insertPlace(item);
+    if (place.created) {
+      await this.attachCover('place_photos', 'place_id', place.id, item);
+    }
+    return this.itemsRepo.publish(id, { placeId: place.id });
   }
 
   /**
@@ -288,7 +315,14 @@ export class AdminScrapingService {
     return EXPERIENCE_HINTS.has(normalized) ? 'experience' : 'place';
   }
 
-  private async insertPlace(item: ScrapedItemEnriched): Promise<string> {
+  private async insertPlace(
+    item: ScrapedItemEnriched,
+  ): Promise<PublishedPlaceResult> {
+    const existingPlaceId = await this.findExistingPlaceForItem(item);
+    if (existingPlaceId) {
+      return { id: existingPlaceId, created: false };
+    }
+
     const row = {
       name: item.title,
       description: item.description ?? null,
@@ -308,6 +342,10 @@ export class AdminScrapingService {
       total_reviews: item.review_count ?? 0,
       // Opiniones reales de la fuente (Google), display-only con atribución.
       source_reviews: item.source_reviews ?? null,
+      source_kind: item.source_kind ?? null,
+      source_external_id: item.source_external_id ?? null,
+      source_url: item.source_url ?? null,
+      data_provenance: this.buildPlaceProvenance(item),
       tags: item.category_hint ? [item.category_hint] : [],
       is_active: true,
     };
@@ -323,7 +361,72 @@ export class AdminScrapingService {
         `Could not create place from item ${item.id}: ${error?.message ?? 'unknown error'}`,
       );
     }
-    return (data as any).id;
+    const place = data as IdRow;
+    return { id: place.id, created: true };
+  }
+
+  private async findExistingPlaceForItem(
+    item: ScrapedItemEnriched,
+  ): Promise<string | null> {
+    if (item.source_kind && item.source_external_id) {
+      const { data, error } = await this.supabase
+        .from(PLACES_TABLE)
+        .select('id')
+        .eq('source_kind', item.source_kind)
+        .eq('source_external_id', item.source_external_id)
+        .maybeSingle();
+
+      if (error) {
+        throw new BadRequestException(
+          `Could not check place source identity: ${error.message}`,
+        );
+      }
+      if (data) return (data as IdRow).id;
+    }
+
+    if (item.source_url) {
+      const { data, error } = await this.supabase
+        .from(PLACES_TABLE)
+        .select('id')
+        .eq('source_url', item.source_url)
+        .maybeSingle();
+
+      if (error) {
+        throw new BadRequestException(
+          `Could not check place source URL: ${error.message}`,
+        );
+      }
+      if (data) return (data as IdRow).id;
+    }
+
+    return null;
+  }
+
+  private buildPlaceProvenance(
+    item: ScrapedItemEnriched,
+  ): Record<string, unknown> {
+    const source = {
+      kind: item.source_kind ?? null,
+      external_id: item.source_external_id ?? null,
+      url: item.source_url ?? null,
+      enriched_item_id: item.id,
+    };
+
+    return {
+      source,
+      fields: {
+        name: source,
+        description: source,
+        address: source,
+        coordinates: source,
+        phone: source,
+        website: source,
+        opening_hours: source,
+        price_level: source,
+        rating: source,
+        source_reviews: source,
+      },
+    };
   }
 
   private async insertExperience(item: ScrapedItemEnriched): Promise<string> {
@@ -357,7 +460,8 @@ export class AdminScrapingService {
         `Could not create experience from item ${item.id}: ${error?.message ?? 'unknown error'}`,
       );
     }
-    return (data as any).id;
+    const experience = data as IdRow;
+    return experience.id;
   }
 
   private computeDurationMinutes(
@@ -384,4 +488,8 @@ export class AdminScrapingService {
     }
     return 'tour';
   }
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }

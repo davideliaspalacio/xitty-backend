@@ -4,7 +4,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
 | ------------------------------ | ------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------- |
-| F1 Poblacion de lugares        | Parcial auditado                     | Pendiente                          | Esperar politica de fotos/licencias y preparar seed/reporte idempotente.            |
+| F1 Poblacion de lugares        | Implementado parcial, pendiente PR   | `feature/f1-place-provenance-report` | Abrir PR apilado despues de F6 backend #29; fotos/licencias quedan pendientes.       |
 | F2 Perfil publico URL propia   | Implementado, pendiente PR/QA amplio | `feature/f2-public-slugs-og`       | Abrir PR apilado despues de F5.                                                     |
 | F3 Promociones                 | PR abierto, pendiente review/merge   | Backend #25 / Frontend #21         | Mergear despues de F2 backend #24 y frontend #20.                                   |
 | F4 Tracking de eventos         | Implementado, pendiente PR/QA amplio | `feature/f4-tracking-anti-inflado` | Abrir PR coordinado backend/frontend y correr suite amplia si el tiempo lo permite. |
@@ -38,6 +38,8 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: iniciado F6 preferencias de notificaciones.
 - 2026-07-09: F6 implementado con outbox neutral, resumen diario programable y tracking que respeta preferencias sin depender aun de proveedor email/push/WhatsApp.
 - 2026-07-09: F6 PRs abiertos: backend #29 y frontend #24.
+- 2026-07-09: iniciado F1 poblacion de lugares.
+- 2026-07-09: F1 avance implementado con proveniencia de fuente, publicacion idempotente por source y reporte SQL de completitud/faltantes.
 
 ## Evidencia F4
 
@@ -107,3 +109,9 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - Frontend build: `npm run build` -> OK.
 - Frontend lint dirigido: `npx eslint 'src/app/(app)/dashboard/settings/page.tsx'` -> OK.
 - PRs: backend <https://github.com/davideliaspalacio/xitty-backend/pull/29>, frontend <https://github.com/davideliaspalacio/xitty-frontend/pull/24>.
+
+## Evidencia F1
+
+- Backend tests: `npm test -- --runInBand src/modules/scraping/admin/admin-scraping.service.spec.ts src/modules/scraping/executor/scraping-executor.service.spec.ts src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 3 suites / 58 tests OK.
+- Backend build: `npm run build` -> OK.
+- Backend lint dirigido: `npx eslint src/modules/scraping/admin/admin-scraping.service.ts src/modules/scraping/executor/scraping-executor.service.ts src/modules/scraping/storage/scraped-items.repo.ts` -> OK.
