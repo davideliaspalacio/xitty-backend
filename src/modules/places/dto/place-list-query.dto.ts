@@ -4,8 +4,10 @@ import {
   IsInt,
   IsEnum,
   IsNumber,
+  IsString,
   Min,
   Max,
+  MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -32,6 +34,24 @@ export class PlaceListQueryDto extends PaginationDto {
   @IsOptional()
   @IsUUID()
   category_id?: string;
+
+  @ApiProperty({
+    description: 'Filter by operational city, e.g. Cartagena or Barranquilla',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  city?: string;
+
+  @ApiProperty({
+    description: 'Filter by neighborhood/zone inside the city',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(160)
+  zone?: string;
 
   @ApiProperty({
     description: 'Filter by price range (1-4)',

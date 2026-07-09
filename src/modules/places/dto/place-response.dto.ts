@@ -20,6 +20,8 @@ export class PlaceCardDto {
   @ApiProperty() name: string;
   @ApiProperty({ nullable: true }) description: string | null;
   @ApiProperty({ nullable: true }) address: string | null;
+  @ApiProperty({ nullable: true }) city: string | null;
+  @ApiProperty({ nullable: true }) zone: string | null;
   @ApiProperty({ nullable: true }) latitude: number | null;
   @ApiProperty({ nullable: true }) longitude: number | null;
   @ApiProperty({ nullable: true }) price_range: number | null;
@@ -36,6 +38,8 @@ export class PlaceDetailDto {
   @ApiProperty() name: string;
   @ApiProperty({ nullable: true }) description: string | null;
   @ApiProperty({ nullable: true }) address: string | null;
+  @ApiProperty({ nullable: true }) city: string | null;
+  @ApiProperty({ nullable: true }) zone: string | null;
   @ApiProperty({ nullable: true }) latitude: number | null;
   @ApiProperty({ nullable: true }) longitude: number | null;
   @ApiProperty({ nullable: true }) phone: string | null;

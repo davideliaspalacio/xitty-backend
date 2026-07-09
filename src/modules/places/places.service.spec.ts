@@ -200,6 +200,49 @@ describe('PlacesService', () => {
       expect(chain.eq).toHaveBeenCalledWith('category_id', 'cat-uuid');
     });
 
+    it('filtra por ciudad y zona operacional', async () => {
+      const chain = supabase._on([], null, 0);
+
+      await service.findAll({
+        page: 1,
+        limit: 10,
+        city: ' Cartagena ',
+        zone: 'Centro Historico',
+      });
+
+      expect(chain.eq).toHaveBeenCalledWith('city', 'Cartagena');
+      expect(chain.eq).toHaveBeenCalledWith('zone', 'Centro Historico');
+    });
+
+    it('pasa ciudad y zona al RPC de distancia', async () => {
+      supabase.rpc.mockResolvedValueOnce({
+        data: [],
+        error: null,
+        count: null,
+      });
+      const countChain = supabase._on([], null, 0);
+
+      await service.findAll({
+        page: 1,
+        limit: 10,
+        sort_by: PlaceSortBy.DISTANCE,
+        latitude: 10.4,
+        longitude: -75.5,
+        city: 'Cartagena',
+        zone: 'Getsemani',
+      });
+
+      expect(supabase.rpc).toHaveBeenCalledWith(
+        'list_places_near',
+        expect.objectContaining({
+          p_city: 'Cartagena',
+          p_zone: 'Getsemani',
+        }),
+      );
+      expect(countChain.eq).toHaveBeenCalledWith('city', 'Cartagena');
+      expect(countChain.eq).toHaveBeenCalledWith('zone', 'Getsemani');
+    });
+
     // ── traveler_type filter ─────────────────────────────────────
     it('acepta traveler_type opcional y filtra por tag matching', async () => {
       const chain = supabase._on(

@@ -27,10 +27,10 @@ const CATEGORIES_TABLE = 'categories';
 const PHOTOS_TABLE = 'place_photos';
 
 const PLACE_CARD_SELECT =
-  'id, name, description, address, latitude, longitude, price_range, average_rating, total_reviews, tags, translations, categories(id, name, slug, icon)';
+  'id, name, description, address, city, zone, latitude, longitude, price_range, average_rating, total_reviews, tags, translations, categories(id, name, slug, icon)';
 
 const PLACE_DETAIL_SELECT =
-  'id, name, description, address, latitude, longitude, phone, website, price_range, schedule, source_reviews, category_id, categories(id, name, slug, icon), owner_id, tags, translations, average_rating, total_reviews, is_active, slug, cta_phone, cta_whatsapp, reservation_url, is_sponsored, sponsored_until, created_at, updated_at';
+  'id, name, description, address, city, zone, latitude, longitude, phone, website, price_range, schedule, source_reviews, category_id, categories(id, name, slug, icon), owner_id, tags, translations, average_rating, total_reviews, is_active, slug, cta_phone, cta_whatsapp, reservation_url, is_sponsored, sponsored_until, created_at, updated_at';
 
 interface SupabaseError {
   message: string;
@@ -76,6 +76,8 @@ interface PlaceUpdates {
   name?: string;
   description?: string;
   address?: string;
+  city?: string;
+  zone?: string;
   latitude?: number;
   longitude?: number;
   phone?: string;
@@ -141,6 +143,8 @@ export class PlacesService {
       .eq('is_active', true);
 
     if (query.category_id) qb = qb.eq('category_id', query.category_id);
+    if (query.city) qb = qb.eq('city', normalizeTextFilter(query.city));
+    if (query.zone) qb = qb.eq('zone', normalizeTextFilter(query.zone));
     if (query.price_range) qb = qb.eq('price_range', query.price_range);
     if (query.traveler_type) {
       qb = qb.contains('tags', [query.traveler_type]);
@@ -215,6 +219,8 @@ export class PlacesService {
       user_lng: query.longitude,
       p_category_id: query.category_id || null,
       p_price_range: query.price_range || null,
+      p_city: query.city ? normalizeTextFilter(query.city) : null,
+      p_zone: query.zone ? normalizeTextFilter(query.zone) : null,
       p_limit: limit,
       p_offset: offset,
     })) as unknown as SupabaseListResult<PlaceCardDto>;
@@ -231,6 +237,12 @@ export class PlacesService {
 
     if (query.category_id) {
       countQb = countQb.eq('category_id', query.category_id);
+    }
+    if (query.city) {
+      countQb = countQb.eq('city', normalizeTextFilter(query.city));
+    }
+    if (query.zone) {
+      countQb = countQb.eq('zone', normalizeTextFilter(query.zone));
     }
     if (query.price_range) {
       countQb = countQb.eq('price_range', query.price_range);
@@ -342,6 +354,8 @@ export class PlacesService {
         name: dto.name,
         description: dto.description,
         address: dto.address,
+        city: dto.city,
+        zone: dto.zone,
         latitude: dto.latitude,
         longitude: dto.longitude,
         phone: dto.phone,
@@ -392,6 +406,8 @@ export class PlacesService {
     if (dto.name !== undefined) updates.name = dto.name;
     if (dto.description !== undefined) updates.description = dto.description;
     if (dto.address !== undefined) updates.address = dto.address;
+    if (dto.city !== undefined) updates.city = dto.city;
+    if (dto.zone !== undefined) updates.zone = dto.zone;
     if (dto.latitude !== undefined) updates.latitude = dto.latitude;
     if (dto.longitude !== undefined) updates.longitude = dto.longitude;
     if (dto.phone !== undefined) updates.phone = dto.phone;
@@ -516,4 +532,8 @@ export class PlacesService {
       site_name: 'Xitty',
     };
   }
+}
+
+function normalizeTextFilter(value: string): string {
+  return value.trim();
 }

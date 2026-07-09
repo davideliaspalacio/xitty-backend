@@ -32,6 +32,24 @@ export class CreatePlaceDto {
   @IsString()
   address?: string;
 
+  @ApiProperty({
+    description: 'Operational city scope, e.g. Cartagena or Barranquilla',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  city?: string;
+
+  @ApiProperty({
+    description: 'Neighborhood/zone inside the city',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(160)
+  zone?: string;
+
   @ApiProperty({ description: 'Latitude', example: 10.9685, required: false })
   @IsOptional()
   @IsNumber()

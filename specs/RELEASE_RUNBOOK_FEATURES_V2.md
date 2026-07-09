@@ -6,7 +6,7 @@ Estado actual: los PRs backend #22-#124 y frontend #18-#24 ya fueron mergeados e
 
 Verificacion post-merge local:
 
-- Backend `main`: `npm test -- --runInBand` OK (38 suites / 474 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
+- Backend `main`: `npm test -- --runInBand` OK (38 suites / 476 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
 - Frontend `main`: `npm run test:run` OK (41 files / 207 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
 
 ## Orden de merge completado
@@ -142,8 +142,9 @@ Aplicar en orden cronologico despues de mergear cada PR backend correspondiente:
 9. `20260709000009_place_source_provenance_report.sql`
 10. `20260709000010_expand_cartagena_scraping_sources.sql`
 11. `20260709000011_city_scoped_rankings.sql`
+12. `20260709000012_filter_nearby_places_by_city_zone.sql`
 
-Despues de `20260709000011`, correr:
+Despues de aplicar todas las migraciones, correr:
 
 ```sql
 SELECT public.refresh_place_rankings();
@@ -180,7 +181,7 @@ Para quien tenga acceso al proyecto Supabase correcto:
 1. Ejecutar `supabase login` o exportar `SUPABASE_ACCESS_TOKEN`.
 2. Ejecutar `supabase link --project-ref <project-ref-produccion>`.
 3. Ejecutar `supabase db push` desde `xitty-backend`.
-4. Confirmar que se aplicaron las 11 migraciones `20260709...`.
+4. Confirmar que se aplicaron las 12 migraciones `20260709...`.
 5. Correr en SQL editor: `SELECT public.refresh_place_rankings();`.
 
 ## Post-merge operativo
