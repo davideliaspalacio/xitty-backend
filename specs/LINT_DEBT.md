@@ -269,7 +269,7 @@ Avance aplicado:
 - PR tecnico #112 `chore/backend-lint-scheduler-module`:
   `scheduler.module.ts` queda sin `async` innecesario en servicios NOOP y con
   lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-database-module`:
+- PR tecnico #113 `chore/backend-lint-database-module`:
   `database.module.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -107 archivos con problemas, -2699 errores y -247 warnings.
