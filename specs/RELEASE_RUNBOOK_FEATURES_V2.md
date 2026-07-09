@@ -8,6 +8,7 @@ Verificacion post-merge local:
 
 - Backend `main`: `npm test -- --runInBand` OK (38 suites / 476 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
 - Frontend `main`: `npm run test:run` OK (41 files / 207 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
+- Migraciones locales: `supabase db reset` OK en copia temporal, aplicando todas las migraciones hasta `20260709000012_filter_nearby_places_by_city_zone.sql`.
 
 ## Orden de merge completado
 
