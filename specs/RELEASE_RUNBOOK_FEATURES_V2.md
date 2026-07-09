@@ -92,6 +92,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 84. #105 - PR tecnico create slot dto lint/typing, base #104.
 85. #106 - PR tecnico create local pick dto lint/typing, base #105.
 86. #107 - PR tecnico mock enrichment provider lint/typing, base #106.
+87. #108 - PR tecnico openai enrichment provider lint/typing, base #107.
 
 ### Frontend
 
