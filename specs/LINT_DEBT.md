@@ -168,7 +168,7 @@ Avance aplicado:
 - PR tecnico #78 `chore/backend-lint-preferences-controller`:
   `preferences.controller.ts` queda con request autenticado tipado y lint
   dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-consents-controller`:
+- PR tecnico #79 `chore/backend-lint-consents-controller`:
   `consents.controller.ts` queda con request autenticado tipado, formato
   Prettier y lint dirigido limpio.
 - Reduccion neta acumulada: -72 archivos con problemas, -2578 errores y -239 warnings.
