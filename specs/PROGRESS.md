@@ -132,6 +132,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #109 abierto: `chore/backend-lint-quality-scorer-service`; quality scorer service queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #110 abierto: `chore/backend-lint-discover-controller`; discover controller queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #111 abierto: `chore/backend-lint-curated-item-dto`; curated item dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico pendiente: `chore/backend-lint-scheduler-module`; scheduler module queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -168,6 +169,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend discover smoke tests tras curated item dto: `npm test -- --runInBand src/modules/scraping/public/discover.service.spec.ts` -> 1 suite / 12 tests OK.
 - Backend build tras curated item dto lint: `npm run build` -> OK.
 - Backend full lint tras curated item dto: 13 archivos / 14 errores / 0 warnings; baja deuda historica, no queda aun en verde global.
+- Backend scheduler module lint: `npx eslint src/modules/scraping/scheduler/scheduler.module.ts` -> OK.
+- Backend scheduler/module smoke tests: `npm test -- --runInBand src/modules/scraping/scraping.module.spec.ts src/modules/scraping/scheduler/runner.service.spec.ts` -> 2 suites / 20 tests OK.
+- Backend build tras scheduler module lint: `npm run build` -> OK.
+- Backend full lint tras scheduler module: 12 archivos / 12 errores / 0 warnings; solo queda deuda Prettier.
 - Backend scraped-items repo spec lint: `npx eslint src/modules/scraping/storage/scraped-items.repo.spec.ts` -> OK.
 - Backend scraped-items repo spec tests: `npm test -- --runInBand src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 1 suite / 20 tests OK.
 - Backend build tras scraped-items lint: `npm run build` -> OK.

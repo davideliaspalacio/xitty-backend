@@ -23,16 +23,18 @@ import { RunnerService } from './runner.service';
  * reemplaza en el SchedulerModule.
  */
 class NoopEnrichmentService implements EnrichmentService {
-  async enrich(item: RawItem): Promise<EnrichedItem | null> {
-    if (!item.name || item.name.trim().length === 0) return null;
-    return {
+  enrich(item: RawItem): Promise<EnrichedItem | null> {
+    if (!item.name || item.name.trim().length === 0) {
+      return Promise.resolve(null);
+    }
+    return Promise.resolve({
       ...item,
       description: item.description ?? '',
       category: item.category ?? 'general',
       latitude: item.latitude ?? 0,
       longitude: item.longitude ?? 0,
       quality_score: 1,
-    };
+    });
   }
 }
 
@@ -41,8 +43,14 @@ class NoopEnrichmentService implements EnrichmentService {
  * real cuando se agregue el modulo quality.
  */
 class NoopQualityService implements QualityService {
-  async score(item: EnrichedItem) {
-    return { score: item.quality_score ?? 1, reason: 'noop', passes: true };
+  score(
+    item: EnrichedItem,
+  ): Promise<{ score: number; reason: string; passes: boolean }> {
+    return Promise.resolve({
+      score: item.quality_score ?? 1,
+      reason: 'noop',
+      passes: true,
+    });
   }
 }
 
