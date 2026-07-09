@@ -4,6 +4,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { TodayQueryDto } from './dto/today-query.dto';
 import {
   RecommendationItemDto,
+  RecommendationPlaceCategoryDto,
   TodayRecommendationsResponseDto,
 } from './dto/recommendation-item.dto';
 
@@ -19,6 +20,40 @@ interface RpcRecommendationRow {
   place_id: string;
   score: number | string;
   reason: string | null;
+}
+
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+type NumericLike = number | string;
+
+interface RecommendationPhotoRow {
+  url: string;
+  is_cover?: boolean | null;
+  display_order?: number | null;
+}
+
+interface RecommendationPlaceRow {
+  id: string;
+  name: string | null;
+  slug: string | null;
+  description: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  price_range: number | null;
+  average_rating: NumericLike | null;
+  total_reviews: NumericLike | null;
+  tags: string[] | null;
+  category_id: string | null;
+  categories: RecommendationPlaceCategoryDto | null;
+  place_photos?: RecommendationPhotoRow[] | null;
 }
 
 @Injectable()
@@ -40,7 +75,7 @@ export class RecommendationsService {
     const lat = query.lat ?? null;
     const lng = query.lng ?? null;
 
-    const { data: rpcData, error: rpcError } = await this.supabase.rpc(
+    const { data: rpcData, error: rpcError } = (await this.supabase.rpc(
       'compute_recommendations_for',
       {
         p_user_id: userId,
@@ -48,13 +83,13 @@ export class RecommendationsService {
         p_user_lng: lng,
         p_limit: limit,
       },
-    );
+    )) as unknown as SupabaseResult<RpcRecommendationRow[]>;
 
     if (rpcError) {
       throw new BadRequestException(rpcError.message);
     }
 
-    const rows = (rpcData || []) as RpcRecommendationRow[];
+    const rows = rpcData || [];
 
     if (rows.length === 0) {
       return {
@@ -69,9 +104,8 @@ export class RecommendationsService {
     // Mantener el orden del RPC (que ya viene ordenado por score DESC).
     const items: RecommendationItemDto[] = rows.map((row) => {
       const place = placesById.get(row.place_id);
-      const photos = (place?.place_photos || []) as any[];
-      const cover =
-        photos.find((p) => p.is_cover) || photos[0] || null;
+      const photos = place?.place_photos || [];
+      const cover = photos.find((photo) => photo.is_cover) || photos[0] || null;
 
       const category = place?.categories
         ? {
@@ -99,7 +133,7 @@ export class RecommendationsService {
           price_range: place?.price_range ?? null,
           average_rating: Number(place?.average_rating ?? 0),
           total_reviews: Number(place?.total_reviews ?? 0),
-          tags: (place?.tags as string[]) ?? [],
+          tags: place?.tags ?? [],
           category_id: place?.category_id ?? null,
           category,
           cover_photo_url: cover?.url ?? null,
@@ -128,17 +162,19 @@ export class RecommendationsService {
 
   private async hydratePlaces(
     placeIds: string[],
-  ): Promise<Map<string, any>> {
-    const { data, error } = await this.supabase
+  ): Promise<Map<string, RecommendationPlaceRow>> {
+    const { data, error } = (await this.supabase
       .from(PLACES_TABLE)
       .select(PLACE_SUMMARY_SELECT)
-      .in('id', placeIds);
+      .in('id', placeIds)) as unknown as SupabaseResult<
+      RecommendationPlaceRow[]
+    >;
 
     if (error) throw new BadRequestException(error.message);
 
-    const map = new Map<string, any>();
+    const map = new Map<string, RecommendationPlaceRow>();
     for (const place of data || []) {
-      map.set((place as any).id, place);
+      map.set(place.id, place);
     }
     return map;
   }
