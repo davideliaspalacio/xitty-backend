@@ -50,6 +50,7 @@ Runbook de release: `specs/RELEASE_RUNBOOK_FEATURES_V2.md`.
 - 2026-07-09: validacion full frontend en PR #24 tras alinear test de tokens con marca verde actual.
 - 2026-07-09: smoke test manual de Google Maps/Places sin exponer secretos: Geocoding, Places Search, Place Details, Nearby Search y descarga de foto via media endpoint respondieron OK.
 - 2026-07-09: documentada `GOOGLE_MAPS_API_KEY` en `README.md` backend para evitar que el scraper corra accidentalmente en modo mock.
+- 2026-07-09: saneado y versionado `.env.example` backend sin secretos reales, incluyendo `GOOGLE_MAPS_API_KEY`.
 
 ## Evidencia transversal
 
