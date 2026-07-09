@@ -133,6 +133,7 @@ Verificacion post-merge local:
 7. #24 - F6 copy de notificaciones y tokens verdes, base #23.
 8. `fdd97ad` - ciudad operativa por defecto para discovery.
 9. `<post-merge>` - UI admin de destacados semanales en `/admin/featured`.
+10. Backend #125 / Frontend #25 - reporte admin F1 de calidad/completitud en `/admin/scraping`.
 
 ## Migraciones backend nuevas
 
@@ -151,6 +152,7 @@ Aplicar en orden cronologico despues de mergear cada PR backend correspondiente:
 11. `20260709000011_city_scoped_rankings.sql`
 12. `20260709000012_filter_nearby_places_by_city_zone.sql`
 13. `20260709000013_harden_backend_service_role_and_place_rpc.sql`
+14. `20260709000014_extend_place_data_completeness_report.sql`
 
 Despues de aplicar todas las migraciones, correr:
 
@@ -190,7 +192,7 @@ Para quien tenga acceso al proyecto Supabase correcto:
 1. Ejecutar `supabase login` o exportar `SUPABASE_ACCESS_TOKEN`.
 2. Ejecutar `supabase link --project-ref <project-ref-produccion>`.
 3. Ejecutar `supabase db push` desde `xitty-backend`.
-4. Confirmar que se aplicaron las 13 migraciones `20260709...`.
+4. Confirmar que se aplicaron las 14 migraciones `20260709...`.
 5. Correr en SQL editor: `SELECT public.refresh_place_rankings();`.
 
 ## Post-merge operativo
@@ -203,7 +205,7 @@ Smoke automatizado: `npm run smoke:features-v2 -- --api-url "$API_URL" --city Ca
 3. Confirmar `GOOGLE_MAPS_API_KEY` en el backend antes de ejecutar fuentes reales.
 4. Entrar como admin a `/admin/scraping` y ejecutar fuentes Cartagena de forma gradual.
 5. Revisar items enriquecidos antes de publicar; no publicar fotos masivamente hasta tener politica/licencia aprobada.
-6. Publicar una muestra controlada y consultar `place_data_completeness` para faltantes.
+6. Publicar una muestra controlada y revisar `/admin/scraping` > "Calidad de datos"; si hace falta, consultar `place_data_completeness` por SQL.
 7. Correr `SELECT public.refresh_place_rankings();` despues de publicar lugares relevantes.
 8. Validar rankings por ciudad: `/ranking?city=Cartagena`.
 9. Validar perfiles publicos, promociones, tracking, metricas, patrocinios y destacados con datos reales.
@@ -220,7 +222,7 @@ Smoke automatizado: `npm run smoke:features-v2 -- --api-url "$API_URL" --city Ca
 - Patrocinados siempre muestran sello "Patrocinado".
 - Destacados semanales tienen fallback si no hay programacion.
 - Admin puede programar, pausar y eliminar destacados en `/admin/featured`.
-- Reporte F1 lista faltantes sin inventar datos.
+- Admin puede ver resumen, desglose por categoria y faltantes por lugar en `/admin/scraping` > "Calidad de datos".
 
 ## Pendientes explicitamente no cerrados
 

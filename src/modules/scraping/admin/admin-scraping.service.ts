@@ -9,6 +9,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { CreateScrapingSourceDto } from './dto/create-source.dto';
 import { UpdateScrapingSourceDto } from './dto/update-source.dto';
 import { ListItemsQueryDto } from './dto/list-items-query.dto';
+import { ListPlaceCompletenessQueryDto } from './dto/list-place-completeness-query.dto';
 import { ListRunsQueryDto } from './dto/list-runs-query.dto';
 import { UpdateScrapedItemDto } from './dto/update-item.dto';
 
@@ -29,6 +30,19 @@ import { ScrapingExecutorService } from '../executor/scraping-executor.service';
 const RAW_TABLE = 'scraped_items_raw';
 const PLACES_TABLE = 'places';
 const EXPERIENCES_TABLE = 'experiences';
+const PLACE_COMPLETENESS_VIEW = 'place_data_completeness';
+const COMPLETENESS_FIELDS = [
+  'description',
+  'address',
+  'coordinates',
+  'phone_or_whatsapp',
+  'website',
+  'schedule',
+  'reviews',
+  'photos',
+  'cover_photo',
+  'source_url',
+] as const;
 
 interface PublishedPlaceResult {
   id: string;
@@ -42,6 +56,56 @@ interface IdRow {
 interface CountResult {
   count: number | null;
   error: { message: string } | null;
+}
+
+export interface PlaceCompletenessRow {
+  id: string;
+  name: string;
+  city: string | null;
+  zone: string | null;
+  category_id: string | null;
+  category_name: string | null;
+  category_slug: string | null;
+  source_kind: string | null;
+  source_external_id: string | null;
+  source_url: string | null;
+  photos_count: number;
+  cover_photos_count: number;
+  missing_fields: string[];
+  missing_count: number;
+  completeness_score: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlaceCompletenessSummary {
+  total_places: number;
+  complete_places: number;
+  incomplete_places: number;
+  average_completeness_score: number;
+  by_category: Array<{
+    category_id: string | null;
+    category_name: string;
+    total_places: number;
+    complete_places: number;
+    incomplete_places: number;
+    average_completeness_score: number;
+  }>;
+  fields: Array<{
+    field: string;
+    present_places: number;
+    missing_places: number;
+    completeness_percent: number;
+  }>;
+}
+
+export interface PlaceCompletenessReport {
+  data: PlaceCompletenessRow[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  summary: PlaceCompletenessSummary;
 }
 
 /**
@@ -188,6 +252,72 @@ export class AdminScrapingService {
 
   async findItem(id: string): Promise<ScrapedItemEnriched> {
     return this.itemsRepo.findById(id);
+  }
+
+  async listPlaceCompleteness(
+    query: ListPlaceCompletenessQueryDto,
+  ): Promise<PlaceCompletenessReport> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 50;
+    const offset = (page - 1) * limit;
+
+    const summaryQuery = this.applyCompletenessFilters(
+      this.supabase
+        .from(PLACE_COMPLETENESS_VIEW)
+        .select(
+          'id, category_id, category_name, missing_fields, missing_count, completeness_score',
+        )
+        .limit(10000),
+      query,
+    );
+    const summaryResult = await summaryQuery;
+    if (summaryResult.error) {
+      throw new BadRequestException(
+        `Could not read place completeness summary: ${summaryResult.error.message}`,
+      );
+    }
+
+    const listQuery = this.applyCompletenessFilters(
+      this.supabase
+        .from(PLACE_COMPLETENESS_VIEW)
+        .select('*', { count: 'exact' })
+        .order('completeness_score', { ascending: true, nullsFirst: false })
+        .order('missing_count', { ascending: false, nullsFirst: false })
+        .order('name', { ascending: true })
+        .range(offset, offset + limit - 1),
+      query,
+    );
+    const listResult = await listQuery;
+    if (listResult.error) {
+      throw new BadRequestException(
+        `Could not read place completeness report: ${listResult.error.message}`,
+      );
+    }
+
+    const allRows = normalizeCompletenessRows(summaryResult.data);
+    const pageRows = normalizeCompletenessRows(listResult.data);
+    const total = listResult.count ?? allRows.length;
+
+    return {
+      data: pageRows,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      summary: buildCompletenessSummary(allRows),
+    };
+  }
+
+  private applyCompletenessFilters<QueryBuilder extends CompletenessQuery>(
+    builder: QueryBuilder,
+    query: ListPlaceCompletenessQueryDto,
+  ): QueryBuilder {
+    let qb = builder;
+    if (query.city) qb = qb.eq('city', query.city);
+    if (query.zone) qb = qb.eq('zone', query.zone);
+    if (query.category_id) qb = qb.eq('category_id', query.category_id);
+    if (query.missing_only) qb = qb.gt('missing_count', 0);
+    return qb;
   }
 
   async patchItem(
@@ -496,4 +626,130 @@ export class AdminScrapingService {
 
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
+}
+
+interface CompletenessQuery {
+  eq(column: string, value: unknown): this;
+  gt(column: string, value: unknown): this;
+}
+
+function normalizeCompletenessRows(data: unknown): PlaceCompletenessRow[] {
+  if (!Array.isArray(data)) return [];
+  return data.map((row) => normalizeCompletenessRow(row));
+}
+
+function normalizeCompletenessRow(input: unknown): PlaceCompletenessRow {
+  const row = (input ?? {}) as Partial<
+    Record<keyof PlaceCompletenessRow, unknown>
+  >;
+  const missingFields = Array.isArray(row.missing_fields)
+    ? row.missing_fields.filter(
+        (field): field is string => typeof field === 'string',
+      )
+    : [];
+  const score = Number(row.completeness_score ?? 0);
+  const missingCount = Number(row.missing_count ?? missingFields.length);
+
+  return {
+    id: stringValue(row.id),
+    name: stringValue(row.name),
+    city: nullableString(row.city),
+    zone: nullableString(row.zone),
+    category_id: nullableString(row.category_id),
+    category_name: nullableString(row.category_name),
+    category_slug: nullableString(row.category_slug),
+    source_kind: nullableString(row.source_kind),
+    source_external_id: nullableString(row.source_external_id),
+    source_url: nullableString(row.source_url),
+    photos_count: Number(row.photos_count ?? 0),
+    cover_photos_count: Number(row.cover_photos_count ?? 0),
+    missing_fields: missingFields,
+    missing_count: Number.isFinite(missingCount)
+      ? missingCount
+      : missingFields.length,
+    completeness_score: Number.isFinite(score) ? score : 0,
+    created_at: stringValue(row.created_at),
+    updated_at: stringValue(row.updated_at),
+  };
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function nullableString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function buildCompletenessSummary(
+  rows: PlaceCompletenessRow[],
+): PlaceCompletenessSummary {
+  const total = rows.length;
+  const complete = rows.filter((row) => row.missing_count === 0).length;
+  const average = averageScore(rows);
+
+  const categoryMap = new Map<
+    string,
+    {
+      category_id: string | null;
+      category_name: string;
+      rows: PlaceCompletenessRow[];
+    }
+  >();
+  for (const row of rows) {
+    const key = row.category_id ?? 'uncategorized';
+    const entry = categoryMap.get(key) ?? {
+      category_id: row.category_id,
+      category_name: row.category_name ?? 'Sin categoria',
+      rows: [],
+    };
+    entry.rows.push(row);
+    categoryMap.set(key, entry);
+  }
+
+  return {
+    total_places: total,
+    complete_places: complete,
+    incomplete_places: total - complete,
+    average_completeness_score: average,
+    by_category: Array.from(categoryMap.values())
+      .map((entry) => {
+        const totalPlaces = entry.rows.length;
+        const completePlaces = entry.rows.filter(
+          (row) => row.missing_count === 0,
+        ).length;
+        return {
+          category_id: entry.category_id,
+          category_name: entry.category_name,
+          total_places: totalPlaces,
+          complete_places: completePlaces,
+          incomplete_places: totalPlaces - completePlaces,
+          average_completeness_score: averageScore(entry.rows),
+        };
+      })
+      .sort((a, b) => b.incomplete_places - a.incomplete_places),
+    fields: COMPLETENESS_FIELDS.map((field) => {
+      const missing = rows.filter((row) =>
+        row.missing_fields.includes(field),
+      ).length;
+      const present = total - missing;
+      return {
+        field,
+        present_places: present,
+        missing_places: missing,
+        completeness_percent:
+          total === 0 ? 0 : roundTwo((present / total) * 100),
+      };
+    }),
+  };
+}
+
+function averageScore(rows: PlaceCompletenessRow[]): number {
+  if (rows.length === 0) return 0;
+  const sum = rows.reduce((acc, row) => acc + row.completeness_score, 0);
+  return roundTwo(sum / rows.length);
+}
+
+function roundTwo(value: number): number {
+  return Number(value.toFixed(2));
 }

@@ -25,6 +25,7 @@ import { AdminScrapingService } from './admin-scraping.service';
 import { CreateScrapingSourceDto } from './dto/create-source.dto';
 import { UpdateScrapingSourceDto } from './dto/update-source.dto';
 import { ListItemsQueryDto } from './dto/list-items-query.dto';
+import { ListPlaceCompletenessQueryDto } from './dto/list-place-completeness-query.dto';
 import { ListRunsQueryDto } from './dto/list-runs-query.dto';
 import { UpdateScrapedItemDto } from './dto/update-item.dto';
 import { RejectScrapedItemDto } from './dto/reject-item.dto';
@@ -135,6 +136,20 @@ export class AdminScrapingController {
   ) {
     this.assertAdmin(req);
     return this.adminService.listItems(query);
+  }
+
+  @Get('place-completeness')
+  @ApiOperation({
+    summary: 'Reporte admin de completitud de datos de lugares publicados',
+  })
+  @ApiResponse({ status: 200, description: 'Reporte de calidad de datos' })
+  @ApiResponse({ status: 403, description: 'Admin requerido' })
+  async listPlaceCompleteness(
+    @Request() req: AuthenticatedAdminRequest,
+    @Query() query: ListPlaceCompletenessQueryDto,
+  ) {
+    this.assertAdmin(req);
+    return this.adminService.listPlaceCompleteness(query);
   }
 
   @Get('items/:id')
