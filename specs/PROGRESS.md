@@ -124,6 +124,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #101 abierto: `chore/backend-lint-recommendations-controller`; recommendations controller queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #102 abierto: `chore/backend-lint-quality-scorer-spec`; quality scorer spec queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #103 abierto: `chore/backend-lint-openai-chat-provider`; openai chat provider queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #104 abierto: `chore/backend-lint-chat-rate-limit-service`; chat rate limit service queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -345,7 +346,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend openai chat provider lint: `npx eslint src/modules/chat/providers/openai-provider.ts` -> OK.
 - Backend openai chat provider smoke tests: `npm test -- --runInBand src/modules/chat/providers/mock-provider.spec.ts src/modules/chat/chat.service.spec.ts` -> 2 suites / 27 tests OK.
 - Backend build tras openai chat provider lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 21 archivos / 30 errores / 0 warnings.
+- Backend chat rate limit service lint: `npx eslint src/modules/chat/rate-limit.service.ts` -> OK.
+- Backend chat rate limit service tests: `npm test -- --runInBand src/modules/chat/rate-limit.service.spec.ts` -> 1 suite / 5 tests OK.
+- Backend build tras chat rate limit service lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 20 archivos / 28 errores / 0 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

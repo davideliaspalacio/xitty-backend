@@ -1,12 +1,16 @@
-import {
-  ForbiddenException,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 const DEFAULT_DAILY_LIMIT = 30;
+
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseRpcResult {
+  data: unknown;
+  error: SupabaseError | null;
+}
 
 @Injectable()
 export class ChatRateLimitService {
@@ -32,9 +36,9 @@ export class ChatRateLimitService {
    * ForbiddenException si excede el limite configurado (CHAT_DAILY_LIMIT).
    */
   async checkAndIncrement(userId: string): Promise<number> {
-    const { data, error } = await this.supabase.rpc('increment_chat_usage', {
+    const { data, error } = (await this.supabase.rpc('increment_chat_usage', {
       p_user_id: userId,
-    });
+    })) as unknown as SupabaseRpcResult;
     if (error) {
       this.logger.error(`increment_chat_usage failed: ${error.message}`);
       // No bloqueamos al usuario si el RPC falla pero loggeamos.
