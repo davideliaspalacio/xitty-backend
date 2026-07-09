@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 110.
-- Errores: 2169.
-- Warnings: 175.
-- Errores auto-fixables: 487.
+- Archivos con problemas: 108.
+- Errores: 2117.
+- Warnings: 172.
+- Errores auto-fixables: 470.
 
 Avance aplicado:
 
@@ -33,18 +33,21 @@ Avance aplicado:
 - PR tecnico #38 `chore/backend-lint-scraping-runner-spec`:
   `runner.service.spec.ts` queda con mocks del runner tipados y lint dirigido
   limpio.
-- Reduccion neta acumulada: -8 archivos con problemas, -541 errores y -72 warnings.
+- PR tecnico #39 `chore/backend-lint-dedup-spec`:
+  `dedup.service.ts` y `dedup.service.spec.ts` quedan con contrato de duplicado
+  tipado, mocks Supabase tipados y lint dirigido limpio.
+- Reduccion neta acumulada: -10 archivos con problemas, -593 errores y -75 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `@typescript-eslint/no-unsafe-member-access` | 817 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `prettier/prettier` | 486 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-assignment` | 350 | 0 | Asignaciones desde `any`. |
-| `@typescript-eslint/no-unsafe-call` | 348 | 0 | Llamadas sobre valores `any`. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 174 | Argumentos `any` en tests/servicios. |
-| `@typescript-eslint/no-unsafe-return` | 141 | 0 | Retornos `any` sin tipar. |
+| `@typescript-eslint/no-unsafe-member-access` | 804 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `prettier/prettier` | 469 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-call` | 342 | 0 | Llamadas sobre valores `any`. |
+| `@typescript-eslint/no-unsafe-assignment` | 339 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 171 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-return` | 137 | 0 | Retornos `any` sin tipar. |
 | `@typescript-eslint/require-await` | 10 | 0 | Funciones async sin await. |
 | `@typescript-eslint/unbound-method` | 4 | 0 | Metodos usados sin bind, principalmente mocks. |
 
@@ -65,7 +68,7 @@ Avance aplicado:
 | `src/modules/favorites/favorites.service.spec.ts` | 58 | 2 |
 | `src/modules/local-picks/local-picks.service.spec.ts` | 54 | 2 |
 | `src/modules/experiences/experiences.service.ts` | 55 | 0 |
-| `src/modules/scraping/enrichment/dedup.service.spec.ts` | 46 | 3 |
+| `src/modules/experiences/experiences.controller.ts` | 29 | 19 |
 
 ## Impacto en Features v2
 

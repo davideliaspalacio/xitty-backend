@@ -59,6 +59,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #36 abierto: `chore/backend-lint-scraping-executor-spec`; executor spec queda con mocks tipados y lint dirigido limpio.
 - 2026-07-09: PR tecnico #37 abierto: `chore/backend-lint-scraping-admin-spec`; admin scraping spec queda con mocks Supabase/repos tipados y lint dirigido limpio.
 - 2026-07-09: PR tecnico #38 abierto: `chore/backend-lint-scraping-runner-spec`; runner legacy spec queda con mocks tipados y lint dirigido limpio.
+- 2026-07-09: PR tecnico #39 abierto: `chore/backend-lint-dedup-spec`; dedup service/spec quedan tipados y con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -86,7 +87,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend runner spec lint: `npx eslint src/modules/scraping/scheduler/runner.service.spec.ts` -> OK.
 - Backend runner spec tests: `npm test -- --runInBand src/modules/scraping/scheduler/runner.service.spec.ts` -> 1 suite / 16 tests OK.
 - Backend build tras runner spec lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 110 archivos / 2169 errores / 175 warnings.
+- Backend dedup lint: `npx eslint src/modules/scraping/enrichment/dedup.service.ts src/modules/scraping/enrichment/dedup.service.spec.ts` -> OK.
+- Backend dedup/enrichment tests: `npm test -- --runInBand src/modules/scraping/enrichment/dedup.service.spec.ts src/modules/scraping/enrichment/enrichment.service.spec.ts` -> 2 suites / 29 tests OK.
+- Backend build tras dedup lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 108 archivos / 2117 errores / 172 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

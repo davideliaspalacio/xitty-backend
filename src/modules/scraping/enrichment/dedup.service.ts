@@ -3,6 +3,16 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { createHash } from 'crypto';
 import { LlmEnrichedItem } from './schema/enriched-item.schema';
 
+export interface DedupDuplicate {
+  id: string;
+  [key: string]: unknown;
+}
+
+interface DedupLookupResult {
+  data: DedupDuplicate | null;
+  error: { message: string } | null;
+}
+
 /**
  * Calcula hashes deterministicos y busca duplicados en la tabla
  * `scraped_items_raw` antes de persistir un nuevo item enriquecido.
@@ -28,21 +38,21 @@ export class DedupService {
     return createHash('sha256').update(payload, 'utf8').digest('hex');
   }
 
-  async findDuplicate(hash: string): Promise<any | null> {
+  async findDuplicate(hash: string): Promise<DedupDuplicate | null> {
     try {
-      const { data, error } = await this.supabase
+      const { data, error } = (await this.supabase
         .from('scraped_items_raw')
         .select('*')
         .eq('raw_hash', hash)
-        .maybeSingle();
+        .maybeSingle()) as unknown as DedupLookupResult;
 
       if (error) {
         this.logger.warn(`dedup lookup failed: ${error.message}`);
         return null;
       }
       return data ?? null;
-    } catch (err: any) {
-      this.logger.warn(`dedup lookup threw: ${err?.message ?? 'unknown'}`);
+    } catch (err: unknown) {
+      this.logger.warn(`dedup lookup threw: ${errorMessage(err)}`);
       return null;
     }
   }
@@ -65,4 +75,8 @@ export class DedupService {
     // ISO truncado a granularidad de minuto para evitar variaciones por segundos/ms.
     return d.toISOString().slice(0, 16);
   }
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }
