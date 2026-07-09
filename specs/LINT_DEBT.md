@@ -183,7 +183,7 @@ Avance aplicado:
 - PR tecnico #83 `chore/backend-lint-supabase-config`:
   `supabase.config.ts` queda con tipo real de `createClient`, formato Prettier
   y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-create-experience-dto`:
+- PR tecnico #84 `chore/backend-lint-create-experience-dto`:
   `create-experience.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -77 archivos con problemas, -2609 errores y -242 warnings.
