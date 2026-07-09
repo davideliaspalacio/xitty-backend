@@ -150,7 +150,7 @@ Avance aplicado:
 - PR tecnico #72 `chore/backend-lint-admin-scraping-controller`:
   `admin-scraping.controller.ts` queda con request admin tipado, `assertAdmin`
   como type guard y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-notification-settings-controller`:
+- PR tecnico #73 `chore/backend-lint-notification-settings-controller`:
   `notification-settings.controller.ts` queda con request autenticado tipado,
   rol permitido tipado y lint dirigido limpio.
 - Reduccion neta acumulada: -66 archivos con problemas, -2547 errores y -219 warnings.
