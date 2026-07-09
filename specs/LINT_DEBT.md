@@ -17,8 +17,8 @@ Resultado actual:
 
 Avance aplicado:
 
-- PR tecnico `chore/backend-lint-google-places`: `google-places-source.ts` y
-  `google-places-source.spec.ts` quedaron con lint dirigido limpio.
+- PR tecnico #33 `chore/backend-lint-google-places`: `google-places-source.ts`
+  y `google-places-source.spec.ts` quedaron con lint dirigido limpio.
 - Reduccion neta: -2 archivos con problemas, -102 errores y -2 warnings.
 
 ## Reglas principales
