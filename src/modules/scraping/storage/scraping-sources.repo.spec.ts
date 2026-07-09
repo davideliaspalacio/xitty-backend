@@ -4,33 +4,102 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ScrapingSourcesRepo } from './scraping-sources.repo';
 
 // ── Supabase chain mock (mismo patron que chat.service.spec.ts) ─────────────
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  message: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  insert: ChainMethod;
+  update: ChainMethod;
+  delete: ChainMethod;
+  upsert: ChainMethod;
+  eq: ChainMethod;
+  neq: ChainMethod;
+  in: ChainMethod;
+  order: ChainMethod;
+  range: ChainMethod;
+  limit: ChainMethod;
+  single: ChainMethod;
+  maybeSingle: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  rpc: jest.MockedFunction<(...args: unknown[]) => unknown>;
+  _on: (data: unknown, error?: MockDbError) => MockChain;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
-    'from', 'select', 'insert', 'update', 'delete', 'upsert',
-    'eq', 'neq', 'in', 'order', 'range', 'limit',
-    'single', 'maybeSingle',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+    'from',
+    'select',
+    'insert',
+    'update',
+    'delete',
+    'upsert',
+    'eq',
+    'neq',
+    'in',
+    'order',
+    'range',
+    'limit',
+    'single',
+    'maybeSingle',
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn(), rpc: jest.fn() };
-  mock._on = (data: any, error?: any) => {
-    const c = createChain({ data, error: error || null });
-    mock.from.mockReturnValueOnce(c);
-    return c;
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    rpc: jest.fn<(...args: unknown[]) => unknown>(),
+    _on: (data: unknown, error?: MockDbError) => {
+      const c = createChain({ data, error: error ?? null });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
   };
   mock.from.mockImplementation(() => createChain({ data: null, error: null }));
   return mock;
 }
 
+function firstArg<T>(method: ChainMethod): T {
+  const value = method.mock.calls[0]?.[0];
+  return value as T;
+}
+
+function secondArg<T>(method: ChainMethod): T {
+  const value = method.mock.calls[0]?.[1];
+  return value as T;
+}
+
 describe('ScrapingSourcesRepo', () => {
   let repo: ScrapingSourcesRepo;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
@@ -46,8 +115,20 @@ describe('ScrapingSourcesRepo', () => {
   describe('findAll', () => {
     it('devuelve la lista ordenada por nombre', async () => {
       supabase._on([
-        { id: 's1', name: 'foursquare', kind: 'google_places', config: {}, enabled: true },
-        { id: 's2', name: 'tavily-bquilla', kind: 'tavily', config: {}, enabled: false },
+        {
+          id: 's1',
+          name: 'foursquare',
+          kind: 'google_places',
+          config: {},
+          enabled: true,
+        },
+        {
+          id: 's2',
+          name: 'tavily-bquilla',
+          kind: 'tavily',
+          config: {},
+          enabled: false,
+        },
       ]);
 
       const result = await repo.findAll();
@@ -70,7 +151,13 @@ describe('ScrapingSourcesRepo', () => {
 
   describe('findById', () => {
     it('devuelve la source si existe', async () => {
-      supabase._on({ id: 's1', name: 'foursquare', kind: 'google_places', config: {}, enabled: true });
+      supabase._on({
+        id: 's1',
+        name: 'foursquare',
+        kind: 'google_places',
+        config: {},
+        enabled: true,
+      });
       const result = await repo.findById('s1');
       expect(result.id).toBe('s1');
     });
@@ -111,10 +198,10 @@ describe('ScrapingSourcesRepo', () => {
         enabled: true,
       });
       expect(chain.upsert).toHaveBeenCalled();
-      const upsertArg = chain.upsert.mock.calls[0][0];
-      const upsertOpts = chain.upsert.mock.calls[0][1];
+      const upsertArg = firstArg<Record<string, unknown>>(chain.upsert);
+      const upsertOpts = secondArg<Record<string, unknown>>(chain.upsert);
       expect(upsertArg.name).toBe('foursquare');
-      expect(upsertOpts?.onConflict).toBe('name');
+      expect(upsertOpts.onConflict).toBe('name');
     });
 
     it('tira BadRequestException si supabase falla', async () => {
@@ -130,7 +217,7 @@ describe('ScrapingSourcesRepo', () => {
       const chain = supabase._on(null);
       await repo.markRun('s1');
       expect(chain.update).toHaveBeenCalled();
-      const updateArg = chain.update.mock.calls[0][0];
+      const updateArg = firstArg<Record<string, unknown>>(chain.update);
       expect(updateArg.last_run_at).toBeDefined();
       expect(chain.eq).toHaveBeenCalledWith('id', 's1');
     });
