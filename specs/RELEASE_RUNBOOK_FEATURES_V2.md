@@ -98,6 +98,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 90. #111 - PR tecnico curated item dto lint/typing, base #110.
 91. #112 - PR tecnico scheduler module lint/typing, base #111.
 92. #113 - PR tecnico database module lint/typing, base #112.
+93. Pendiente - PR tecnico refresh token dto lint/typing, base #113.
 
 ### Frontend
 
