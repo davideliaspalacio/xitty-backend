@@ -58,6 +58,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 50. #71 - PR tecnico localize spec lint/typing, base #70.
 51. #72 - PR tecnico admin scraping controller lint/typing, base #71.
 52. #73 - PR tecnico notification settings controller lint/typing, base #72.
+53. #74 - PR tecnico main bootstrap lint/typing, base #73.
 
 ### Frontend
 
