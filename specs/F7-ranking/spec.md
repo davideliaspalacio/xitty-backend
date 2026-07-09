@@ -62,6 +62,8 @@ Nuevos/ajustados:
 - `GET /ranking/categories/:categoryId?limit=20`: devuelve ranking por categoria.
 - `GET /ranking/categories/:categoryId?limit=20&city=Cartagena`: devuelve ranking por categoria dentro de una ciudad.
 - `POST /admin/ranking/refresh`: admin, fuerza refresh.
+- `GET /admin/ranking/config`: admin, lee pesos y parametros actuales de `ranking_config`.
+- `PATCH /admin/ranking/config`: admin, actualiza pesos/caps/ventana. Rechaza payload vacio y pesos totales en cero.
 
 El response mantiene:
 
@@ -78,12 +80,13 @@ El response mantiene:
 
 - Lectura publica del ranking.
 - Refresh manual solo admin.
-- Configuracion se deja por migracion/DB en este PR; UI admin de pesos queda fuera.
+- Lectura/edicion de configuracion solo admin.
 
 ## UI/UX
 
 - Home mantiene cards de ranking.
 - La card muestra flecha y numero de posiciones subidas/bajadas; si no hay snapshot muestra estado neutro.
+- Admin agrega `/admin/ranking` para ajustar pesos/caps/ventana y ejecutar refresh manual.
 
 ## Edge cases
 
@@ -99,7 +102,7 @@ El response mantiene:
 
 ## Fuera de alcance
 
-- UI admin para editar pesos.
+- Multiples formulas por ciudad o categoria.
 - Patrocinios comerciales avanzados (F8).
 - Seeds de datos nuevos (F1).
 

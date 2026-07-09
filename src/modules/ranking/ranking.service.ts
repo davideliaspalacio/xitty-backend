@@ -8,12 +8,17 @@ import {
 import { SupabaseClient } from '@supabase/supabase-js';
 
 import { RankingItemDto } from './dto/ranking-response.dto';
+import { UpdateRankingConfigDto } from './dto/update-ranking-config.dto';
 
 const RANKINGS_VIEW = 'place_rankings';
 const SNAPSHOTS_TABLE = 'ranking_snapshots';
 const PLACES_TABLE = 'places';
+const RANKING_CONFIG_TABLE = 'ranking_config';
 const SPONSORED_LABEL = 'Patrocinado';
 const SPONSORED_RANKING_SLOTS = 3;
+const DEFAULT_RANKING_CONFIG_ID = 'default';
+const RANKING_CONFIG_SELECT =
+  'id, rating_weight, views_weight, conversions_weight, rating_prior, rating_prior_reviews, views_cap, conversions_cap, window_days, updated_at';
 
 interface RankingRow {
   place_id: string;
@@ -69,6 +74,33 @@ interface SponsorshipPlaceRow {
   sponsorship_priority: number | string | null;
 }
 
+export interface RankingConfigDto {
+  id: string;
+  rating_weight: number;
+  views_weight: number;
+  conversions_weight: number;
+  rating_prior: number;
+  rating_prior_reviews: number;
+  views_cap: number;
+  conversions_cap: number;
+  window_days: number;
+  updated_at: string;
+  weight_total: number;
+}
+
+interface RankingConfigRow {
+  id: string;
+  rating_weight: number | string;
+  views_weight: number | string;
+  conversions_weight: number | string;
+  rating_prior: number | string;
+  rating_prior_reviews: number | string;
+  views_cap: number | string;
+  conversions_cap: number | string;
+  window_days: number | string;
+  updated_at: string;
+}
+
 type RankingItemInternal = RankingItemDto & {
   sponsorship_priority: number;
   sponsored_until: string | null;
@@ -120,6 +152,49 @@ export class RankingService {
     const { error } = await this.supabase.rpc('refresh_place_rankings');
     if (error) throw new BadRequestException(error.message);
     return { refreshed_at: new Date().toISOString() };
+  }
+
+  async getConfig(): Promise<RankingConfigDto> {
+    return this.fetchConfig();
+  }
+
+  async updateConfig(dto: UpdateRankingConfigDto): Promise<RankingConfigDto> {
+    const updates = Object.fromEntries(
+      Object.entries(dto).filter(([, value]) => value !== undefined),
+    ) as UpdateRankingConfigDto;
+
+    if (Object.keys(updates).length === 0) {
+      throw new BadRequestException(
+        'updateConfig requires at least one ranking parameter',
+      );
+    }
+
+    const current = await this.fetchConfig();
+    const nextRatingWeight = updates.rating_weight ?? current.rating_weight;
+    const nextViewsWeight = updates.views_weight ?? current.views_weight;
+    const nextConversionsWeight =
+      updates.conversions_weight ?? current.conversions_weight;
+
+    if (nextRatingWeight + nextViewsWeight + nextConversionsWeight <= 0) {
+      throw new BadRequestException(
+        'At least one ranking weight must be greater than zero',
+      );
+    }
+
+    const { data, error } = await this.supabase
+      .from(RANKING_CONFIG_TABLE)
+      .update(updates)
+      .eq('id', DEFAULT_RANKING_CONFIG_ID)
+      .select(RANKING_CONFIG_SELECT)
+      .single();
+
+    if (error || !data) {
+      throw new BadRequestException(
+        error?.message ?? 'Could not update ranking config',
+      );
+    }
+
+    return normalizeRankingConfig(data as RankingConfigRow);
   }
 
   async activateSponsorship(
@@ -379,6 +454,22 @@ export class RankingService {
     }
     return byPlace;
   }
+
+  private async fetchConfig(): Promise<RankingConfigDto> {
+    const { data, error } = await this.supabase
+      .from(RANKING_CONFIG_TABLE)
+      .select(RANKING_CONFIG_SELECT)
+      .eq('id', DEFAULT_RANKING_CONFIG_ID)
+      .single();
+
+    if (error || !data) {
+      throw new BadRequestException(
+        error?.message ?? 'Could not read ranking config',
+      );
+    }
+
+    return normalizeRankingConfig(data as RankingConfigRow);
+  }
 }
 
 function normalizeCity(city?: string | null): string | null {
@@ -402,4 +493,24 @@ function getPositionColumn(categoryId: string | null, city: string | null) {
   if (city) return 'city_position';
   if (categoryId) return 'category_position';
   return 'global_position';
+}
+
+function normalizeRankingConfig(row: RankingConfigRow): RankingConfigDto {
+  const ratingWeight = Number(row.rating_weight);
+  const viewsWeight = Number(row.views_weight);
+  const conversionsWeight = Number(row.conversions_weight);
+
+  return {
+    id: row.id,
+    rating_weight: ratingWeight,
+    views_weight: viewsWeight,
+    conversions_weight: conversionsWeight,
+    rating_prior: Number(row.rating_prior),
+    rating_prior_reviews: Number(row.rating_prior_reviews),
+    views_cap: Number(row.views_cap),
+    conversions_cap: Number(row.conversions_cap),
+    window_days: Number(row.window_days),
+    updated_at: row.updated_at,
+    weight_total: ratingWeight + viewsWeight + conversionsWeight,
+  };
 }

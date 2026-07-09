@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { RankingService } from './ranking.service';
@@ -92,6 +96,22 @@ function createMockSupabase(): MockSupabase {
     Promise.resolve({ data: null, error: null }),
   );
   return mock;
+}
+
+function rankingConfigRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'default',
+    rating_weight: 0.45,
+    views_weight: 0.25,
+    conversions_weight: 0.3,
+    rating_prior: 4.2,
+    rating_prior_reviews: 10,
+    views_cap: 500,
+    conversions_cap: 100,
+    window_days: 30,
+    updated_at: '2026-07-09T00:00:00.000Z',
+    ...overrides,
+  };
 }
 
 describe('RankingService', () => {
@@ -554,6 +574,100 @@ describe('RankingService', () => {
       const result = await service.refresh();
       expect(supabase.rpc).toHaveBeenCalledWith('refresh_place_rankings');
       expect(result.refreshed_at).toBeDefined();
+    });
+  });
+
+  // ── Configuracion de formula ───────────────────────────────────
+
+  describe('getConfig', () => {
+    it('lee la configuracion default y normaliza numeros', async () => {
+      const chain = supabase._on(
+        rankingConfigRow({
+          rating_weight: '0.5',
+          views_weight: '0.2',
+          conversions_weight: '0.3',
+          rating_prior_reviews: '12',
+          views_cap: '800',
+        }),
+      );
+
+      const result = await service.getConfig();
+
+      expect(supabase.from).toHaveBeenCalledWith('ranking_config');
+      expect(chain.eq).toHaveBeenCalledWith('id', 'default');
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 'default',
+          rating_weight: 0.5,
+          views_weight: 0.2,
+          conversions_weight: 0.3,
+          rating_prior_reviews: 12,
+          views_cap: 800,
+          weight_total: 1,
+        }),
+      );
+    });
+
+    it('lanza bad request si no existe la configuracion default', async () => {
+      supabase._on(null, { message: 'missing ranking_config row' });
+
+      await expect(service.getConfig()).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('updateConfig', () => {
+    it('actualiza solo los parametros enviados y devuelve la config normalizada', async () => {
+      supabase._on(rankingConfigRow());
+      const updateChain = supabase._on(
+        rankingConfigRow({
+          rating_weight: '0.5',
+          views_cap: '600',
+          updated_at: '2026-07-09T12:00:00.000Z',
+        }),
+      );
+
+      const result = await service.updateConfig({
+        rating_weight: 0.5,
+        views_cap: 600,
+      });
+
+      expect(updateChain.update).toHaveBeenCalledWith({
+        rating_weight: 0.5,
+        views_cap: 600,
+      });
+      expect(updateChain.eq).toHaveBeenCalledWith('id', 'default');
+      expect(result.rating_weight).toBe(0.5);
+      expect(result.views_cap).toBe(600);
+      expect(result.weight_total).toBe(1.05);
+    });
+
+    it('rechaza updates vacios', async () => {
+      await expect(service.updateConfig({})).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(supabase.from).not.toHaveBeenCalled();
+    });
+
+    it('rechaza dejar todos los pesos en cero', async () => {
+      supabase._on(rankingConfigRow());
+
+      await expect(
+        service.updateConfig({
+          rating_weight: 0,
+          views_weight: 0,
+          conversions_weight: 0,
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(supabase.from).toHaveBeenCalledTimes(1);
+    });
+
+    it('lanza bad request si falla el update en base de datos', async () => {
+      supabase._on(rankingConfigRow());
+      supabase._on(null, { message: 'permission denied' });
+
+      await expect(
+        service.updateConfig({ conversions_weight: 0.35 }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
