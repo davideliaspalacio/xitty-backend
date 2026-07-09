@@ -54,6 +54,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: saneado y versionado `.env.example` backend sin secretos reales, incluyendo `GOOGLE_MAPS_API_KEY`.
 - 2026-07-09: cuantificado full lint backend: falla por deuda historica en 118 archivos (2710 errores, 247 warnings); ver `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #33 abierto: `chore/backend-lint-google-places`; Google Places source/spec quedan tipados y con lint dirigido limpio.
+- 2026-07-09: iniciado PR tecnico `chore/backend-lint-scraped-items-spec`; `scraped-items.repo.spec.ts` queda con mock Supabase tipado y lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -66,7 +67,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend lint Google Places: `npx eslint src/modules/scraping/sources/google-places-source.ts src/modules/scraping/sources/google-places-source.spec.ts` -> OK.
 - Backend Google Places tests: `npm test -- --runInBand src/modules/scraping/sources/google-places-source.spec.ts` -> 1 suite / 14 tests OK.
 - Backend build tras Google Places lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 116 archivos / 2608 errores / 245 warnings.
+- Backend scraped-items repo spec lint: `npx eslint src/modules/scraping/storage/scraped-items.repo.spec.ts` -> OK.
+- Backend scraped-items repo spec tests: `npm test -- --runInBand src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 1 suite / 20 tests OK.
+- Backend build tras scraped-items lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 115 archivos / 2477 errores / 241 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
