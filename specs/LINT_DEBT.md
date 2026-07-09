@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 59.
-- Errores: 219.
-- Warnings: 56.
-- Errores auto-fixables: 110.
+- Archivos con problemas: 58.
+- Errores: 209.
+- Warnings: 49.
+- Errores auto-fixables: 107.
 
 Avance aplicado:
 
@@ -132,15 +132,18 @@ Avance aplicado:
 - PR tecnico #66 `chore/backend-lint-promotions-controller`:
   `promotions.controller.ts` queda con requests autenticados/opcionales tipados,
   headers seguros para impressions y lint dirigido limpio.
-- Reduccion neta acumulada: -59 archivos con problemas, -2491 errores y -191 warnings.
+- PR tecnico #67 `chore/backend-lint-places-controller`:
+  `places.controller.ts` queda con request autenticado tipado, formato Prettier
+  y lint dirigido limpio.
+- Reduccion neta acumulada: -60 archivos con problemas, -2501 errores y -198 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 110 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-member-access` | 67 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 55 | Argumentos `any` en tests/servicios. |
+| `prettier/prettier` | 107 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-member-access` | 60 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 48 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/no-unsafe-assignment` | 20 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-call` | 8 | 0 | Llamadas sobre valores `any`. |
 | `@typescript-eslint/require-await` | 6 | 0 | Funciones async sin await. |
@@ -151,7 +154,6 @@ Avance aplicado:
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/places/places.controller.ts` | 10 | 7 |
 | `src/modules/auth/auth.controller.ts` | 10 | 3 |
 | `src/common/guards/auth.guard.ts` | 11 | 0 |
 | `src/common/i18n/__tests__/localize.spec.ts` | 0 | 11 |
