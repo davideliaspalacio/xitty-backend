@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Fortalecer el ranking de lugares para que exista un top general y por categoria, recalculado de forma nocturna, con score basado en ratings + visitas + clicks reales y delta de posicion semanal.
+Fortalecer el ranking de lugares para que exista un top general, por ciudad y por categoria, recalculado de forma nocturna, con score basado en ratings + visitas + clicks reales y delta de posicion semanal.
 
 ## Usuarios afectados
 
@@ -19,6 +19,12 @@ Given lugares activos con scores calculados, when el turista consulta `GET /rank
 ### US-F7-02 - Ranking por categoria
 
 Given una categoria, when el turista consulta `GET /ranking/categories/:categoryId`, then recibe el top de esa categoria ordenado por posicion de categoria.
+
+### US-F7-02b - Ranking por ciudad
+
+Given una ciudad como Cartagena o Barranquilla, when el turista consulta `GET /ranking?city=Cartagena`, then recibe el top de esa ciudad ordenado por posicion de ciudad.
+
+Given una ciudad y una categoria, when el turista consulta `GET /ranking/categories/:categoryId?city=Cartagena`, then recibe el top de esa categoria dentro de esa ciudad.
 
 ### US-F7-03 - Score balanceado y configurable
 
@@ -44,13 +50,17 @@ Nuevos/ajustados:
 
 - `ranking_config`: pesos y parametros (`rating_weight`, `views_weight`, `conversions_weight`, `rating_prior`, `rating_prior_reviews`, `views_cap`, `conversions_cap`, `window_days`).
 - `ranking_refresh_logs`: bitacora de refresh exitoso.
-- `ranking_snapshots.scope`: `global` o `category`.
-- `place_rankings`: agrega `global_position`, `category_position`, `rating_score`, `views_score`, `conversions_score`.
+- `places.city` y `places.zone`: scope operativo para ranking/datos.
+- `scraped_items_enriched.city` y `scraped_items_enriched.zone`: se copian desde `scraping_sources.config`.
+- `ranking_snapshots.scope`: `global`, `category`, `city` o `city_category`.
+- `place_rankings`: agrega `global_position`, `category_position`, `city_position`, `city_category_position`, `rating_score`, `views_score`, `conversions_score`.
 
 ## Contratos API
 
 - `GET /ranking?limit=10`: devuelve ranking general.
+- `GET /ranking?limit=10&city=Cartagena`: devuelve ranking general dentro de una ciudad.
 - `GET /ranking/categories/:categoryId?limit=20`: devuelve ranking por categoria.
+- `GET /ranking/categories/:categoryId?limit=20&city=Cartagena`: devuelve ranking por categoria dentro de una ciudad.
 - `POST /admin/ranking/refresh`: admin, fuerza refresh.
 
 El response mantiene:
@@ -84,6 +94,8 @@ El response mantiene:
 - Falla del job: el ranking visible conserva la materialized view previa si el refresh no termina.
 - Categoria con pocos lugares: devuelve los disponibles sin error.
 - Lugar desactivado: no entra al materialized view.
+- Ciudad vacia o ausente: el API conserva el ranking global existente.
+- Ciudad + categoria: usa snapshots `city_category` para delta semanal.
 
 ## Fuera de alcance
 
@@ -96,3 +108,4 @@ El response mantiene:
 - Pesos MVP: rating 45%, vistas 25%, conversiones 30%. Ratings se normalizan con promedio bayesiano para evitar que un lugar con 1 review domine el ranking.
 - Ventana de actividad: 30 dias configurable.
 - Delta semanal: se usa snapshot de al menos 7 dias para evitar ruido diario.
+- Ciudad se guarda como texto operacional (`Cartagena`, `Barranquilla`) y se filtra por igualdad exacta normalizando espacios del query param.

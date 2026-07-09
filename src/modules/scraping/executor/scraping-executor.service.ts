@@ -150,6 +150,8 @@ export class ScrapingExecutorService {
           website: raw.website ?? null,
           openingHours: raw.opening_hours ?? null,
           priceLevel: raw.price_level ?? null,
+          city: readStringConfig(source.config, 'city'),
+          zone: readStringConfig(source.config, 'zone'),
           sourceKind: source.kind,
           sourceExternalId: raw.external_id ?? null,
           sourceReviews: raw.reviews ?? null,
@@ -198,4 +200,12 @@ export class ScrapingExecutorService {
 
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
+}
+
+function readStringConfig(
+  config: Record<string, unknown> | undefined,
+  key: string,
+): string | null {
+  const value = config?.[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
 }

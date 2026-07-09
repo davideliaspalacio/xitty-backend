@@ -66,6 +66,8 @@ describe('RankingService', () => {
         {
           place_id: 'p1',
           category_id: 'c1',
+          city: null,
+          zone: null,
           global_position: 1,
           category_position: 4,
           position: 1,
@@ -76,6 +78,8 @@ describe('RankingService', () => {
         {
           place_id: 'p2',
           category_id: 'c1',
+          city: null,
+          zone: null,
           global_position: 2,
           category_position: 5,
           position: 2,
@@ -93,6 +97,8 @@ describe('RankingService', () => {
           description: null,
           address: null,
           category_id: 'c1',
+          city: null,
+          zone: null,
           average_rating: 4.5,
           total_reviews: 100,
           is_sponsored: false,
@@ -108,6 +114,8 @@ describe('RankingService', () => {
           description: null,
           address: null,
           category_id: 'c1',
+          city: null,
+          zone: null,
           average_rating: 4.0,
           total_reviews: 80,
           is_sponsored: false,
@@ -136,6 +144,55 @@ describe('RankingService', () => {
       });
       expect(snapshotChain.eq).toHaveBeenCalledWith('scope', 'global');
       expect(snapshotChain.is).toHaveBeenCalledWith('category_id', null);
+      expect(snapshotChain.is).toHaveBeenCalledWith('city', null);
+    });
+
+    it('filtra ranking global por ciudad usando city_position', async () => {
+      const rankingChain = supabase._on([
+        {
+          place_id: 'p1',
+          category_id: 'c1',
+          city: 'Cartagena',
+          zone: 'Centro Histórico',
+          city_position: 1,
+          global_position: 7,
+          position: 7,
+          score: 0.88,
+          views_30d: 120,
+          conversions_30d: 12,
+        },
+      ]);
+      supabase._on([
+        {
+          id: 'p1',
+          name: 'Castillo',
+          slug: 'castillo',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          city: 'Cartagena',
+          zone: 'Centro Histórico',
+          average_rating: 4.7,
+          total_reviews: 1000,
+          is_sponsored: false,
+          sponsored_until: null,
+          place_photos: [],
+        },
+      ]);
+      const snapshotChain = supabase._on([]);
+
+      const result = await service.getGlobalRanking(10, ' Cartagena ');
+
+      expect(result.city).toBe('Cartagena');
+      expect(result.data[0].position).toBe(1);
+      expect(result.data[0].place.city).toBe('Cartagena');
+      expect(result.data[0].place.zone).toBe('Centro Histórico');
+      expect(rankingChain.order).toHaveBeenCalledWith('city_position', {
+        ascending: true,
+      });
+      expect(rankingChain.eq).toHaveBeenCalledWith('city', 'Cartagena');
+      expect(snapshotChain.eq).toHaveBeenCalledWith('scope', 'city');
+      expect(snapshotChain.eq).toHaveBeenCalledWith('city', 'Cartagena');
     });
 
     it('promueve items patrocinados al inicio del ranking', async () => {
