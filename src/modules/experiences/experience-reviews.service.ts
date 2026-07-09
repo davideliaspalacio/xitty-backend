@@ -11,6 +11,12 @@ import {
   CreateExperienceReviewDto,
   UpdateExperienceReviewDto,
 } from './dto/create-experience-review.dto';
+import {
+  ExperienceReviewListResponseDto,
+  ExperienceReviewResponseDto,
+  RatingDistributionResponseDto,
+  ReviewPhotoDto,
+} from './dto/experience-review-response.dto';
 
 const REVIEWS_TABLE = 'experience_reviews';
 const REVIEW_PHOTOS_TABLE = 'experience_review_photos';
@@ -21,6 +27,56 @@ const REVIEW_SELECT = `
   created_at, updated_at,
   author:profiles!experience_reviews_user_id_fkey(id, full_name)
 `;
+
+interface SupabaseError {
+  message: string;
+  code?: string;
+}
+
+interface SupabaseResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+interface SupabaseCountResult<T> extends SupabaseResult<T> {
+  count: number | null;
+}
+
+type NumericLike = number | string;
+
+interface ExperienceRow {
+  id: string;
+  is_active: boolean;
+}
+
+interface ExperienceReviewAuthorRow {
+  id: string;
+  full_name: string | null;
+}
+
+interface ExperienceReviewRow {
+  id: string;
+  experience_id: string;
+  user_id: string;
+  rating: number;
+  comment: string | null;
+  reservation_id: string | null;
+  created_at: string;
+  updated_at: string;
+  author: ExperienceReviewAuthorRow | null;
+}
+
+interface ReviewPhotoRow {
+  id: string;
+  review_id: string;
+  url: string;
+  display_order: number;
+}
+
+interface RatingDistributionRow {
+  rating: NumericLike;
+  count: NumericLike;
+}
 
 @Injectable()
 export class ExperienceReviewsService {
@@ -34,7 +90,7 @@ export class ExperienceReviewsService {
     page = 1,
     limit = 10,
     sort: 'recent' | 'top' = 'recent',
-  ) {
+  ): Promise<ExperienceReviewListResponseDto> {
     const offset = (page - 1) * limit;
 
     let qb = this.supabase
@@ -42,35 +98,44 @@ export class ExperienceReviewsService {
       .select(REVIEW_SELECT, { count: 'exact' })
       .eq('experience_id', experienceId);
 
-    qb = sort === 'top'
-      ? qb.order('rating', { ascending: false }).order('created_at', { ascending: false })
-      : qb.order('created_at', { ascending: false });
+    qb =
+      sort === 'top'
+        ? qb
+            .order('rating', { ascending: false })
+            .order('created_at', { ascending: false })
+        : qb.order('created_at', { ascending: false });
 
     qb = qb.range(offset, offset + limit - 1);
 
-    const { data, error, count } = await qb;
+    const { data, error, count } = (await qb) as unknown as SupabaseCountResult<
+      ExperienceReviewRow[]
+    >;
     if (error) throw new BadRequestException(error.message);
 
     const items = data || [];
-    const reviewIds = items.map((r: any) => r.id);
+    const reviewIds = items.map((review) => review.id);
 
-    const photosByReview = new Map<string, any[]>();
+    const photosByReview = new Map<string, ReviewPhotoDto[]>();
     if (reviewIds.length > 0) {
-      const { data: photos } = await this.supabase
+      const { data: photos } = (await this.supabase
         .from(REVIEW_PHOTOS_TABLE)
         .select('id, review_id, url, display_order')
         .in('review_id', reviewIds)
-        .order('display_order');
-      for (const p of photos || []) {
-        const arr = photosByReview.get(p.review_id) ?? [];
-        arr.push({ id: p.id, url: p.url, display_order: p.display_order });
-        photosByReview.set(p.review_id, arr);
+        .order('display_order')) as unknown as SupabaseResult<ReviewPhotoRow[]>;
+      for (const photo of photos || []) {
+        const arr = photosByReview.get(photo.review_id) ?? [];
+        arr.push({
+          id: photo.id,
+          url: photo.url,
+          display_order: photo.display_order,
+        });
+        photosByReview.set(photo.review_id, arr);
       }
     }
 
-    const hydrated = items.map((r: any) => ({
-      ...r,
-      photos: photosByReview.get(r.id) ?? [],
+    const hydrated = items.map((review) => ({
+      ...review,
+      photos: photosByReview.get(review.id) ?? [],
     }));
 
     return {
@@ -82,35 +147,47 @@ export class ExperienceReviewsService {
     };
   }
 
-  async getRatingDistribution(experienceId: string) {
-    const { data, error } = await this.supabase.rpc('experience_rating_distribution', {
-      p_experience_id: experienceId,
-    });
+  async getRatingDistribution(
+    experienceId: string,
+  ): Promise<RatingDistributionResponseDto> {
+    const { data, error } = (await this.supabase.rpc(
+      'experience_rating_distribution',
+      {
+        p_experience_id: experienceId,
+      },
+    )) as unknown as SupabaseResult<RatingDistributionRow[]>;
     if (error) throw new BadRequestException(error.message);
 
-    const distribution = (data || []).map((row: any) => ({
+    const distribution = (data || []).map((row) => ({
       rating: Number(row.rating),
       count: Number(row.count),
     }));
 
-    const total = distribution.reduce((acc: number, r: any) => acc + r.count, 0);
-    const weighted = distribution.reduce((acc: number, r: any) => acc + r.rating * r.count, 0);
+    const total = distribution.reduce((acc, row) => acc + row.count, 0);
+    const weighted = distribution.reduce(
+      (acc, row) => acc + row.rating * row.count,
+      0,
+    );
     const average = total === 0 ? 0 : Number((weighted / total).toFixed(1));
 
     return { distribution, total, average };
   }
 
-  async create(experienceId: string, userId: string, dto: CreateExperienceReviewDto) {
+  async create(
+    experienceId: string,
+    userId: string,
+    dto: CreateExperienceReviewDto,
+  ): Promise<ExperienceReviewResponseDto> {
     // Verify experience exists
-    const { data: experience } = await this.supabase
+    const { data: experience } = (await this.supabase
       .from(EXPERIENCES_TABLE)
       .select('id, is_active')
       .eq('id', experienceId)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseResult<ExperienceRow>;
 
     if (!experience) throw new NotFoundException('Experience not found');
 
-    const { data: review, error } = await this.supabase
+    const { data: review, error } = (await this.supabase
       .from(REVIEWS_TABLE)
       .insert({
         experience_id: experienceId,
@@ -120,26 +197,32 @@ export class ExperienceReviewsService {
         reservation_id: dto.reservation_id,
       })
       .select(REVIEW_SELECT)
-      .single();
+      .single()) as unknown as SupabaseResult<ExperienceReviewRow>;
 
     if (error) {
       if (error.code === '23505') {
-        throw new ConflictException('You have already reviewed this experience. Use PATCH to update.');
+        throw new ConflictException(
+          'You have already reviewed this experience. Use PATCH to update.',
+        );
       }
       throw new BadRequestException(error.message);
     }
 
-    let photos: any[] = [];
+    if (!review) throw new BadRequestException('Review could not be created');
+
+    let photos: ReviewPhotoDto[] = [];
     if (dto.photo_urls?.length) {
       const rows = dto.photo_urls.map((url, idx) => ({
         review_id: review.id,
         url,
         display_order: idx,
       }));
-      const { data: photoRows, error: photoError } = await this.supabase
+      const { data: photoRows, error: photoError } = (await this.supabase
         .from(REVIEW_PHOTOS_TABLE)
         .insert(rows)
-        .select('id, url, display_order');
+        .select('id, url, display_order')) as unknown as SupabaseResult<
+        ReviewPhotoDto[]
+      >;
       if (photoError) throw new BadRequestException(photoError.message);
       photos = photoRows || [];
     }
@@ -151,8 +234,8 @@ export class ExperienceReviewsService {
     experienceId: string,
     userId: string,
     dto: UpdateExperienceReviewDto,
-  ) {
-    const updates: Record<string, any> = {};
+  ): Promise<ExperienceReviewResponseDto> {
+    const updates: { rating?: number; comment?: string } = {};
     if (dto.rating !== undefined) updates.rating = dto.rating;
     if (dto.comment !== undefined) updates.comment = dto.comment;
 
@@ -160,19 +243,23 @@ export class ExperienceReviewsService {
       throw new BadRequestException('At least one field is required');
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(REVIEWS_TABLE)
       .update(updates)
       .eq('experience_id', experienceId)
       .eq('user_id', userId)
       .select(REVIEW_SELECT)
-      .single();
+      .single()) as unknown as SupabaseResult<ExperienceReviewRow>;
 
     if (error || !data) throw new NotFoundException('Review not found');
     return { ...data, photos: [] };
   }
 
-  async remove(experienceId: string, userId: string, userRole: string) {
+  async remove(
+    experienceId: string,
+    userId: string,
+    userRole: string,
+  ): Promise<void> {
     const qb = this.supabase
       .from(REVIEWS_TABLE)
       .delete()

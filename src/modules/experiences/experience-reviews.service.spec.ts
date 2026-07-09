@@ -1,46 +1,128 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+import { CreateExperienceReviewDto } from './dto/create-experience-review.dto';
 import { ExperienceReviewsService } from './experience-reviews.service';
 
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  code?: string;
+  message?: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+  count?: number | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+type RpcMethod = jest.MockedFunction<
+  (...args: unknown[]) => Promise<MockDbResult>
+>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  insert: ChainMethod;
+  update: ChainMethod;
+  delete: ChainMethod;
+  eq: ChainMethod;
+  in: ChainMethod;
+  order: ChainMethod;
+  range: ChainMethod;
+  single: ChainMethod;
+  maybeSingle: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  rpc: RpcMethod;
+  _on: (
+    data: unknown,
+    error?: MockDbError | null,
+    count?: number | null,
+  ) => MockChain;
+  _onRpc: (data: unknown, error?: MockDbError | null) => void;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
-    'from', 'select', 'insert', 'update', 'delete',
-    'eq', 'in', 'order', 'range', 'single', 'maybeSingle',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+    'from',
+    'select',
+    'insert',
+    'update',
+    'delete',
+    'eq',
+    'in',
+    'order',
+    'range',
+    'single',
+    'maybeSingle',
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn(), rpc: jest.fn() };
-  mock._on = (data: any, error?: any, count?: number) => {
-    const c = createChain({ data, error: error || null, count: count ?? null });
-    mock.from.mockReturnValueOnce(c);
-    return c;
-  };
-  mock._onRpc = (data: any, error?: any) => {
-    mock.rpc.mockReturnValueOnce(Promise.resolve({ data, error: error || null }));
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    rpc: jest.fn<(...args: unknown[]) => Promise<MockDbResult>>(),
+    _on: (data: unknown, error?: MockDbError | null, count?: number | null) => {
+      const c = createChain({
+        data,
+        error: error ?? null,
+        count: count ?? null,
+      });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
+    _onRpc: (data: unknown, error?: MockDbError | null) => {
+      mock.rpc.mockReturnValueOnce(
+        Promise.resolve({ data, error: error ?? null }),
+      );
+    },
   };
   mock.from.mockImplementation(() =>
     createChain({ data: null, error: null, count: null }),
   );
-  mock.rpc.mockImplementation(() => Promise.resolve({ data: null, error: null }));
+  mock.rpc.mockImplementation(() =>
+    Promise.resolve({ data: null, error: null }),
+  );
   return mock;
 }
 
 describe('ExperienceReviewsService', () => {
   let service: ExperienceReviewsService;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ExperienceReviewsService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
       ],
     }).compile();
     service = module.get<ExperienceReviewsService>(ExperienceReviewsService);
@@ -50,14 +132,34 @@ describe('ExperienceReviewsService', () => {
     it('lista reviews ordenadas por mas recientes con sus fotos', async () => {
       supabase._on(
         [
-          { id: 'r1', experience_id: 'e1', user_id: 'u1', rating: 5, comment: 'genial', reservation_id: null, created_at: 'now', updated_at: 'now', author: { id: 'u1', full_name: 'Ana' } },
+          {
+            id: 'r1',
+            experience_id: 'e1',
+            user_id: 'u1',
+            rating: 5,
+            comment: 'genial',
+            reservation_id: null,
+            created_at: 'now',
+            updated_at: 'now',
+            author: { id: 'u1', full_name: 'Ana' },
+          },
         ],
         null,
         1,
       );
       supabase._on([
-        { id: 'p1', review_id: 'r1', url: 'https://img/1.jpg', display_order: 0 },
-        { id: 'p2', review_id: 'r1', url: 'https://img/2.jpg', display_order: 1 },
+        {
+          id: 'p1',
+          review_id: 'r1',
+          url: 'https://img/1.jpg',
+          display_order: 0,
+        },
+        {
+          id: 'p2',
+          review_id: 'r1',
+          url: 'https://img/2.jpg',
+          display_order: 1,
+        },
       ]);
       const result = await service.findByExperience('e1', 1, 10, 'recent');
       expect(result.data).toHaveLength(1);
@@ -81,8 +183,11 @@ describe('ExperienceReviewsService', () => {
 
     it('promedio 0 cuando no hay reviews', async () => {
       supabase._onRpc([
-        { rating: 1, count: '0' }, { rating: 2, count: '0' },
-        { rating: 3, count: '0' }, { rating: 4, count: '0' }, { rating: 5, count: '0' },
+        { rating: 1, count: '0' },
+        { rating: 2, count: '0' },
+        { rating: 3, count: '0' },
+        { rating: 4, count: '0' },
+        { rating: 5, count: '0' },
       ]);
       const result = await service.getRatingDistribution('e1');
       expect(result.total).toBe(0);
@@ -91,14 +196,19 @@ describe('ExperienceReviewsService', () => {
   });
 
   describe('create', () => {
-    const dto = { rating: 5, comment: 'top' } as any;
+    const dto: CreateExperienceReviewDto = { rating: 5, comment: 'top' };
 
     it('crea la review', async () => {
       supabase._on({ id: 'e1', is_active: true });
       supabase._on({
-        id: 'r1', experience_id: 'e1', user_id: 'u1', rating: 5,
-        comment: 'top', reservation_id: null,
-        created_at: 'now', updated_at: 'now',
+        id: 'r1',
+        experience_id: 'e1',
+        user_id: 'u1',
+        rating: 5,
+        comment: 'top',
+        reservation_id: null,
+        created_at: 'now',
+        updated_at: 'now',
         author: { id: 'u1', full_name: 'Ana' },
       });
       const result = await service.create('e1', 'u1', dto);
@@ -109,9 +219,14 @@ describe('ExperienceReviewsService', () => {
     it('persiste fotos cuando vienen photo_urls', async () => {
       supabase._on({ id: 'e1', is_active: true });
       supabase._on({
-        id: 'r1', experience_id: 'e1', user_id: 'u1', rating: 5,
-        comment: 'top', reservation_id: null,
-        created_at: 'now', updated_at: 'now',
+        id: 'r1',
+        experience_id: 'e1',
+        user_id: 'u1',
+        rating: 5,
+        comment: 'top',
+        reservation_id: null,
+        created_at: 'now',
+        updated_at: 'now',
         author: { id: 'u1', full_name: 'Ana' },
       });
       supabase._on([
@@ -127,19 +242,25 @@ describe('ExperienceReviewsService', () => {
 
     it('lanza 404 si la experience no existe', async () => {
       supabase._on(null);
-      await expect(service.create('missing', 'u1', dto)).rejects.toThrow(NotFoundException);
+      await expect(service.create('missing', 'u1', dto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('lanza Conflict si ya existe review del mismo usuario', async () => {
       supabase._on({ id: 'e1', is_active: true });
       supabase._on(null, { code: '23505' });
-      await expect(service.create('e1', 'u1', dto)).rejects.toThrow(ConflictException);
+      await expect(service.create('e1', 'u1', dto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
   describe('update', () => {
     it('requiere al menos un campo', async () => {
-      await expect(service.update('e1', 'u1', {})).rejects.toThrow(BadRequestException);
+      await expect(service.update('e1', 'u1', {})).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });
