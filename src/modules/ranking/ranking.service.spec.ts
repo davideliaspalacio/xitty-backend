@@ -1,9 +1,47 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { RankingService } from './ranking.service';
 
-function createChain(result: any) {
-  const chain: any = {};
+interface MockDbError {
+  message?: string;
+  code?: string;
+}
+
+interface MockDbResult {
+  data: unknown;
+  error: MockDbError | null;
+}
+
+type ChainMethod = jest.MockedFunction<(...args: unknown[]) => MockChain>;
+type RpcMethod = jest.MockedFunction<
+  (...args: unknown[]) => Promise<MockDbResult>
+>;
+
+interface MockChain extends PromiseLike<MockDbResult> {
+  from: ChainMethod;
+  select: ChainMethod;
+  update: ChainMethod;
+  eq: ChainMethod;
+  in: ChainMethod;
+  is: ChainMethod;
+  lt: ChainMethod;
+  order: ChainMethod;
+  limit: ChainMethod;
+  single: ChainMethod;
+  maybeSingle: ChainMethod;
+}
+
+interface MockSupabase {
+  from: ChainMethod;
+  rpc: RpcMethod;
+  _on: (data: unknown, error?: MockDbError | null) => MockChain;
+  _onRpc: (data: unknown, error?: MockDbError | null) => void;
+}
+
+function createChain(result: MockDbResult): MockChain {
+  const chain = {} as MockChain;
   const methods = [
     'from',
     'select',
@@ -16,24 +54,38 @@ function createChain(result: any) {
     'limit',
     'single',
     'maybeSingle',
-  ];
-  methods.forEach((m) => (chain[m] = jest.fn().mockReturnValue(chain)));
-  chain.then = (resolve: any, reject?: any) =>
-    Promise.resolve(result).then(resolve, reject);
+  ] satisfies Array<keyof Omit<MockChain, 'then'>>;
+
+  for (const method of methods) {
+    chain[method] = jest
+      .fn<(...args: unknown[]) => MockChain>()
+      .mockReturnValue(chain);
+  }
+
+  const promise = Promise.resolve(result);
+  chain.then = <TResult1 = MockDbResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: MockDbResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> => promise.then(onfulfilled, onrejected);
   return chain;
 }
 
-function createMockSupabase() {
-  const mock: any = { from: jest.fn(), rpc: jest.fn() };
-  mock._on = (data: any, error?: any) => {
-    const c = createChain({ data, error: error || null });
-    mock.from.mockReturnValueOnce(c);
-    return c;
-  };
-  mock._onRpc = (data: any, error?: any) => {
-    mock.rpc.mockReturnValueOnce(
-      Promise.resolve({ data, error: error || null }),
-    );
+function createMockSupabase(): MockSupabase {
+  const mock: MockSupabase = {
+    from: jest.fn<(...args: unknown[]) => MockChain>(),
+    rpc: jest.fn<(...args: unknown[]) => Promise<MockDbResult>>(),
+    _on: (data: unknown, error?: MockDbError | null) => {
+      const c = createChain({ data, error: error ?? null });
+      mock.from.mockReturnValueOnce(c);
+      return c;
+    },
+    _onRpc: (data: unknown, error?: MockDbError | null) => {
+      mock.rpc.mockReturnValueOnce(
+        Promise.resolve({ data, error: error ?? null }),
+      );
+    },
   };
   mock.from.mockImplementation(() => createChain({ data: null, error: null }));
   mock.rpc.mockImplementation(() =>
@@ -44,14 +96,17 @@ function createMockSupabase() {
 
 describe('RankingService', () => {
   let service: RankingService;
-  let supabase: any;
+  let supabase: MockSupabase;
 
   beforeEach(async () => {
     supabase = createMockSupabase();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RankingService,
-        { provide: 'SUPABASE_CLIENT', useValue: supabase },
+        {
+          provide: 'SUPABASE_CLIENT',
+          useValue: supabase as unknown as SupabaseClient,
+        },
       ],
     }).compile();
     service = module.get<RankingService>(RankingService);
