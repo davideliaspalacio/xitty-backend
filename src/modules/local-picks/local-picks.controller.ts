@@ -32,13 +32,22 @@ import {
 } from './dto/local-pick-response.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
+interface AuthenticatedLocalPickRequest {
+  user: {
+    id: string;
+    role: string;
+  };
+}
+
 @ApiTags('local-picks')
 @Controller()
 export class LocalPicksController {
   constructor(private readonly localPicks: LocalPicksService) {}
 
   @Get('local-picks/current')
-  @ApiOperation({ summary: '"Disfruta como local" picks active this week — US-042' })
+  @ApiOperation({
+    summary: '"Disfruta como local" picks active this week — US-042',
+  })
   @ApiQuery({ name: 'tag', required: false, enum: PICK_TAGS })
   @ApiResponse({ status: 200, type: [LocalPickResponseDto] })
   async findCurrent(@Query('tag') tag?: string) {
@@ -64,7 +73,10 @@ export class LocalPicksController {
   @ApiOperation({ summary: 'Create a local pick (admin) — US-042' })
   @ApiBody({ type: CreateLocalPickDto })
   @ApiResponse({ status: 201, type: LocalPickResponseDto })
-  async create(@Request() req: any, @Body() dto: CreateLocalPickDto) {
+  async create(
+    @Request() req: AuthenticatedLocalPickRequest,
+    @Body() dto: CreateLocalPickDto,
+  ) {
     return this.localPicks.create(req.user.id, req.user.role, dto);
   }
 
@@ -77,7 +89,7 @@ export class LocalPicksController {
   @ApiResponse({ status: 200, type: LocalPickResponseDto })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedLocalPickRequest,
     @Body() dto: UpdateLocalPickDto,
   ) {
     return this.localPicks.update(id, req.user.role, dto);
@@ -88,7 +100,10 @@ export class LocalPicksController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a local pick (admin) — US-042' })
-  async remove(@Param('id', ParseUUIDPipe) id: string, @Request() req: any) {
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: AuthenticatedLocalPickRequest,
+  ) {
     return this.localPicks.remove(id, req.user.role);
   }
 }
