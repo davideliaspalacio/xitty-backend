@@ -138,6 +138,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #115 abierto: `chore/backend-lint-create-conversation-dto`; create conversation dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #116 abierto: `chore/backend-lint-create-experience-review-dto`; create experience review dto queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #117 abierto: `chore/backend-lint-experience-review-response-dto`; experience review response dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #118 abierto: `chore/backend-lint-experiences-module`; experiences module queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -196,6 +197,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend experience reviews smoke tests tras response dto: `npm test -- --runInBand src/modules/experiences/experience-reviews.service.spec.ts` -> 1 suite / 8 tests OK.
 - Backend build tras experience review response dto lint: `npm run build` -> OK.
 - Backend full lint tras experience review response dto: 7 archivos / 7 errores / 0 warnings; solo queda deuda Prettier.
+- Backend experiences module lint: `npx eslint src/modules/experiences/experiences.module.ts` -> OK.
+- Backend experiences module smoke tests: `npm test -- --runInBand src/modules/experiences/experiences.service.spec.ts src/modules/experiences/reservations.service.spec.ts src/modules/experiences/experience-reviews.service.spec.ts` -> 3 suites / 33 tests OK.
+- Backend build tras experiences module lint: `npm run build` -> OK.
+- Backend full lint tras experiences module: 6 archivos / 6 errores / 0 warnings; solo queda deuda Prettier.
 - Backend scraped-items repo spec lint: `npx eslint src/modules/scraping/storage/scraped-items.repo.spec.ts` -> OK.
 - Backend scraped-items repo spec tests: `npm test -- --runInBand src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 1 suite / 20 tests OK.
 - Backend build tras scraped-items lint: `npm run build` -> OK.
