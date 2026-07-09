@@ -290,7 +290,7 @@ Avance aplicado:
 - PR tecnico #119 `chore/backend-lint-favorite-response-dto`:
   `favorite-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-category-response-dto`:
+- PR tecnico #120 `chore/backend-lint-category-response-dto`:
   `category-response.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
 - Reduccion neta acumulada: -114 archivos con problemas, -2706 errores y -247 warnings.
