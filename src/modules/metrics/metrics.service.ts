@@ -9,6 +9,12 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 import { TrackInteractionDto } from './dto/track-interaction.dto';
 import { TimeseriesGranularity } from './dto/metrics-timeseries.dto';
+import {
+  buildInteractionTrackingFields,
+  isBotUserAgent,
+  isDuplicateInteractionError,
+  TrackingContext,
+} from './interaction-tracking.util';
 
 const TABLE = 'microsite_interactions';
 const PLACES_TABLE = 'places';
@@ -20,7 +26,14 @@ export class MetricsService {
     private readonly supabase: SupabaseClient,
   ) {}
 
-  async track(placeId: string, userId: string | null, dto: TrackInteractionDto) {
+  async track(
+    placeId: string,
+    userId: string | null,
+    dto: TrackInteractionDto,
+    context: TrackingContext = {},
+  ) {
+    if (isBotUserAgent(context.userAgent)) return;
+
     // Verify place exists
     const { data: place } = await this.supabase
       .from(PLACES_TABLE)
@@ -31,13 +44,24 @@ export class MetricsService {
 
     if (!place) throw new NotFoundException('Place not found');
 
+    const trackingFields = buildInteractionTrackingFields({
+      placeId,
+      interactionType: dto.interaction_type,
+      promoId: dto.promo_id || null,
+      userId,
+      anonymousSessionId: dto.anonymous_session_id,
+      userAgent: context.userAgent,
+    });
+
     const { error } = await this.supabase.from(TABLE).insert({
       place_id: placeId,
       user_id: userId,
       interaction_type: dto.interaction_type,
       promo_id: dto.promo_id || null,
+      ...trackingFields,
     });
 
+    if (error && isDuplicateInteractionError(error)) return;
     if (error) throw new BadRequestException(error.message);
 
     // TODO: trigger notification dispatch based on business_notification_settings
@@ -98,12 +122,15 @@ export class MetricsService {
   ) {
     await this.assertOwnership(placeId, userId, userRole);
 
-    const { data, error } = await this.supabase.rpc('place_metrics_timeseries', {
-      p_place_id: placeId,
-      p_from: from,
-      p_to: to,
-      p_granularity: granularity,
-    });
+    const { data, error } = await this.supabase.rpc(
+      'place_metrics_timeseries',
+      {
+        p_place_id: placeId,
+        p_from: from,
+        p_to: to,
+        p_granularity: granularity,
+      },
+    );
 
     if (error) throw new BadRequestException(error.message);
 
@@ -119,7 +146,11 @@ export class MetricsService {
     }));
   }
 
-  private async assertOwnership(placeId: string, userId: string, userRole: string) {
+  private async assertOwnership(
+    placeId: string,
+    userId: string,
+    userRole: string,
+  ) {
     if (userRole === 'admin') return;
 
     const { data: place } = await this.supabase
@@ -130,7 +161,9 @@ export class MetricsService {
 
     if (!place) throw new NotFoundException('Place not found');
     if (place.owner_id !== userId) {
-      throw new ForbiddenException('You can only view metrics of your own places');
+      throw new ForbiddenException(
+        'You can only view metrics of your own places',
+      );
     }
   }
 }

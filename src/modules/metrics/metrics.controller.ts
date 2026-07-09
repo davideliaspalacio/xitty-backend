@@ -42,7 +42,9 @@ export class MetricsController {
 
   @Post('interactions')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Track a microsite interaction (auth optional) — US-023' })
+  @ApiOperation({
+    summary: 'Track a microsite interaction (auth optional) — US-023',
+  })
   @ApiParam({ name: 'placeId', description: 'Place ID' })
   @ApiBody({ type: TrackInteractionDto })
   @ApiResponse({ status: 204, description: 'Interaction recorded' })
@@ -54,13 +56,17 @@ export class MetricsController {
   ) {
     // Optional auth: extract user_id from Bearer token if present
     const userId = this.tryExtractUserId(req);
-    return this.metricsService.track(placeId, userId, dto);
+    return this.metricsService.track(placeId, userId, dto, {
+      userAgent: req.headers?.['user-agent'],
+    });
   }
 
   @Get('metrics/summary')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get metrics summary with previous-period comparison — US-023' })
+  @ApiOperation({
+    summary: 'Get metrics summary with previous-period comparison — US-023',
+  })
   @ApiParam({ name: 'placeId', description: 'Place ID' })
   @ApiQuery({ name: 'from', required: true })
   @ApiQuery({ name: 'to', required: true })
@@ -72,7 +78,11 @@ export class MetricsController {
     @Query() query: MetricsRangeQueryDto,
   ) {
     return this.metricsService.getSummary(
-      placeId, req.user.id, req.user.role, query.from, query.to,
+      placeId,
+      req.user.id,
+      req.user.role,
+      query.from,
+      query.to,
     );
   }
 
@@ -83,7 +93,11 @@ export class MetricsController {
   @ApiParam({ name: 'placeId', description: 'Place ID' })
   @ApiQuery({ name: 'from', required: true })
   @ApiQuery({ name: 'to', required: true })
-  @ApiQuery({ name: 'granularity', required: false, enum: TimeseriesGranularity })
+  @ApiQuery({
+    name: 'granularity',
+    required: false,
+    enum: TimeseriesGranularity,
+  })
   @ApiResponse({ status: 200, type: [MetricsTimeseriesBucketDto] })
   @ApiResponse({ status: 403, description: 'Not the owner of this place' })
   async getTimeseries(
@@ -92,8 +106,11 @@ export class MetricsController {
     @Query() query: MetricsTimeseriesQueryDto,
   ) {
     return this.metricsService.getTimeseries(
-      placeId, req.user.id, req.user.role,
-      query.from, query.to,
+      placeId,
+      req.user.id,
+      req.user.role,
+      query.from,
+      query.to,
       query.granularity || TimeseriesGranularity.DAY,
     );
   }

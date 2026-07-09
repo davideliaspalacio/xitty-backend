@@ -9,6 +9,13 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
+import { RecordImpressionDto } from './dto/record-impression.dto';
+import {
+  buildInteractionTrackingFields,
+  isBotUserAgent,
+  isDuplicateInteractionError,
+  TrackingContext,
+} from '../metrics/interaction-tracking.util';
 
 const TABLE = 'promotions';
 const ACTIVE_VIEW = 'active_promotions';
@@ -26,7 +33,9 @@ export class PromotionsService {
   async findActiveByPlace(placeId: string) {
     const { data, error } = await this.supabase
       .from(ACTIVE_VIEW)
-      .select('id, place_id, title, description, discount_percentage, starts_at, ends_at, is_active, created_at, updated_at')
+      .select(
+        'id, place_id, title, description, discount_percentage, starts_at, ends_at, is_active, created_at, updated_at',
+      )
       .eq('place_id', placeId)
       .order('created_at', { ascending: false });
 
@@ -60,7 +69,14 @@ export class PromotionsService {
    * Records an ad impression for a hero promotion. Public endpoint —
    * `userId` is optional (anonymous home views are allowed).
    */
-  async recordImpression(promoId: string, userId?: string) {
+  async recordImpression(
+    promoId: string,
+    userId?: string,
+    dto: RecordImpressionDto = {},
+    context: TrackingContext = {},
+  ) {
+    if (isBotUserAgent(context.userAgent)) return { success: true };
+
     const { data: promo, error: lookupError } = await this.supabase
       .from(TABLE)
       .select('id, place_id')
@@ -70,15 +86,24 @@ export class PromotionsService {
     if (lookupError) throw new BadRequestException(lookupError.message);
     if (!promo) throw new NotFoundException('Promotion not found');
 
-    const { error } = await this.supabase
-      .from(INTERACTIONS_TABLE)
-      .insert({
-        place_id: promo.place_id,
-        user_id: userId ?? null,
-        interaction_type: 'ad_impression',
-        promo_id: promo.id,
-      });
+    const trackingFields = buildInteractionTrackingFields({
+      placeId: promo.place_id,
+      interactionType: 'ad_impression',
+      promoId: promo.id,
+      userId: userId ?? null,
+      anonymousSessionId: dto.anonymous_session_id,
+      userAgent: context.userAgent,
+    });
 
+    const { error } = await this.supabase.from(INTERACTIONS_TABLE).insert({
+      place_id: promo.place_id,
+      user_id: userId ?? null,
+      interaction_type: 'ad_impression',
+      promo_id: promo.id,
+      ...trackingFields,
+    });
+
+    if (error && isDuplicateInteractionError(error)) return { success: true };
     if (error) throw new BadRequestException(error.message);
     return { success: true };
   }
@@ -149,12 +174,23 @@ export class PromotionsService {
   ) {
     await this.assertOwnership(placeId, userId, userRole);
 
-    if (dto.starts_at && dto.ends_at && new Date(dto.ends_at) <= new Date(dto.starts_at)) {
+    if (
+      dto.starts_at &&
+      dto.ends_at &&
+      new Date(dto.ends_at) <= new Date(dto.starts_at)
+    ) {
       throw new BadRequestException('ends_at must be after starts_at');
     }
 
     const updates: Record<string, any> = {};
-    const fields = ['title', 'description', 'discount_percentage', 'starts_at', 'ends_at', 'is_active'] as const;
+    const fields = [
+      'title',
+      'description',
+      'discount_percentage',
+      'starts_at',
+      'ends_at',
+      'is_active',
+    ] as const;
     for (const k of fields) {
       if ((dto as any)[k] !== undefined) updates[k] = (dto as any)[k];
     }
@@ -192,7 +228,11 @@ export class PromotionsService {
     if (error) throw new BadRequestException(error.message);
   }
 
-  private async assertOwnership(placeId: string, userId: string, userRole: string) {
+  private async assertOwnership(
+    placeId: string,
+    userId: string,
+    userRole: string,
+  ) {
     if (userRole === 'admin') return;
 
     const { data: place } = await this.supabase
@@ -203,7 +243,9 @@ export class PromotionsService {
 
     if (!place) throw new NotFoundException('Place not found');
     if (place.owner_id !== userId) {
-      throw new ForbiddenException('You can only manage promotions of your own places');
+      throw new ForbiddenException(
+        'You can only manage promotions of your own places',
+      );
     }
   }
 }

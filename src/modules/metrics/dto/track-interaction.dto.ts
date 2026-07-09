@@ -1,4 +1,11 @@
-import { IsEnum, IsOptional, IsUUID } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum InteractionType {
@@ -15,8 +22,22 @@ export class TrackInteractionDto {
   @IsEnum(InteractionType)
   interaction_type: InteractionType;
 
-  @ApiProperty({ description: 'Promotion ID (only for promo_view)', required: false })
+  @ApiProperty({
+    description: 'Promotion ID (only for promo_view)',
+    required: false,
+  })
   @IsOptional()
   @IsUUID()
   promo_id?: string;
+
+  @ApiProperty({
+    description: 'Stable anonymous browser session id. Stored only as a hash.',
+    required: false,
+    maxLength: 128,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  @MaxLength(128)
+  anonymous_session_id?: string;
 }
