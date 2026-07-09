@@ -26,6 +26,12 @@ import {
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
+interface AuthenticatedFavoriteRequest {
+  user: {
+    id: string;
+  };
+}
+
 @ApiTags('favorites')
 @Controller()
 @UseGuards(AuthGuard)
@@ -42,7 +48,7 @@ export class FavoritesController {
   @ApiResponse({ status: 404, description: 'Place not found' })
   async toggle(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedFavoriteRequest,
   ) {
     return this.favoritesService.toggle(placeId, req.user.id);
   }
@@ -51,7 +57,10 @@ export class FavoritesController {
   @ApiOperation({ summary: 'List user favorites — US-015' })
   @ApiResponse({ status: 200, type: FavoriteListResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async findMine(@Request() req: any, @Query() pagination: PaginationDto) {
+  async findMine(
+    @Request() req: AuthenticatedFavoriteRequest,
+    @Query() pagination: PaginationDto,
+  ) {
     return this.favoritesService.findByUserId(
       req.user.id,
       pagination.page,

@@ -74,6 +74,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 66. #87 - PR tecnico preferences service lint/typing, base #86.
 67. #88 - PR tecnico source factory lint/typing, base #87.
 68. #89 - PR tecnico mock chat provider lint/typing, base #88.
+69. Pendiente - PR tecnico favorites controller lint/typing, base #89.
 
 ### Frontend
 
