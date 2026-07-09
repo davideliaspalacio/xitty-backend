@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 32.
-- Errores: 62.
+- Archivos con problemas: 31.
+- Errores: 58.
 - Warnings: 2.
-- Errores auto-fixables: 50.
+- Errores auto-fixables: 47.
 
 Avance aplicado:
 
@@ -210,15 +210,18 @@ Avance aplicado:
 - PR tecnico #92 `chore/backend-lint-runner-service`:
   `runner.service.ts` queda con errores `unknown`, helper de mensaje seguro y
   lint dirigido limpio.
-- Reduccion neta acumulada: -86 archivos con problemas, -2648 errores y -245 warnings.
+- PR tecnico pendiente `chore/backend-lint-source-factory-spec`:
+  `source.factory.spec.ts` queda con fixture tipada, sin casts `any`, formato
+  Prettier y lint dirigido limpio.
+- Reduccion neta acumulada: -87 archivos con problemas, -2652 errores y -245 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 50 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-assignment` | 4 | 0 | Asignaciones desde `any`. |
+| `prettier/prettier` | 47 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/no-unsafe-member-access` | 4 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `@typescript-eslint/no-unsafe-assignment` | 3 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/require-await` | 3 | 0 | Funciones async sin await. |
 | `@typescript-eslint/no-unsafe-argument` | 0 | 2 | Argumentos `any` en tests/servicios. |
 | `@typescript-eslint/no-unused-vars` | 1 | 0 | Variables/imports historicos sin usar. |
@@ -228,9 +231,9 @@ Avance aplicado:
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
 | `src/modules/scraping/scraping.module.spec.ts` | 4 | 0 |
-| `src/modules/scraping/sources/source.factory.spec.ts` | 4 | 0 |
 | `src/common/i18n/localize.ts` | 2 | 1 |
 | `src/modules/chat/dto/message-response.dto.ts` | 3 | 0 |
+| `src/modules/experiences/dto/reservation-response.dto.ts` | 3 | 0 |
 
 ## Impacto en Features v2
 

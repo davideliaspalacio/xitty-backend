@@ -1,7 +1,4 @@
-import {
-  BadRequestException,
-  NotImplementedException,
-} from '@nestjs/common';
+import { BadRequestException, NotImplementedException } from '@nestjs/common';
 
 import { ScraperSourceFactory } from './source.factory';
 import { EventbriteSource } from './eventbrite-source';
@@ -9,8 +6,9 @@ import { TavilySearchSource } from './tavily-search-source';
 
 describe('ScraperSourceFactory', () => {
   const factory = new ScraperSourceFactory();
+  type SourceInput = Parameters<ScraperSourceFactory['build']>[0];
 
-  const base = { name: 'test-source', config: {} as Record<string, any> };
+  const base = { name: 'test-source', config: {} as Record<string, unknown> };
 
   it('construye EventbriteSource para kind=eventbrite', () => {
     const src = factory.build({ ...base, kind: 'eventbrite' });
@@ -37,7 +35,13 @@ describe('ScraperSourceFactory', () => {
     const src = factory.build({
       ...base,
       kind: 'google_places',
-      config: { lat: 11, lng: -74, radius_m: 3000, type: 'restaurant', max_results: 5 },
+      config: {
+        lat: 11,
+        lng: -74,
+        radius_m: 3000,
+        type: 'restaurant',
+        max_results: 5,
+      },
     });
     expect(src.id).toBe('google-places');
     expect(typeof src.fetch).toBe('function');
@@ -59,8 +63,8 @@ describe('ScraperSourceFactory', () => {
   );
 
   it('tira BadRequest para un kind desconocido', () => {
-    expect(() =>
-      factory.build({ ...base, kind: 'wat' as any }),
-    ).toThrow(BadRequestException);
+    const source = { ...base, kind: 'wat' } as unknown as SourceInput;
+
+    expect(() => factory.build(source)).toThrow(BadRequestException);
   });
 });
