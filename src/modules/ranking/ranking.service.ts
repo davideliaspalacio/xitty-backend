@@ -14,6 +14,50 @@ const SNAPSHOTS_TABLE = 'ranking_snapshots';
 const PLACES_TABLE = 'places';
 const SPONSORED_LABEL = 'Patrocinado';
 
+interface RankingRow {
+  place_id: string;
+  category_id: string | null;
+  position?: number | string | null;
+  global_position?: number | string | null;
+  category_position?: number | string | null;
+  score: number | string;
+  views_30d: number | string;
+  conversions_30d: number | string;
+}
+
+interface PlacePhotoRow {
+  url: string;
+  is_cover?: boolean | null;
+  display_order?: number | null;
+}
+
+interface RankingPlaceRow {
+  id: string;
+  name: string | null;
+  slug: string | null;
+  description: string | null;
+  address: string | null;
+  category_id: string | null;
+  average_rating: number | string | null;
+  total_reviews: number | string | null;
+  is_sponsored: boolean | null;
+  sponsored_until: string | null;
+  place_photos?: PlacePhotoRow[] | null;
+}
+
+interface SnapshotRow {
+  place_id: string;
+  position: number | string;
+  snapshot_at: string;
+}
+
+interface SponsorshipPlaceRow {
+  id: string;
+  is_sponsored: boolean;
+  sponsored_at: string | null;
+  sponsored_until: string | null;
+}
+
 @Injectable()
 export class RankingService {
   constructor(
@@ -37,13 +81,19 @@ export class RankingService {
     return { refreshed_at: new Date().toISOString() };
   }
 
-  async activateSponsorship(placeId: string, durationDays: number, userRole: string) {
+  async activateSponsorship(
+    placeId: string,
+    durationDays: number,
+    userRole: string,
+  ) {
     if (userRole !== 'admin') {
       throw new ForbiddenException('Only admins can manage sponsorships');
     }
 
     const sponsoredAt = new Date();
-    const sponsoredUntil = new Date(sponsoredAt.getTime() + durationDays * 86400_000);
+    const sponsoredUntil = new Date(
+      sponsoredAt.getTime() + durationDays * 86400_000,
+    );
 
     const { data, error } = await this.supabase
       .from(PLACES_TABLE)
@@ -56,13 +106,14 @@ export class RankingService {
       .select('id, is_sponsored, sponsored_at, sponsored_until')
       .single();
 
-    if (error || !data) throw new NotFoundException('Place not found');
+    const place = data as SponsorshipPlaceRow | null;
+    if (error || !place) throw new NotFoundException('Place not found');
 
     return {
-      place_id: data.id,
-      is_sponsored: data.is_sponsored,
-      sponsored_at: data.sponsored_at,
-      sponsored_until: data.sponsored_until,
+      place_id: place.id,
+      is_sponsored: place.is_sponsored,
+      sponsored_at: place.sponsored_at,
+      sponsored_until: place.sponsored_until,
     };
   }
 
@@ -81,49 +132,62 @@ export class RankingService {
       .select('id, is_sponsored, sponsored_at, sponsored_until')
       .single();
 
-    if (error || !data) throw new NotFoundException('Place not found');
+    const place = data as SponsorshipPlaceRow | null;
+    if (error || !place) throw new NotFoundException('Place not found');
 
     return {
-      place_id: data.id,
-      is_sponsored: data.is_sponsored,
-      sponsored_at: data.sponsored_at,
-      sponsored_until: data.sponsored_until,
+      place_id: place.id,
+      is_sponsored: place.is_sponsored,
+      sponsored_at: place.sponsored_at,
+      sponsored_until: place.sponsored_until,
     };
   }
 
   // ── private helpers ────────────────────────────────────────────────────
 
-  private async fetchRanking(categoryId: string | null, limit: number): Promise<RankingItemDto[]> {
+  private async fetchRanking(
+    categoryId: string | null,
+    limit: number,
+  ): Promise<RankingItemDto[]> {
     // Pull a generous window so sponsored items can be promoted to the top.
     const fetchSize = Math.min(limit * 3, 100);
+    const positionColumn = categoryId ? 'category_position' : 'global_position';
 
     let query = this.supabase
       .from(RANKINGS_VIEW)
-      .select('place_id, category_id, position, score, views_30d, conversions_30d')
-      .order('position', { ascending: true })
+      .select(
+        'place_id, category_id, position, global_position, category_position, score, views_30d, conversions_30d',
+      )
+      .order(positionColumn, { ascending: true })
       .limit(fetchSize);
 
     if (categoryId) query = query.eq('category_id', categoryId);
 
     const { data: rankings, error } = await query;
     if (error) throw new BadRequestException(error.message);
-    if (!rankings || rankings.length === 0) return [];
+    const rankingRows = (rankings ?? []) as RankingRow[];
+    if (rankingRows.length === 0) return [];
 
-    const placeIds = rankings.map((r: any) => r.place_id);
+    const placeIds = rankingRows.map((r) => r.place_id);
 
     // Hydrate place data + cover photo + sponsorship state in parallel with snapshots.
     const [placesResult, snapshotsByPlace] = await Promise.all([
       this.fetchPlaces(placeIds),
-      this.fetchPreviousSnapshots(placeIds),
+      this.fetchPreviousSnapshots(
+        placeIds,
+        categoryId ? 'category' : 'global',
+        categoryId,
+      ),
     ]);
 
-    const placesById = new Map<string, any>();
+    const placesById = new Map<string, RankingPlaceRow>();
     for (const place of placesResult) placesById.set(place.id, place);
 
     const now = Date.now();
 
-    const items: RankingItemDto[] = rankings.map((row: any) => {
+    const items: RankingItemDto[] = rankingRows.map((row) => {
       const place = placesById.get(row.place_id);
+      const currentPosition = Number(row[positionColumn] ?? row.position);
       const isSponsored =
         !!place?.is_sponsored &&
         !!place?.sponsored_until &&
@@ -132,10 +196,10 @@ export class RankingService {
       const snapshot = snapshotsByPlace.get(row.place_id);
       const previousPosition = snapshot ? Number(snapshot.position) : null;
       const positionChange =
-        previousPosition !== null ? previousPosition - Number(row.position) : null;
+        previousPosition !== null ? previousPosition - currentPosition : null;
 
       return {
-        position: Number(row.position),
+        position: currentPosition,
         previous_position: previousPosition,
         position_change: positionChange,
         score: Number(row.score),
@@ -167,7 +231,7 @@ export class RankingService {
     return items.slice(0, limit);
   }
 
-  private async fetchPlaces(placeIds: string[]) {
+  private async fetchPlaces(placeIds: string[]): Promise<RankingPlaceRow[]> {
     const { data, error } = await this.supabase
       .from(PLACES_TABLE)
       .select(
@@ -178,29 +242,42 @@ export class RankingService {
     if (error) throw new BadRequestException(error.message);
 
     // Keep only the cover photo (or first ordered) per place.
-    return (data || []).map((p: any) => {
-      const photos = (p.place_photos || []) as any[];
+    const places = (data ?? []) as RankingPlaceRow[];
+    return places.map((p) => {
+      const photos = p.place_photos ?? [];
       const cover = photos.find((ph) => ph.is_cover) || photos[0] || null;
       return { ...p, place_photos: cover ? [cover] : [] };
     });
   }
 
-  private async fetchPreviousSnapshots(placeIds: string[]) {
-    // Closest snapshot strictly older than 24h ago — gives a meaningful delta
-    // for daily refreshes without flapping when multiple snapshots happen the same day.
-    const cutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  private async fetchPreviousSnapshots(
+    placeIds: string[],
+    scope: 'global' | 'category',
+    categoryId: string | null,
+  ) {
+    // Closest snapshot strictly older than 7 days — this is the weekly delta
+    // promised in the product copy, without daily refresh noise.
+    const cutoff = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
 
-    const { data, error } = await this.supabase
+    let query = this.supabase
       .from(SNAPSHOTS_TABLE)
       .select('place_id, position, snapshot_at')
       .in('place_id', placeIds)
+      .eq('scope', scope)
       .lt('snapshot_at', cutoff)
       .order('snapshot_at', { ascending: false });
 
+    query = categoryId
+      ? query.eq('category_id', categoryId)
+      : query.is('category_id', null);
+
+    const { data, error } = await query;
+
     if (error) throw new BadRequestException(error.message);
 
-    const byPlace = new Map<string, any>();
-    for (const row of data || []) {
+    const byPlace = new Map<string, SnapshotRow>();
+    const snapshots = (data ?? []) as SnapshotRow[];
+    for (const row of snapshots) {
       if (!byPlace.has(row.place_id)) byPlace.set(row.place_id, row);
     }
     return byPlace;
