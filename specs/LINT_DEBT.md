@@ -204,7 +204,7 @@ Avance aplicado:
 - PR tecnico #90 `chore/backend-lint-favorites-controller`:
   `favorites.controller.ts` queda con request autenticado tipado y lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-enrichment-service`:
+- PR tecnico #91 `chore/backend-lint-enrichment-service`:
   `enrichment.service.ts` y `enrichment.service.spec.ts` quedan con errores
   `unknown`, fake provider sin `async` innecesario y lint dirigido limpio.
 - Reduccion neta acumulada: -85 archivos con problemas, -2644 errores y -245 warnings.
