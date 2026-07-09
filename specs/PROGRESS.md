@@ -132,7 +132,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #109 abierto: `chore/backend-lint-quality-scorer-service`; quality scorer service queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #110 abierto: `chore/backend-lint-discover-controller`; discover controller queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #111 abierto: `chore/backend-lint-curated-item-dto`; curated item dto queda con lint dirigido limpio.
-- 2026-07-09: PR tecnico pendiente: `chore/backend-lint-scheduler-module`; scheduler module queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #112 abierto: `chore/backend-lint-scheduler-module`; scheduler module queda con lint dirigido limpio.
 
 ## Evidencia transversal
 

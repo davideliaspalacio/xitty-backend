@@ -266,7 +266,7 @@ Avance aplicado:
 - PR tecnico #111 `chore/backend-lint-curated-item-dto`:
   `curated-item.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-scheduler-module`:
+- PR tecnico #112 `chore/backend-lint-scheduler-module`:
   `scheduler.module.ts` queda sin `async` innecesario en servicios NOOP y con
   lint dirigido limpio.
 - Reduccion neta acumulada: -106 archivos con problemas, -2698 errores y -247 warnings.
