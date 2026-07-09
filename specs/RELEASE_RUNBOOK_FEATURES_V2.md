@@ -87,6 +87,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 79. #100 - PR tecnico recommendation item dto lint/typing, base #99.
 80. #101 - PR tecnico recommendations controller lint/typing, base #100.
 81. #102 - PR tecnico quality scorer spec lint/typing, base #101.
+82. Pendiente - PR tecnico openai chat provider lint/typing, base #102.
 
 ### Frontend
 

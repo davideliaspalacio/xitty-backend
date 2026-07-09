@@ -1,4 +1,8 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import {
@@ -65,10 +69,8 @@ export class OpenAIChatProvider implements ChatProvider {
       });
       const text = completion.choices[0]?.message?.content?.trim();
       return text || 'Lo siento, no pude generar una respuesta esta vez.';
-    } catch (err: any) {
-      this.logger.error(
-        `OpenAI generation failed: ${err?.message ?? 'unknown error'}`,
-      );
+    } catch (err: unknown) {
+      this.logger.error(`OpenAI generation failed: ${errorMessage(err)}`);
       throw new ServiceUnavailableException(
         'Chat AI temporalmente no disponible. Intenta de nuevo en unos segundos.',
       );
@@ -98,4 +100,10 @@ export class OpenAIChatProvider implements ChatProvider {
 
     return `${baseText}\n\nContexto del catalogo (usa estos lugares si son relevantes; no inventes otros):\n${ctx}`;
   }
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'unknown error';
 }

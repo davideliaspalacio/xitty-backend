@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 22.
-- Errores: 32.
+- Archivos con problemas: 21.
+- Errores: 30.
 - Warnings: 0.
-- Errores auto-fixables: 25.
+- Errores auto-fixables: 24.
 
 Avance aplicado:
 
@@ -240,26 +240,29 @@ Avance aplicado:
 - PR tecnico #102 `chore/backend-lint-quality-scorer-spec`:
   `quality-scorer.spec.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- Reduccion neta acumulada: -96 archivos con problemas, -2678 errores y -247 warnings.
+- PR tecnico pendiente `chore/backend-lint-openai-chat-provider`:
+  `openai-provider.ts` queda con errores `unknown`, helper de mensaje seguro,
+  formato Prettier y lint dirigido limpio.
+- Reduccion neta acumulada: -97 archivos con problemas, -2680 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 25 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 24 | 0 | Formato historico fuera de Prettier. |
 | `@typescript-eslint/require-await` | 3 | 0 | Funciones async sin await. |
-| `@typescript-eslint/no-unsafe-member-access` | 2 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 | `@typescript-eslint/no-unsafe-assignment` | 1 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unused-vars` | 1 | 0 | Variables/imports historicos sin usar. |
+| `@typescript-eslint/no-unsafe-member-access` | 1 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/chat/providers/openai-provider.ts` | 2 | 0 |
 | `src/modules/chat/rate-limit.service.ts` | 2 | 0 |
 | `src/modules/experiences/dto/create-slot.dto.ts` | 2 | 0 |
 | `src/modules/local-picks/dto/create-local-pick.dto.ts` | 2 | 0 |
+| `src/modules/scraping/enrichment/providers/mock-enrichment-provider.ts` | 2 | 0 |
 
 ## Impacto en Features v2
 
