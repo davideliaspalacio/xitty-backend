@@ -18,7 +18,7 @@ const MAX_BYTES = 8 * 1024 * 1024; // 8MB — descartamos imágenes anómalas
 export class PhotoStorageService {
   private readonly logger = new Logger(PhotoStorageService.name);
   /** Inyectable para tests (default = fetch nativo de Node >=18). */
-  private fetchImpl: typeof fetch = globalThis.fetch as typeof fetch;
+  private fetchImpl: typeof fetch = globalThis.fetch;
 
   constructor(
     @Inject('SUPABASE_CLIENT')
@@ -44,7 +44,7 @@ export class PhotoStorageService {
       const resp = await this.fetchImpl(sourceUrl, {
         headers,
         redirect: 'follow',
-      } as any);
+      });
       if (!resp.ok) {
         this.logger.warn(`rehost ${keyBase}: descarga HTTP ${resp.status}`);
         return null;
@@ -60,7 +60,9 @@ export class PhotoStorageService {
 
       const bytes = new Uint8Array(await resp.arrayBuffer());
       if (bytes.byteLength === 0 || bytes.byteLength > MAX_BYTES) {
-        this.logger.warn(`rehost ${keyBase}: tamaño inválido ${bytes.byteLength}`);
+        this.logger.warn(
+          `rehost ${keyBase}: tamaño inválido ${bytes.byteLength}`,
+        );
         return null;
       }
 
@@ -81,11 +83,17 @@ export class PhotoStorageService {
 
       const { data } = this.supabase.storage.from(BUCKET).getPublicUrl(path);
       return data?.publicUrl ?? null;
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.logger.warn(
-        `rehost ${keyBase}: falló (best-effort) — ${err?.message ?? err}`,
+        `rehost ${keyBase}: falló (best-effort) — ${errorMessage(err)}`,
       );
       return null;
     }
   }
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'unknown error';
 }
