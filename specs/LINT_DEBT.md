@@ -144,7 +144,7 @@ Avance aplicado:
 - PR tecnico #70 `chore/backend-lint-chat-rate-limit-spec`:
   `chat/rate-limit.service.spec.ts` queda con mock Supabase RPC tipado,
   expectativas formateadas por Prettier y lint dirigido limpio.
-- PR tecnico pendiente `chore/backend-lint-localize-spec`:
+- PR tecnico #71 `chore/backend-lint-localize-spec`:
   `localize.spec.ts` queda con fixtures `getLang` tipados, sin casts `any`,
   y lint dirigido limpio.
 - Reduccion neta acumulada: -64 archivos con problemas, -2533 errores y -212 warnings.
