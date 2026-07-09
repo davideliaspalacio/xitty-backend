@@ -11,7 +11,7 @@ import {
  */
 @Injectable()
 export class MockChatProvider implements ChatProvider {
-  async generate(
+  generate(
     messages: ChatProviderMessage[],
     contextSnippets: PlaceSnippet[],
   ): Promise<string> {
@@ -27,27 +27,38 @@ export class MockChatProvider implements ChatProvider {
             .join(', ')}.`
         : '';
 
+    let reply: string;
     if (lower.includes('playa')) {
-      return `Cerca de ti, Playa Salgar es la mas popular para visitar.${contextHint}`;
+      reply = `Cerca de ti, Playa Salgar es la mas popular para visitar.${contextHint}`;
+    } else if (
+      lower.includes('restaurante') ||
+      lower.includes('comer') ||
+      lower.includes('comida')
+    ) {
+      reply = `Para comer rico en Barranquilla te recomiendo La Cueva o Vintrash.${contextHint}`;
+    } else if (lower.includes('hotel') || lower.includes('hospedaje')) {
+      reply = `Para hospedarte el Hotel El Prado y el Movich son clasicos.${contextHint}`;
+    } else if (
+      lower.includes('bar') ||
+      lower.includes('noche') ||
+      lower.includes('discoteca')
+    ) {
+      reply = `Para vida nocturna, Frogg Leggz y La Troja son legendarios.${contextHint}`;
+    } else if (lower.includes('museo') || lower.includes('cultura')) {
+      reply = `Visita el Museo del Caribe y el Museo Romantico.${contextHint}`;
+    } else if (lower.includes('tour') || lower.includes('experiencia')) {
+      reply = `Te recomiendo un tour del centro historico o un city tour panoramico.${contextHint}`;
+    } else if (
+      lower.includes('hola') ||
+      lower.includes('saludos') ||
+      lower.includes('buenas')
+    ) {
+      reply =
+        '¡Hola! Soy Xitty, tu asistente turistico de Barranquilla. ¿En que te puedo ayudar?';
+    } else {
+      reply = `Soy Xitty, tu asistente de Barranquilla. Cuentame que estas buscando: playa, comida, vida nocturna, museos o experiencias?${contextHint}`;
     }
-    if (lower.includes('restaurante') || lower.includes('comer') || lower.includes('comida')) {
-      return `Para comer rico en Barranquilla te recomiendo La Cueva o Vintrash.${contextHint}`;
-    }
-    if (lower.includes('hotel') || lower.includes('hospedaje')) {
-      return `Para hospedarte el Hotel El Prado y el Movich son clasicos.${contextHint}`;
-    }
-    if (lower.includes('bar') || lower.includes('noche') || lower.includes('discoteca')) {
-      return `Para vida nocturna, Frogg Leggz y La Troja son legendarios.${contextHint}`;
-    }
-    if (lower.includes('museo') || lower.includes('cultura')) {
-      return `Visita el Museo del Caribe y el Museo Romantico.${contextHint}`;
-    }
-    if (lower.includes('tour') || lower.includes('experiencia')) {
-      return `Te recomiendo un tour del centro historico o un city tour panoramico.${contextHint}`;
-    }
-    if (lower.includes('hola') || lower.includes('saludos') || lower.includes('buenas')) {
-      return '¡Hola! Soy Xitty, tu asistente turistico de Barranquilla. ¿En que te puedo ayudar?';
-    }
-    return `Soy Xitty, tu asistente de Barranquilla. Cuentame que estas buscando: playa, comida, vida nocturna, museos o experiencias?${contextHint}`;
+
+    return Promise.resolve(reply);
   }
 }
