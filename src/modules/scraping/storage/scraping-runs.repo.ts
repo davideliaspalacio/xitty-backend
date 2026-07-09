@@ -9,11 +9,16 @@ import { SupabaseClient } from '@supabase/supabase-js';
 const TABLE = 'scraping_runs';
 const MAX_ERROR_LENGTH = 2000;
 
-export type ScrapingRunStatus =
-  | 'running'
-  | 'succeeded'
-  | 'failed'
-  | 'partial';
+export type ScrapingRunStatus = 'running' | 'succeeded' | 'failed' | 'partial';
+
+interface SupabaseError {
+  message: string;
+}
+
+interface SupabaseResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
 
 export interface ScrapingRun {
   id: string;
@@ -57,19 +62,17 @@ export class ScrapingRunsRepo {
   }): Promise<ScrapingRun[]> {
     const limit = Math.max(1, Math.min(opts.limit ?? 50, 200));
 
-    let qb: any = this.supabase
+    const query = this.supabase
       .from(TABLE)
       .select(SELECT_COLS)
       .order('started_at', { ascending: false })
       .limit(limit);
 
-    if (opts.sourceId) {
-      qb = qb.eq('source_id', opts.sourceId);
-    }
-
-    const { data, error } = await qb;
+    const { data, error } = (await (opts.sourceId
+      ? query.eq('source_id', opts.sourceId)
+      : query)) as unknown as SupabaseResult<ScrapingRun[]>;
     if (error) throw new BadRequestException(error.message);
-    return (data ?? []) as ScrapingRun[];
+    return data ?? [];
   }
 
   async start(sourceId: string, triggeredBy: string): Promise<ScrapingRun> {
