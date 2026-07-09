@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import {
   ApiOperation,
   ApiParam,
@@ -61,7 +55,10 @@ export class DiscoverController {
   })
   @ApiParam({ name: 'id', description: 'Enriched item id' })
   @ApiResponse({ status: 200, type: CuratedItemDetailDto })
-  @ApiResponse({ status: 404, description: 'Item no existe o no esta publicado' })
+  @ApiResponse({
+    status: 404,
+    description: 'Item no existe o no esta publicado',
+  })
   async findCuratedById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<CuratedItemDetailDto> {
