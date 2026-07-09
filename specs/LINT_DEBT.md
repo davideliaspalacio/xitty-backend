@@ -251,7 +251,7 @@ Avance aplicado:
 - PR tecnico #106 `chore/backend-lint-create-local-pick-dto`:
   `create-local-pick.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- PR tecnico pendiente `chore/backend-lint-mock-enrichment-provider`:
+- PR tecnico #107 `chore/backend-lint-mock-enrichment-provider`:
   `mock-enrichment-provider.ts` queda sin `async` innecesario, sin parametro
   sin usar y con lint dirigido limpio.
 - Reduccion neta acumulada: -101 archivos con problemas, -2688 errores y -247 warnings.
