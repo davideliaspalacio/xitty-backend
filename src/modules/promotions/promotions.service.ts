@@ -28,6 +28,83 @@ const ACTIVE_HERO_VIEW = 'active_hero_promotions';
 const PLACES_TABLE = 'places';
 const INTERACTIONS_TABLE = 'microsite_interactions';
 
+interface SupabaseError {
+  message: string;
+  code?: string;
+}
+
+interface SupabaseSingleResult<T> {
+  data: T | null;
+  error: SupabaseError | null;
+}
+
+interface SupabaseListResult<T> {
+  data: T[] | null;
+  error: SupabaseError | null;
+  count?: number | null;
+}
+
+export interface PromotionRow {
+  id: string;
+  place_id: string;
+  title: string;
+  description?: string | null;
+  discount_percentage?: number | null;
+  starts_at: string;
+  ends_at: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PlaceSummaryRow {
+  id: string;
+  name: string;
+  slug: string | null;
+}
+
+export interface ActivePromotionRow extends PromotionRow {
+  places?: PlaceSummaryRow | null;
+}
+
+export interface HeroPromotionRow extends ActivePromotionRow {
+  is_hero: boolean;
+  hero_priority: number | null;
+  hero_image_url: string | null;
+}
+
+interface PromotionLookupRow {
+  id: string;
+  place_id: string;
+}
+
+interface PromotionWindowRow {
+  id: string;
+  starts_at: string;
+  ends_at: string;
+}
+
+interface PlaceOwnerRow {
+  owner_id: string;
+}
+
+interface PromotionUpdates {
+  title?: string;
+  description?: string | null;
+  discount_percentage?: number | null;
+  starts_at?: string;
+  ends_at?: string;
+  is_active?: boolean;
+}
+
+export interface PaginatedPromotions {
+  data: ActivePromotionRow[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 @Injectable()
 export class PromotionsService {
   constructor(
@@ -35,29 +112,37 @@ export class PromotionsService {
     private readonly supabase: SupabaseClient,
   ) {}
 
-  async findActiveByPlace(placeId: string) {
-    const { data, error } = await this.supabase
+  async findActiveByPlace(placeId: string): Promise<PromotionRow[]> {
+    const { data, error } = (await this.supabase
       .from(ACTIVE_VIEW)
       .select(
         'id, place_id, title, description, discount_percentage, starts_at, ends_at, is_active, created_at, updated_at',
       )
       .eq('place_id', placeId)
-      .order('created_at', { ascending: false });
+      .order('created_at', {
+        ascending: false,
+      })) as unknown as SupabaseListResult<PromotionRow>;
 
     if (error) throw new BadRequestException(error.message);
     return data || [];
   }
 
-  async findManageByPlace(placeId: string, userId: string, userRole: string) {
+  async findManageByPlace(
+    placeId: string,
+    userId: string,
+    userRole: string,
+  ): Promise<PromotionRow[]> {
     await this.assertOwnership(placeId, userId, userRole);
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .select(
         'id, place_id, title, description, discount_percentage, starts_at, ends_at, is_active, created_at, updated_at, is_hero, hero_priority, hero_image_url',
       )
       .eq('place_id', placeId)
-      .order('created_at', { ascending: false });
+      .order('created_at', {
+        ascending: false,
+      })) as unknown as SupabaseListResult<PromotionRow>;
 
     if (error) throw new BadRequestException(error.message);
     return data || [];
@@ -72,14 +157,16 @@ export class PromotionsService {
    * We also enforce the order client-side to keep behavior deterministic
    * even if a future Supabase client strips the view's ORDER BY.
    */
-  async getHero() {
-    const { data, error } = await this.supabase
+  async getHero(): Promise<HeroPromotionRow[]> {
+    const { data, error } = (await this.supabase
       .from(ACTIVE_HERO_VIEW)
       .select(
         'id, place_id, title, description, discount_percentage, starts_at, ends_at, is_active, is_hero, hero_priority, hero_image_url, places(id, name, slug)',
       )
       .order('hero_priority', { ascending: false })
-      .order('ends_at', { ascending: false });
+      .order('ends_at', {
+        ascending: false,
+      })) as unknown as SupabaseListResult<HeroPromotionRow>;
 
     if (error) throw new BadRequestException(error.message);
     return data || [];
@@ -94,14 +181,14 @@ export class PromotionsService {
     userId?: string,
     dto: RecordImpressionDto = {},
     context: TrackingContext = {},
-  ) {
+  ): Promise<{ success: true }> {
     if (isBotUserAgent(context.userAgent)) return { success: true };
 
-    const { data: promo, error: lookupError } = await this.supabase
+    const { data: promo, error: lookupError } = (await this.supabase
       .from(TABLE)
       .select('id, place_id')
       .eq('id', promoId)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseSingleResult<PromotionLookupRow>;
 
     if (lookupError) throw new BadRequestException(lookupError.message);
     if (!promo) throw new NotFoundException('Promotion not found');
@@ -115,30 +202,33 @@ export class PromotionsService {
       userAgent: context.userAgent,
     });
 
-    const { error } = await this.supabase.from(INTERACTIONS_TABLE).insert({
+    const { error } = (await this.supabase.from(INTERACTIONS_TABLE).insert({
       place_id: promo.place_id,
       user_id: userId ?? null,
       interaction_type: 'ad_impression',
       promo_id: promo.id,
       ...trackingFields,
-    });
+    })) as unknown as SupabaseSingleResult<unknown>;
 
     if (error && isDuplicateInteractionError(error)) return { success: true };
     if (error) throw new BadRequestException(error.message);
     return { success: true };
   }
 
-  async findAllActive(page = 1, limit = 10) {
+  async findAllActive(page = 1, limit = 10): Promise<PaginatedPromotions> {
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await this.supabase
+    const { data, error, count } = (await this.supabase
       .from(ACTIVE_VIEW)
       .select(
         'id, place_id, title, description, discount_percentage, starts_at, ends_at, places(id, name, slug)',
         { count: 'exact' },
       )
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(
+        offset,
+        offset + limit - 1,
+      )) as unknown as SupabaseListResult<ActivePromotionRow>;
 
     if (error) throw new BadRequestException(error.message);
 
@@ -156,7 +246,7 @@ export class PromotionsService {
     userId: string,
     userRole: string,
     dto: CreatePromotionDto,
-  ) {
+  ): Promise<PromotionRow> {
     await this.assertOwnership(placeId, userId, userRole);
     const normalized = normalizePromotionWindow(dto);
 
@@ -164,7 +254,7 @@ export class PromotionsService {
       throw new BadRequestException('ends_at must be after starts_at');
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .insert({
         place_id: placeId,
@@ -176,9 +266,13 @@ export class PromotionsService {
         is_active: normalized.is_active ?? true,
       })
       .select('*')
-      .single();
+      .single()) as unknown as SupabaseSingleResult<PromotionRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error || !data) {
+      throw new BadRequestException(
+        error?.message ?? 'Could not create promotion',
+      );
+    }
 
     // TODO: encolar notificacion a usuarios cercanos cuando exista
     // infraestructura push (US-024 ultimo criterio)
@@ -192,21 +286,18 @@ export class PromotionsService {
     userId: string,
     userRole: string,
     dto: UpdatePromotionDto,
-  ) {
+  ): Promise<PromotionRow> {
     await this.assertOwnership(placeId, userId, userRole);
 
-    const updates: Record<string, any> = {};
-    const fields = [
-      'title',
-      'description',
-      'discount_percentage',
-      'starts_at',
-      'ends_at',
-      'is_active',
-    ] as const;
-    for (const k of fields) {
-      if ((dto as any)[k] !== undefined) updates[k] = (dto as any)[k];
+    const updates: PromotionUpdates = {};
+    if (dto.title !== undefined) updates.title = dto.title;
+    if (dto.description !== undefined) updates.description = dto.description;
+    if (dto.discount_percentage !== undefined) {
+      updates.discount_percentage = dto.discount_percentage;
     }
+    if (dto.starts_at !== undefined) updates.starts_at = dto.starts_at;
+    if (dto.ends_at !== undefined) updates.ends_at = dto.ends_at;
+    if (dto.is_active !== undefined) updates.is_active = dto.is_active;
 
     if (typeof updates.starts_at === 'string') {
       updates.starts_at = normalizePromotionBoundary(
@@ -222,31 +313,29 @@ export class PromotionsService {
       throw new BadRequestException('At least one field is required');
     }
 
-    const { data: existing, error: lookupError } = await this.supabase
+    const { data: existing, error: lookupError } = (await this.supabase
       .from(TABLE)
       .select('id, starts_at, ends_at')
       .eq('id', promotionId)
       .eq('place_id', placeId)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseSingleResult<PromotionWindowRow>;
 
     if (lookupError) throw new BadRequestException(lookupError.message);
     if (!existing) throw new NotFoundException('Promotion not found');
 
-    const nextStartsAt =
-      (updates.starts_at as string | undefined) ?? existing.starts_at;
-    const nextEndsAt =
-      (updates.ends_at as string | undefined) ?? existing.ends_at;
+    const nextStartsAt = updates.starts_at ?? existing.starts_at;
+    const nextEndsAt = updates.ends_at ?? existing.ends_at;
     if (!isPromotionWindowValid(nextStartsAt, nextEndsAt)) {
       throw new BadRequestException('ends_at must be after starts_at');
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = (await this.supabase
       .from(TABLE)
       .update(updates)
       .eq('id', promotionId)
       .eq('place_id', placeId)
       .select('*')
-      .single();
+      .single()) as unknown as SupabaseSingleResult<PromotionRow>;
 
     if (error || !data) throw new NotFoundException('Promotion not found');
     return data;
@@ -257,7 +346,7 @@ export class PromotionsService {
     promotionId: string,
     userId: string,
     userRole: string,
-  ) {
+  ): Promise<void> {
     await this.assertOwnership(placeId, userId, userRole);
 
     const { error } = await this.supabase
@@ -273,14 +362,14 @@ export class PromotionsService {
     placeId: string,
     userId: string,
     userRole: string,
-  ) {
+  ): Promise<void> {
     if (userRole === 'admin') return;
 
-    const { data: place } = await this.supabase
+    const { data: place } = (await this.supabase
       .from(PLACES_TABLE)
       .select('owner_id')
       .eq('id', placeId)
-      .maybeSingle();
+      .maybeSingle()) as unknown as SupabaseSingleResult<PlaceOwnerRow>;
 
     if (!place) throw new NotFoundException('Place not found');
     if (place.owner_id !== userId) {
