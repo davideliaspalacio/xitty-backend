@@ -16,6 +16,7 @@ const PLACES_TABLE = 'places';
 
 const PLACE_FIELDS =
   'id, name, slug, description, address, category_id, average_rating, total_reviews, place_photos(url, is_cover, display_order)';
+const BOGOTA_OFFSET_MS = -5 * 60 * 60 * 1000;
 
 @Injectable()
 export class FeaturedService {
@@ -31,7 +32,9 @@ export class FeaturedService {
       .order('position', { ascending: true });
 
     if (error) throw new BadRequestException(error.message);
-    return (data || []).map((row: any) => this.toResponse(row));
+    const current = (data || []).map((row: any) => this.toResponse(row));
+    if (current.length > 0) return current;
+    return this.findFallbackCurrent();
   }
 
   async findAll(page = 1, limit = 10) {
@@ -100,9 +103,14 @@ export class FeaturedService {
 
     const updates: Record<string, any> = {};
     const fields = [
-      'curator_name', 'custom_title', 'custom_description',
-      'hero_image_url', 'week_starts_at', 'week_ends_at',
-      'position', 'is_active',
+      'curator_name',
+      'custom_title',
+      'custom_description',
+      'hero_image_url',
+      'week_starts_at',
+      'week_ends_at',
+      'position',
+      'is_active',
     ] as const;
     for (const k of fields) {
       if ((dto as any)[k] !== undefined) updates[k] = (dto as any)[k];
@@ -126,10 +134,7 @@ export class FeaturedService {
   async remove(id: string, userRole: string) {
     this.assertAdmin(userRole);
 
-    const { error } = await this.supabase
-      .from(TABLE)
-      .delete()
-      .eq('id', id);
+    const { error } = await this.supabase.from(TABLE).delete().eq('id', id);
 
     if (error) throw new BadRequestException(error.message);
   }
@@ -144,8 +149,63 @@ export class FeaturedService {
 
   private assertWeekRange(starts: string, ends: string) {
     if (new Date(ends) <= new Date(starts)) {
-      throw new BadRequestException('week_ends_at must be after week_starts_at');
+      throw new BadRequestException(
+        'week_ends_at must be after week_starts_at',
+      );
     }
+  }
+
+  private async findFallbackCurrent() {
+    const { data, error } = await this.supabase
+      .from(PLACES_TABLE)
+      .select(PLACE_FIELDS)
+      .eq('is_active', true)
+      .order('average_rating', { ascending: false })
+      .order('total_reviews', { ascending: false })
+      .limit(3);
+
+    if (error) throw new BadRequestException(error.message);
+
+    const window = this.currentBogotaWeekWindow();
+    return (data || []).map((place: any, index: number) =>
+      this.toResponse({
+        id: `fallback-${place.id}`,
+        place_id: place.id,
+        curator_name: 'Xitty',
+        custom_title: null,
+        custom_description: 'Recomendado por Xitty para esta semana.',
+        hero_image_url: null,
+        week_starts_at: window.week_starts_at,
+        week_ends_at: window.week_ends_at,
+        position: index,
+        is_active: true,
+        created_by: null,
+        created_at: window.week_starts_at,
+        updated_at: window.week_starts_at,
+        places: place,
+      }),
+    );
+  }
+
+  private currentBogotaWeekWindow(now = new Date()) {
+    const bogotaNow = new Date(now.getTime() + BOGOTA_OFFSET_MS);
+    const weekday = bogotaNow.getUTCDay();
+    const daysFromMonday = (weekday + 6) % 7;
+    const startLocalAsUtc = Date.UTC(
+      bogotaNow.getUTCFullYear(),
+      bogotaNow.getUTCMonth(),
+      bogotaNow.getUTCDate() - daysFromMonday,
+      0,
+      0,
+      0,
+      0,
+    );
+    const startUtc = new Date(startLocalAsUtc - BOGOTA_OFFSET_MS);
+    const endUtc = new Date(startUtc.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
+    return {
+      week_starts_at: startUtc.toISOString(),
+      week_ends_at: endUtc.toISOString(),
+    };
   }
 
   private toResponse(row: any) {
