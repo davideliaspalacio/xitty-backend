@@ -10,8 +10,8 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 
 - 2026-07-09: merge completado en `main` para backend #22-#124 y frontend #18-#24.
 - 2026-07-09: no quedan PRs abiertos en backend ni frontend para el paquete Features v2.
-- 2026-07-09: verificacion post-merge en backend `main`: `npm test -- --runInBand` OK (38 suites / 476 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
-- 2026-07-09: verificacion post-merge en frontend `main`: `npm run test:run` OK (41 files / 207 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
+- 2026-07-09: verificacion post-merge en backend `main`: `npm test -- --runInBand` OK (38 suites / 477 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
+- 2026-07-09: verificacion post-merge en frontend `main`: `npm run test:run` OK (43 files / 210 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
 - 2026-07-09: smoke local post-merge con servidores arriba: frontend `/` responde 200, backend `/categories` responde 200, `/promotions/active` responde 200 y `/featured/current` responde 200.
 - 2026-07-09: smoke local post-merge tambien confirma que la DB conectada aun no tiene migraciones nuevas: `/ranking` falla con `column place_rankings.city does not exist`.
 - 2026-07-09: cerrado gap post-smoke de `/places?city=&zone=`: el endpoint ya acepta filtros de ciudad/zona y el RPC `list_places_near` queda versionado para respetarlos con `sort_by=distance` (`20260709000012_filter_nearby_places_by_city_zone.sql`).
@@ -19,6 +19,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: smoke con backend apuntando a DB local migrada: `/categories`, `/places?city=Cartagena`, `/places?sort_by=distance&city=Cartagena` y `/ranking?city=Cartagena` respondieron 200.
 - 2026-07-09: cerrada brecha de permisos en DB limpia: la migracion #13 concede privilegios a `service_role` sobre objetos propios de Xitty y elimina overloads antiguos de `list_places_near`.
 - 2026-07-09: agregado `specs/FEATURES_V2_PRODUCTION_CUTOVER.md` con pasos de produccion, alternativa SQL Editor, validaciones SQL, smoke HTTP y QA final.
+- 2026-07-09: cerrado gap de ciudad en frontend/backend: `GET /places/search` acepta `city/zone`, y el frontend envia `NEXT_PUBLIC_DEFAULT_CITY` al ranking, listado y busqueda.
 - Pendiente operativo: aplicar migraciones en produccion, configurar envs, correr scraper con datos reales, refrescar rankings y hacer QA con datos reales.
 
 | Feature                        | Estado                               | Rama/PR                            | Proximo paso                                                                        |
@@ -164,6 +165,11 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 
 ## Evidencia transversal
 
+- Backend full suite tras cierre de ciudad frontend/backend: `npm test -- --runInBand` -> 38 suites / 477 tests OK.
+- Backend build tras cierre de ciudad frontend/backend: `npm run build` -> OK.
+- Backend full lint tras cierre de ciudad frontend/backend: `npx eslint "src/**/*.ts"` -> OK.
+- Frontend full suite tras cierre de ciudad frontend/backend: `npm run test:run` -> 43 files / 210 tests OK.
+- Frontend typecheck/lint/build tras cierre de ciudad frontend/backend: `npm run typecheck`, `npm run lint`, `npm run build` -> OK.
 - Backend full suite tras F7 city: `npm test -- --runInBand` -> 38 suites / 474 tests OK.
 - Backend build tras F7 city: `npm run build` -> OK.
 - Frontend full suite tras correccion de tokens verdes en PR #24: `npm run test:run` -> 41 files / 207 tests OK.

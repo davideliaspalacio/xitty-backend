@@ -8,10 +8,11 @@ Estado actual: los PRs backend #22-#124 y frontend #18-#24 ya fueron mergeados e
 
 Verificacion post-merge local:
 
-- Backend `main`: `npm test -- --runInBand` OK (38 suites / 476 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
-- Frontend `main`: `npm run test:run` OK (41 files / 207 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
+- Backend `main`: `npm test -- --runInBand` OK (38 suites / 477 tests), `npm run build` OK, `npx eslint "src/**/*.ts"` OK.
+- Frontend `main`: `npm run test:run` OK (43 files / 210 tests), `npm run typecheck` OK, `npm run lint` OK, `npm run build` OK.
 - Migraciones locales: `supabase db reset` OK en copia temporal, aplicando todas las migraciones hasta `20260709000013_harden_backend_service_role_and_place_rpc.sql`.
 - Smoke con backend apuntando a DB local migrada: `/categories`, `/places?city=Cartagena`, `/places?sort_by=distance&city=Cartagena` y `/ranking?city=Cartagena` respondieron 200.
+- Frontend envia `city` al ranking, listado y busqueda usando `NEXT_PUBLIC_DEFAULT_CITY`, para consumir rankings/listados por ciudad.
 
 ## Orden de merge completado
 
@@ -171,6 +172,7 @@ Frontend runtime:
 
 - `NEXT_PUBLIC_API_URL`
 - `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_DEFAULT_CITY` para definir la ciudad operativa del home, ranking y listados; default recomendado actual: `Barranquilla`.
 - Feature flags: por defecto quedan encendidas; usar `NEXT_PUBLIC_DISABLED_FEATURES` y `NEXT_PUBLIC_DISABLED_LANDING_SECTIONS` solo para apagar algo puntual.
 
 ## Estado de acceso a produccion

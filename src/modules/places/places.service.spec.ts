@@ -293,6 +293,22 @@ describe('PlacesService', () => {
       });
       expect(result.data).toHaveLength(1);
     });
+
+    it('filtra busqueda por ciudad y zona operacional', async () => {
+      const chain = supabase._on([{ id: 'p1', name: 'Castillo' }], null, 1);
+
+      await service.search(
+        'castillo',
+        1,
+        10,
+        undefined,
+        ' Cartagena ',
+        'Centro Historico',
+      );
+
+      expect(chain.eq).toHaveBeenCalledWith('city', 'Cartagena');
+      expect(chain.eq).toHaveBeenCalledWith('zone', 'Centro Historico');
+    });
   });
 
   // ── Detalle ─────────────────────────────────────────────────────

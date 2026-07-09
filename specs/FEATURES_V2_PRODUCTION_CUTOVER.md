@@ -15,7 +15,8 @@ Antes de tocar produccion:
 1. Confirmar backup/snapshot reciente de Supabase.
 2. Confirmar que backend y frontend van a desplegar desde `main`.
 3. Confirmar `GOOGLE_MAPS_API_KEY` en el runtime del backend.
-4. Confirmar que no se van a publicar fotos masivamente hasta aprobar politica/licencia de fotos.
+4. Confirmar `NEXT_PUBLIC_DEFAULT_CITY` en el runtime del frontend.
+5. Confirmar que no se van a publicar fotos masivamente hasta aprobar politica/licencia de fotos.
 
 ## 2. Aplicar migraciones
 
@@ -132,6 +133,7 @@ API_URL="${API_URL:-https://api.xitty.co}"
 
 curl -i "$API_URL/categories"
 curl -i "$API_URL/places?city=Cartagena&limit=1"
+curl -i "$API_URL/places/search?q=castillo&city=Cartagena&limit=1"
 curl -i "$API_URL/places?sort_by=distance&latitude=10.4&longitude=-75.5&city=Cartagena&limit=1"
 curl -i "$API_URL/ranking?city=Cartagena"
 curl -i "$API_URL/promotions/active"

@@ -266,6 +266,8 @@ export class PlacesService {
     page = 1,
     limit = 10,
     categoryId?: string,
+    city?: string,
+    zone?: string,
   ): Promise<PlaceListResponseDto> {
     const offset = (page - 1) * limit;
 
@@ -277,6 +279,8 @@ export class PlacesService {
       .textSearch('search_vector', q, { type: 'websearch', config: 'spanish' });
 
     if (categoryId) qb = qb.eq('category_id', categoryId);
+    if (city) qb = qb.eq('city', normalizeTextFilter(city));
+    if (zone) qb = qb.eq('zone', normalizeTextFilter(zone));
 
     qb = qb.range(offset, offset + limit - 1);
 

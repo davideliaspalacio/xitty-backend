@@ -69,18 +69,24 @@ export class PlacesController {
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'category_id', required: false })
+  @ApiQuery({ name: 'city', required: false, example: 'Cartagena' })
+  @ApiQuery({ name: 'zone', required: false, example: 'Centro Historico' })
   @ApiResponse({ status: 200, type: PlaceListResponseDto })
   async search(
     @Query('q') q: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('category_id') categoryId?: string,
+    @Query('city') city?: string,
+    @Query('zone') zone?: string,
   ) {
     return this.placesService.search(
       q,
       page ? Number(page) : 1,
       limit ? Number(limit) : 10,
       categoryId,
+      city,
+      zone,
     );
   }
 
