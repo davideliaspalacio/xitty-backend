@@ -24,6 +24,7 @@ Este runbook ordena los PRs, migraciones y checks operativos para subir el paque
 16. #37 - PR tecnico scraping admin spec lint/typing, base #36.
 17. #38 - PR tecnico scraping runner spec lint/typing, base #37.
 18. #39 - PR tecnico dedup enrichment lint/typing, base #38.
+19. #40 - PR tecnico discover public lint/typing, base #39.
 
 ### Frontend
 
