@@ -38,7 +38,9 @@ export class RankingController {
   constructor(private readonly rankingService: RankingService) {}
 
   @Get('ranking')
-  @ApiOperation({ summary: 'Top global ranking across all categories — US-030' })
+  @ApiOperation({
+    summary: 'Top global ranking across all categories — US-030',
+  })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   @ApiResponse({ status: 200, type: RankingListResponseDto })
   async getGlobal(@Query() query: RankingQueryDto) {
@@ -54,7 +56,10 @@ export class RankingController {
     @Param('categoryId', ParseUUIDPipe) categoryId: string,
     @Query() query: RankingQueryDto,
   ) {
-    return this.rankingService.getCategoryRanking(categoryId, query.limit ?? 20);
+    return this.rankingService.getCategoryRanking(
+      categoryId,
+      query.limit ?? 20,
+    );
   }
 
   @Post('admin/ranking/refresh')
@@ -74,7 +79,9 @@ export class RankingController {
   @Post('admin/places/:placeId/sponsorship')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Activate paid placement for a place (admin) — US-031' })
+  @ApiOperation({
+    summary: 'Activate paid placement for a place (admin) — US-031',
+  })
   @ApiParam({ name: 'placeId', description: 'Place ID' })
   @ApiBody({ type: CreateSponsorshipDto })
   @ApiResponse({ status: 201, type: SponsorshipResponseDto })
@@ -85,7 +92,12 @@ export class RankingController {
     @Request() req: any,
     @Body() dto: CreateSponsorshipDto,
   ) {
-    return this.rankingService.activateSponsorship(placeId, dto.duration_days, req.user.role);
+    return this.rankingService.activateSponsorship(
+      placeId,
+      dto.duration_days,
+      req.user.role,
+      dto.priority ?? 0,
+    );
   }
 
   @Delete('admin/places/:placeId/sponsorship')

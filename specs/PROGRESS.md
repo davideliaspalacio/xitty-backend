@@ -11,7 +11,7 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 | F5 Dashboard metricas          | Implementado, pendiente PR/QA amplio | `feature/f5-metrics-comparativas`  | Abrir PR apilado despues de F4.                                                     |
 | F6 Preferencias notificaciones | Parcial auditado                     | Pendiente                          | Requiere decision canal/proveedor antes de implementacion final.                    |
 | F7 Ranking inteligente         | PR abierto, pendiente review/merge   | Backend #26 / Frontend #22         | Mergear despues de F3 backend #25 y frontend #21.                                   |
-| F8 Patrocinios                 | Parcial auditado                     | Pendiente                          | Definir slots comerciales y orden.                                                  |
+| F8 Patrocinios                 | Implementado, pendiente PR/QA amplio | `feature/f8-patrocinios`           | Abrir PRs apilados despues de F7.                                                   |
 | F9 Destacado semanal           | Parcial auditado                     | Pendiente                          | Cerrar fallback/semana Colombia/tests.                                              |
 
 ## Cambios activos
@@ -29,6 +29,8 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - 2026-07-09: iniciado F7 ranking inteligente.
 - 2026-07-09: F7 implementado con pesos configurables, score bayesiano, ranking global/categoria, snapshots por scope y delta semanal visible en UI.
 - 2026-07-09: F7 PRs abiertos: backend #26 y frontend #22, apilados sobre F3.
+- 2026-07-09: iniciado F8 patrocinios.
+- 2026-07-09: F8 implementado con prioridad de slots, maximo 3 destacados, extension segura, limpieza de vencidos y contrato frontend/backend corregido.
 
 ## Evidencia F4
 
@@ -72,3 +74,12 @@ Objetivo operativo: avanzar sin gates bloqueantes durante la noche, manteniendo 
 - Frontend typecheck: `npm run typecheck` -> OK.
 - Frontend build: `npm run build` -> OK.
 - PRs: backend <https://github.com/davideliaspalacio/xitty-backend/pull/26>, frontend <https://github.com/davideliaspalacio/xitty-frontend/pull/22>.
+
+## Evidencia F8
+
+- Backend tests: `npm test -- --runInBand src/modules/ranking/ranking.service.spec.ts` -> 1 suite / 13 tests OK.
+- Backend build: `npm run build` -> OK.
+- Backend lint dirigido: `npx eslint src/modules/ranking/ranking.service.ts` -> OK.
+- Frontend tests: `npm run test:run -- src/features/admin/__tests__/api.test.ts src/features/places/__tests__/sponsorship-status.test.ts` -> 2 files / 3 tests OK.
+- Frontend typecheck: `npm run typecheck` -> OK.
+- Frontend build: `npm run build` -> OK.

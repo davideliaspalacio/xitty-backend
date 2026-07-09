@@ -187,6 +187,7 @@ describe('RankingService', () => {
           total_reviews: 5,
           is_sponsored: true,
           sponsored_until: future,
+          sponsorship_priority: 10,
           place_photos: [],
         },
       ]);
@@ -199,6 +200,149 @@ describe('RankingService', () => {
       expect(result.data[0].sponsored_label).toBe('Patrocinado');
       expect(result.data[1].place.id).toBe('p1');
       expect(result.data[1].is_sponsored).toBe(false);
+    });
+
+    it('limita patrocinados a 3 slots ordenados por prioridad', async () => {
+      const future = new Date(Date.now() + 86400_000).toISOString();
+      supabase._on([
+        {
+          place_id: 'p1',
+          category_id: 'c1',
+          global_position: 1,
+          category_position: 1,
+          position: 1,
+          score: 0.95,
+          views_30d: 0,
+          conversions_30d: 0,
+        },
+        {
+          place_id: 'p2',
+          category_id: 'c1',
+          global_position: 2,
+          category_position: 2,
+          position: 2,
+          score: 0.9,
+          views_30d: 0,
+          conversions_30d: 0,
+        },
+        {
+          place_id: 'p3',
+          category_id: 'c1',
+          global_position: 3,
+          category_position: 3,
+          position: 3,
+          score: 0.8,
+          views_30d: 0,
+          conversions_30d: 0,
+        },
+        {
+          place_id: 'p4',
+          category_id: 'c1',
+          global_position: 4,
+          category_position: 4,
+          position: 4,
+          score: 0.7,
+          views_30d: 0,
+          conversions_30d: 0,
+        },
+        {
+          place_id: 'p5',
+          category_id: 'c1',
+          global_position: 5,
+          category_position: 5,
+          position: 5,
+          score: 0.6,
+          views_30d: 0,
+          conversions_30d: 0,
+        },
+      ]);
+      supabase._on([
+        {
+          id: 'p1',
+          name: 'Organic leader sponsored overflow',
+          slug: 'p1',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          average_rating: 5,
+          total_reviews: 100,
+          is_sponsored: true,
+          sponsored_until: future,
+          sponsorship_priority: 1,
+          place_photos: [],
+        },
+        {
+          id: 'p2',
+          name: 'Priority 80',
+          slug: 'p2',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          average_rating: 4,
+          total_reviews: 80,
+          is_sponsored: true,
+          sponsored_until: future,
+          sponsorship_priority: 80,
+          place_photos: [],
+        },
+        {
+          id: 'p3',
+          name: 'Priority 40',
+          slug: 'p3',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          average_rating: 4,
+          total_reviews: 80,
+          is_sponsored: true,
+          sponsored_until: future,
+          sponsorship_priority: 40,
+          place_photos: [],
+        },
+        {
+          id: 'p4',
+          name: 'Priority 60',
+          slug: 'p4',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          average_rating: 4,
+          total_reviews: 80,
+          is_sponsored: true,
+          sponsored_until: future,
+          sponsorship_priority: 60,
+          place_photos: [],
+        },
+        {
+          id: 'p5',
+          name: 'Organic',
+          slug: 'p5',
+          description: null,
+          address: null,
+          category_id: 'c1',
+          average_rating: 3,
+          total_reviews: 20,
+          is_sponsored: false,
+          sponsored_until: null,
+          sponsorship_priority: 0,
+          place_photos: [],
+        },
+      ]);
+      supabase._on([]);
+
+      const result = await service.getGlobalRanking(5);
+
+      expect(result.data.slice(0, 3).map((item) => item.place.id)).toEqual([
+        'p2',
+        'p4',
+        'p3',
+      ]);
+      expect(result.data.slice(0, 3).every((item) => item.is_sponsored)).toBe(
+        true,
+      );
+      const overflow = result.data.find((item) => item.place.id === 'p1');
+      expect(overflow?.is_sponsored).toBe(false);
+      expect(overflow?.position).toBe(1);
     });
 
     it('ignora sponsored expirados (sponsored_until en el pasado)', async () => {
@@ -227,6 +371,7 @@ describe('RankingService', () => {
           total_reviews: 1,
           is_sponsored: true,
           sponsored_until: past,
+          sponsorship_priority: 100,
           place_photos: [],
         },
       ]);
@@ -307,14 +452,53 @@ describe('RankingService', () => {
       const future = new Date(Date.now() + 30 * 86400_000).toISOString();
       supabase._on({
         id: 'place-1',
+        is_sponsored: false,
+        sponsored_at: null,
+        sponsored_until: null,
+      });
+      supabase._on({
+        id: 'place-1',
         is_sponsored: true,
         sponsored_at: '2026-04-26T00:00:00Z',
         sponsored_until: future,
+        sponsorship_priority: 50,
       });
 
-      const result = await service.activateSponsorship('place-1', 30, 'admin');
+      const result = await service.activateSponsorship(
+        'place-1',
+        30,
+        'admin',
+        50,
+      );
       expect(result.is_sponsored).toBe(true);
       expect(result.place_id).toBe('place-1');
+      expect(result.sponsorship_priority).toBe(50);
+    });
+
+    it('extiende patrocinio vigente desde sponsored_until actual', async () => {
+      supabase._on({
+        id: 'place-1',
+        is_sponsored: true,
+        sponsored_at: '2026-07-01T00:00:00.000Z',
+        sponsored_until: '2099-07-10T00:00:00.000Z',
+      });
+      const updateChain = supabase._on({
+        id: 'place-1',
+        is_sponsored: true,
+        sponsored_at: '2026-07-01T00:00:00.000Z',
+        sponsored_until: '2099-07-17T00:00:00.000Z',
+        sponsorship_priority: 25,
+      });
+
+      await service.activateSponsorship('place-1', 7, 'admin', 25);
+
+      expect(updateChain.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sponsored_at: '2026-07-01T00:00:00.000Z',
+          sponsored_until: '2099-07-17T00:00:00.000Z',
+          sponsorship_priority: 25,
+        }),
+      );
     });
 
     it('rechaza a quien no es admin', async () => {
@@ -338,11 +522,13 @@ describe('RankingService', () => {
         is_sponsored: false,
         sponsored_at: '2026-04-01T00:00:00Z',
         sponsored_until: null,
+        sponsorship_priority: 0,
       });
 
       const result = await service.deactivateSponsorship('place-1', 'admin');
       expect(result.is_sponsored).toBe(false);
       expect(result.sponsored_until).toBeNull();
+      expect(result.sponsorship_priority).toBe(0);
     });
 
     it('rechaza a quien no es admin', async () => {

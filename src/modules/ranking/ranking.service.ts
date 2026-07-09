@@ -13,6 +13,7 @@ const RANKINGS_VIEW = 'place_rankings';
 const SNAPSHOTS_TABLE = 'ranking_snapshots';
 const PLACES_TABLE = 'places';
 const SPONSORED_LABEL = 'Patrocinado';
+const SPONSORED_RANKING_SLOTS = 3;
 
 interface RankingRow {
   place_id: string;
@@ -42,6 +43,7 @@ interface RankingPlaceRow {
   total_reviews: number | string | null;
   is_sponsored: boolean | null;
   sponsored_until: string | null;
+  sponsorship_priority?: number | string | null;
   place_photos?: PlacePhotoRow[] | null;
 }
 
@@ -56,6 +58,26 @@ interface SponsorshipPlaceRow {
   is_sponsored: boolean;
   sponsored_at: string | null;
   sponsored_until: string | null;
+  sponsorship_priority: number | string | null;
+}
+
+type RankingItemInternal = RankingItemDto & {
+  sponsorship_priority: number;
+  sponsored_until: string | null;
+};
+
+function toRankingItemDto(item: RankingItemInternal): RankingItemDto {
+  return {
+    position: item.position,
+    previous_position: item.previous_position,
+    position_change: item.position_change,
+    score: item.score,
+    views_30d: item.views_30d,
+    conversions_30d: item.conversions_30d,
+    is_sponsored: item.is_sponsored,
+    sponsored_label: item.sponsored_label,
+    place: item.place,
+  };
 }
 
 @Injectable()
@@ -85,25 +107,48 @@ export class RankingService {
     placeId: string,
     durationDays: number,
     userRole: string,
+    priority = 0,
   ) {
     if (userRole !== 'admin') {
       throw new ForbiddenException('Only admins can manage sponsorships');
     }
 
-    const sponsoredAt = new Date();
+    const now = new Date();
+    const { data: existingData, error: lookupError } = await this.supabase
+      .from(PLACES_TABLE)
+      .select('id, is_sponsored, sponsored_at, sponsored_until')
+      .eq('id', placeId)
+      .single();
+
+    const existing = existingData as SponsorshipPlaceRow | null;
+    if (lookupError || !existing)
+      throw new NotFoundException('Place not found');
+
+    const currentUntil = existing.sponsored_until
+      ? new Date(existing.sponsored_until)
+      : null;
+    const startsFrom =
+      existing.is_sponsored &&
+      currentUntil &&
+      currentUntil.getTime() > now.getTime()
+        ? currentUntil
+        : now;
     const sponsoredUntil = new Date(
-      sponsoredAt.getTime() + durationDays * 86400_000,
+      startsFrom.getTime() + durationDays * 86400_000,
     );
 
     const { data, error } = await this.supabase
       .from(PLACES_TABLE)
       .update({
         is_sponsored: true,
-        sponsored_at: sponsoredAt.toISOString(),
+        sponsored_at: existing.sponsored_at ?? now.toISOString(),
         sponsored_until: sponsoredUntil.toISOString(),
+        sponsorship_priority: priority,
       })
       .eq('id', placeId)
-      .select('id, is_sponsored, sponsored_at, sponsored_until')
+      .select(
+        'id, is_sponsored, sponsored_at, sponsored_until, sponsorship_priority',
+      )
       .single();
 
     const place = data as SponsorshipPlaceRow | null;
@@ -114,6 +159,7 @@ export class RankingService {
       is_sponsored: place.is_sponsored,
       sponsored_at: place.sponsored_at,
       sponsored_until: place.sponsored_until,
+      sponsorship_priority: Number(place.sponsorship_priority ?? 0),
     };
   }
 
@@ -127,9 +173,12 @@ export class RankingService {
       .update({
         is_sponsored: false,
         sponsored_until: null,
+        sponsorship_priority: 0,
       })
       .eq('id', placeId)
-      .select('id, is_sponsored, sponsored_at, sponsored_until')
+      .select(
+        'id, is_sponsored, sponsored_at, sponsored_until, sponsorship_priority',
+      )
       .single();
 
     const place = data as SponsorshipPlaceRow | null;
@@ -140,6 +189,7 @@ export class RankingService {
       is_sponsored: place.is_sponsored,
       sponsored_at: place.sponsored_at,
       sponsored_until: place.sponsored_until,
+      sponsorship_priority: Number(place.sponsorship_priority ?? 0),
     };
   }
 
@@ -185,7 +235,7 @@ export class RankingService {
 
     const now = Date.now();
 
-    const items: RankingItemDto[] = rankingRows.map((row) => {
+    const items: RankingItemInternal[] = rankingRows.map((row) => {
       const place = placesById.get(row.place_id);
       const currentPosition = Number(row[positionColumn] ?? row.position);
       const isSponsored =
@@ -207,6 +257,8 @@ export class RankingService {
         conversions_30d: Number(row.conversions_30d),
         is_sponsored: isSponsored,
         sponsored_label: isSponsored ? SPONSORED_LABEL : null,
+        sponsorship_priority: Number(place?.sponsorship_priority ?? 0),
+        sponsored_until: place?.sponsored_until ?? null,
         place: {
           id: place?.id ?? row.place_id,
           name: place?.name ?? '',
@@ -221,21 +273,43 @@ export class RankingService {
       };
     });
 
-    // Sponsored first (sorted by score), then organic by position.
-    items.sort((a, b) => {
-      if (a.is_sponsored !== b.is_sponsored) return a.is_sponsored ? -1 : 1;
-      if (a.is_sponsored) return b.score - a.score;
-      return a.position - b.position;
-    });
+    const sponsoredSlots = items
+      .filter((item) => item.is_sponsored)
+      .sort((a, b) => {
+        if (a.sponsorship_priority !== b.sponsorship_priority) {
+          return b.sponsorship_priority - a.sponsorship_priority;
+        }
+        const aUntil = a.sponsored_until
+          ? new Date(a.sponsored_until).getTime()
+          : 0;
+        const bUntil = b.sponsored_until
+          ? new Date(b.sponsored_until).getTime()
+          : 0;
+        if (aUntil !== bUntil) return bUntil - aUntil;
+        return b.score - a.score;
+      })
+      .slice(0, SPONSORED_RANKING_SLOTS);
 
-    return items.slice(0, limit);
+    const sponsoredIds = new Set(sponsoredSlots.map((item) => item.place.id));
+    const organicItems = items
+      .filter((item) => !sponsoredIds.has(item.place.id))
+      .map((item) =>
+        item.is_sponsored
+          ? { ...item, is_sponsored: false, sponsored_label: null }
+          : item,
+      )
+      .sort((a, b) => a.position - b.position);
+
+    return [...sponsoredSlots, ...organicItems]
+      .slice(0, limit)
+      .map(toRankingItemDto);
   }
 
   private async fetchPlaces(placeIds: string[]): Promise<RankingPlaceRow[]> {
     const { data, error } = await this.supabase
       .from(PLACES_TABLE)
       .select(
-        'id, name, slug, description, address, category_id, average_rating, total_reviews, is_sponsored, sponsored_until, place_photos(url, is_cover, display_order)',
+        'id, name, slug, description, address, category_id, average_rating, total_reviews, is_sponsored, sponsored_until, sponsorship_priority, place_photos(url, is_cover, display_order)',
       )
       .in('id', placeIds);
 
