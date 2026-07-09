@@ -112,6 +112,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #89 abierto: `chore/backend-lint-mock-chat-provider`; mock chat provider queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #90 abierto: `chore/backend-lint-favorites-controller`; favorites controller queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #91 abierto: `chore/backend-lint-enrichment-service`; enrichment service y spec quedan con lint dirigido limpio.
+- 2026-07-09: PR tecnico #92 abierto: `chore/backend-lint-runner-service`; runner service queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -297,7 +298,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend enrichment service lint: `npx eslint src/modules/scraping/enrichment/enrichment.service.ts src/modules/scraping/enrichment/enrichment.service.spec.ts` -> OK.
 - Backend enrichment service tests: `npm test -- --runInBand src/modules/scraping/enrichment/enrichment.service.spec.ts` -> 1 suite / 14 tests OK.
 - Backend build tras enrichment service lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 33 archivos / 66 errores / 2 warnings.
+- Backend runner service lint: `npx eslint src/modules/scraping/scheduler/runner.service.ts` -> OK.
+- Backend runner service tests: `npm test -- --runInBand src/modules/scraping/scheduler/runner.service.spec.ts` -> 1 suite / 16 tests OK.
+- Backend build tras runner service lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 32 archivos / 62 errores / 2 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4

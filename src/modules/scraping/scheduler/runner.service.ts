@@ -128,9 +128,9 @@ export class RunnerService {
     try {
       rawItems = await source.fetch();
       summary.items_found = rawItems.length;
-    } catch (err: any) {
+    } catch (err: unknown) {
       summary.errored = true;
-      summary.error_message = err?.message ?? String(err);
+      summary.error_message = errorMessage(err);
       this.logger.error(
         `[${source.id}] fetch() failed: ${summary.error_message}`,
       );
@@ -183,10 +183,10 @@ export class RunnerService {
           this.toEnrichedInput(rawRow.id, enriched),
         );
         summary.items_persisted += 1;
-      } catch (err: any) {
+      } catch (err: unknown) {
         summary.items_failed += 1;
         this.logger.warn(
-          `[${source.id}] item "${raw.external_id}" failed: ${err?.message ?? err}`,
+          `[${source.id}] item "${raw.external_id}" failed: ${errorMessage(err)}`,
         );
       }
     }
@@ -226,9 +226,9 @@ export class RunnerService {
         itemsEnriched: summary.items_enriched,
         itemsFailed: summary.items_failed,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.logger.warn(
-        `[${summary.source_id}] finish(${runId}) failed (ignored): ${err?.message ?? err}`,
+        `[${summary.source_id}] finish(${runId}) failed (ignored): ${errorMessage(err)}`,
       );
     }
   }
@@ -245,4 +245,10 @@ export class RunnerService {
     );
     return summary;
   }
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return String(error);
 }
