@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 10.
-- Errores: 10.
+- Archivos con problemas: 9.
+- Errores: 9.
 - Warnings: 0.
-- Errores auto-fixables: 10.
+- Errores auto-fixables: 9.
 
 Avance aplicado:
 
@@ -275,22 +275,25 @@ Avance aplicado:
 - PR tecnico #114 `chore/backend-lint-refresh-token-dto`:
   `refresh-token.dto.ts` queda formateado por Prettier y con lint dirigido
   limpio.
-- Reduccion neta acumulada: -108 archivos con problemas, -2700 errores y -247 warnings.
+- PR tecnico #115 `chore/backend-lint-create-conversation-dto`:
+  `create-conversation.dto.ts` queda formateado por Prettier y con lint
+  dirigido limpio.
+- Reduccion neta acumulada: -109 archivos con problemas, -2701 errores y -247 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `prettier/prettier` | 10 | 0 | Formato historico fuera de Prettier. |
+| `prettier/prettier` | 9 | 0 | Formato historico fuera de Prettier. |
 
 ## Archivos mas afectados
 
 | Archivo | Errores | Warnings |
 | --- | ---: | ---: |
-| `src/modules/chat/dto/create-conversation.dto.ts` | 1 | 0 |
 | `src/modules/experiences/dto/create-experience-review.dto.ts` | 1 | 0 |
 | `src/modules/experiences/dto/experience-review-response.dto.ts` | 1 | 0 |
 | `src/modules/experiences/experiences.module.ts` | 1 | 0 |
+| `src/modules/favorites/dto/favorite-response.dto.ts` | 1 | 0 |
 
 ## Impacto en Features v2
 

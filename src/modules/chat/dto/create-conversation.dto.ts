@@ -13,7 +13,8 @@ export class CreateConversationDto {
   title?: string;
 
   @ApiProperty({
-    description: 'Primer mensaje del usuario (opcional). Si se pasa, se ejecuta sendMessage en linea.',
+    description:
+      'Primer mensaje del usuario (opcional). Si se pasa, se ejecuta sendMessage en linea.',
     required: false,
     example: 'Recomiendame una playa cerca de aqui',
   })

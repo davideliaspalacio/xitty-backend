@@ -135,6 +135,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #112 abierto: `chore/backend-lint-scheduler-module`; scheduler module queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #113 abierto: `chore/backend-lint-database-module`; database module queda con lint dirigido limpio.
 - 2026-07-09: PR tecnico #114 abierto: `chore/backend-lint-refresh-token-dto`; refresh token dto queda con lint dirigido limpio.
+- 2026-07-09: PR tecnico #115 abierto: `chore/backend-lint-create-conversation-dto`; create conversation dto queda con lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -181,6 +182,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend refresh token dto lint: `npx eslint src/modules/auth/dto/refresh-token.dto.ts` -> OK.
 - Backend build tras refresh token dto lint: `npm run build` -> OK.
 - Backend full lint tras refresh token dto: 10 archivos / 10 errores / 0 warnings; solo queda deuda Prettier.
+- Backend create conversation dto lint: `npx eslint src/modules/chat/dto/create-conversation.dto.ts` -> OK.
+- Backend chat smoke tests tras create conversation dto: `npm test -- --runInBand src/modules/chat/chat.service.spec.ts` -> 1 suite / 18 tests OK.
+- Backend build tras create conversation dto lint: `npm run build` -> OK.
+- Backend full lint tras create conversation dto: 9 archivos / 9 errores / 0 warnings; solo queda deuda Prettier.
 - Backend scraped-items repo spec lint: `npx eslint src/modules/scraping/storage/scraped-items.repo.spec.ts` -> OK.
 - Backend scraped-items repo spec tests: `npm test -- --runInBand src/modules/scraping/storage/scraped-items.repo.spec.ts` -> 1 suite / 20 tests OK.
 - Backend build tras scraped-items lint: `npm run build` -> OK.
