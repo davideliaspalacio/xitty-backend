@@ -50,3 +50,4 @@ Archivo: `supabase/migrations/20260709000010_expand_cartagena_scraping_sources.s
 - Backend PR: <https://github.com/davideliaspalacio/xitty-backend/pull/30>.
 - Seed Cartagena: validacion local de 27 configs JSON -> OK.
 - Backend build tras seed: `npm run build` -> OK.
+- Data PR: <https://github.com/davideliaspalacio/xitty-backend/pull/31>.
