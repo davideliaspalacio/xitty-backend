@@ -10,10 +10,10 @@ npx eslint "src/**/*.ts"
 
 Resultado actual:
 
-- Archivos con problemas: 113.
-- Errores: 2348.
-- Warnings: 237.
-- Errores auto-fixables: 524.
+- Archivos con problemas: 112.
+- Errores: 2318.
+- Warnings: 209.
+- Errores auto-fixables: 518.
 
 Avance aplicado:
 
@@ -24,20 +24,23 @@ Avance aplicado:
 - PR tecnico #35 `chore/backend-lint-scraping-storage-specs`:
   `scraping-runs.repo.spec.ts` y `scraping-sources.repo.spec.ts` quedan con
   lint dirigido limpio.
-- Reduccion neta acumulada: -5 archivos con problemas, -362 errores y -10 warnings.
+- PR tecnico #36 `chore/backend-lint-scraping-executor-spec`:
+  `scraping-executor.service.spec.ts` queda con mocks tipados y lint dirigido
+  limpio.
+- Reduccion neta acumulada: -6 archivos con problemas, -392 errores y -38 warnings.
 
 ## Reglas principales
 
 | Regla | Errores | Warnings | Lectura |
 | --- | ---: | ---: | --- |
-| `@typescript-eslint/no-unsafe-member-access` | 856 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
-| `prettier/prettier` | 523 | 0 | Formato historico fuera de Prettier. |
-| `@typescript-eslint/no-unsafe-assignment` | 378 | 0 | Asignaciones desde `any`. |
+| `@typescript-eslint/no-unsafe-member-access` | 855 | 0 | Acceso a datos `any`, sobre todo mocks Supabase/tests. |
+| `prettier/prettier` | 517 | 0 | Formato historico fuera de Prettier. |
+| `@typescript-eslint/no-unsafe-assignment` | 370 | 0 | Asignaciones desde `any`. |
 | `@typescript-eslint/no-unsafe-call` | 359 | 0 | Llamadas sobre valores `any`. |
-| `@typescript-eslint/no-unsafe-argument` | 0 | 236 | Argumentos `any` en tests/servicios. |
-| `@typescript-eslint/no-unsafe-return` | 149 | 0 | Retornos `any` sin tipar. |
-| `@typescript-eslint/unbound-method` | 52 | 0 | Metodos usados sin bind, principalmente mocks. |
-| `@typescript-eslint/require-await` | 18 | 0 | Funciones async sin await. |
+| `@typescript-eslint/no-unsafe-argument` | 0 | 208 | Argumentos `any` en tests/servicios. |
+| `@typescript-eslint/no-unsafe-return` | 148 | 0 | Retornos `any` sin tipar. |
+| `@typescript-eslint/unbound-method` | 39 | 0 | Metodos usados sin bind, principalmente mocks. |
+| `@typescript-eslint/require-await` | 17 | 0 | Funciones async sin await. |
 
 ## Archivos mas afectados
 
@@ -55,7 +58,6 @@ Avance aplicado:
 | `src/modules/recommendations/recommendations.service.spec.ts` | 75 | 2 |
 | `src/modules/experiences/experience-reviews.service.spec.ts` | 68 | 6 |
 | `src/modules/favorites/favorites.service.spec.ts` | 58 | 2 |
-| `src/modules/scraping/executor/scraping-executor.service.spec.ts` | 30 | 28 |
 | `src/modules/local-picks/local-picks.service.spec.ts` | 54 | 2 |
 | `src/modules/experiences/experiences.service.ts` | 55 | 0 |
 

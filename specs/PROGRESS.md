@@ -56,6 +56,7 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - 2026-07-09: PR tecnico #33 abierto: `chore/backend-lint-google-places`; Google Places source/spec quedan tipados y con lint dirigido limpio.
 - 2026-07-09: PR tecnico #34 abierto: `chore/backend-lint-scraped-items-spec`; `scraped-items.repo.spec.ts` queda con mock Supabase tipado y lint dirigido limpio.
 - 2026-07-09: PR tecnico #35 abierto: `chore/backend-lint-scraping-storage-specs`; runs/sources repo specs quedan con mocks Supabase tipados y lint dirigido limpio.
+- 2026-07-09: PR tecnico #36 abierto: `chore/backend-lint-scraping-executor-spec`; executor spec queda con mocks tipados y lint dirigido limpio.
 
 ## Evidencia transversal
 
@@ -74,7 +75,10 @@ Deuda de lint backend: `specs/LINT_DEBT.md`.
 - Backend storage repo specs lint: `npx eslint src/modules/scraping/storage/scraping-runs.repo.spec.ts src/modules/scraping/storage/scraping-sources.repo.spec.ts` -> OK.
 - Backend storage repo specs tests: `npm test -- --runInBand src/modules/scraping/storage/scraping-runs.repo.spec.ts src/modules/scraping/storage/scraping-sources.repo.spec.ts` -> 2 suites / 19 tests OK.
 - Backend build tras storage specs lint: `npm run build` -> OK.
-- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 113 archivos / 2348 errores / 237 warnings.
+- Backend executor spec lint: `npx eslint src/modules/scraping/executor/scraping-executor.service.spec.ts` -> OK.
+- Backend executor spec tests: `npm test -- --runInBand src/modules/scraping/executor/scraping-executor.service.spec.ts` -> 1 suite / 8 tests OK.
+- Backend build tras executor spec lint: `npm run build` -> OK.
+- Backend full lint: `npx eslint "src/**/*.ts"` -> falla por deuda historica restante documentada en `specs/LINT_DEBT.md`; baja a 112 archivos / 2318 errores / 209 warnings.
 - Google APIs para F1 scraper: `Geocoding API`, `Places API (New) Search`, `Place Details`, `Nearby Search` y `Photo Media` verificados con HTTP 200. Requiere setear `GOOGLE_MAPS_API_KEY` en runtime backend; no se commitean keys.
 
 ## Evidencia F4
