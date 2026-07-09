@@ -10,7 +10,7 @@
 - [x] Ordenar maximo 3 slots patrocinados sin duplicar organico.
 - [x] Ajustar UI de admin/detalle.
 - [x] Agregar tests backend/frontend.
-- [ ] Abrir PRs apilados.
+- [x] Abrir PRs apilados.
 
 ## Migracion SQL
 
@@ -44,3 +44,5 @@ Archivo: `supabase/migrations/20260709000006_harden_sponsored_placements.sql`
 - Frontend: `npm run test:run -- src/features/admin/__tests__/api.test.ts src/features/places/__tests__/sponsorship-status.test.ts` -> 2 files / 3 tests OK.
 - Frontend: `npm run typecheck` -> OK.
 - Frontend: `npm run build` -> OK.
+- Backend PR: <https://github.com/davideliaspalacio/xitty-backend/pull/27>.
+- Frontend PR: <https://github.com/davideliaspalacio/xitty-frontend/pull/23>.
