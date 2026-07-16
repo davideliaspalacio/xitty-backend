@@ -63,9 +63,22 @@ export class MicrositesService {
         .order('created_at', { ascending: false }),
     ]);
 
+    const photos = (photosResult.data ?? []) as Array<{
+      url: string;
+      is_cover?: boolean;
+    }>;
+
+    // Portada derivada igual que en PlacesService (place_photos.is_cover), con
+    // fallback a la primera foto. Sin esto el micrositio nunca devolvia
+    // `cover_photo_url` y el preview al compartir (og:image / twitter:image)
+    // quedaba VACIO — justo el punto de la feature.
+    const coverPhotoUrl =
+      photos.find((p) => p.is_cover)?.url ?? photos[0]?.url ?? null;
+
     return {
       ...place,
-      photos: photosResult.data ?? [],
+      cover_photo_url: coverPhotoUrl,
+      photos,
       active_promotions: promosResult.data ?? [],
     };
   }
