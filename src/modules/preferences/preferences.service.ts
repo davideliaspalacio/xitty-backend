@@ -175,8 +175,11 @@ export class PreferencesService {
       .select('*')
       .single()) as unknown as SupabaseResult<PreferencesResponseDto>;
 
-    if (error || !data) {
-      throw new BadRequestException(error?.message ?? 'Could not skip wizard');
+    if (error) throwDbError(error, 'PreferencesService');
+    if (!data) {
+      throw new BadRequestException(
+        'No se pudo completar la configuración inicial',
+      );
     }
 
     return data;
