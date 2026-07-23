@@ -87,10 +87,9 @@ export class ScrapingRunsRepo {
       .select(SELECT_COLS)
       .single();
 
-    if (error || !data) {
-      throw new BadRequestException(
-        error?.message ?? 'No se pudo iniciar el run',
-      );
+    if (error) throwDbError(error, 'ScrapingRunsRepo');
+    if (!data) {
+      throw new BadRequestException('No se pudo iniciar el run');
     }
     return data as ScrapingRun;
   }

@@ -13,6 +13,8 @@ import { ListPlaceCompletenessQueryDto } from './dto/list-place-completeness-que
 import { ListRunsQueryDto } from './dto/list-runs-query.dto';
 import { UpdateScrapedItemDto } from './dto/update-item.dto';
 
+import { throwDbError } from '../../../common/errors/throw-db-error';
+
 import {
   ScrapingSourcesRepo,
   ScrapingSource,
@@ -514,9 +516,11 @@ export class AdminScrapingService {
       .select('id')
       .single();
 
-    if (error || !data) {
+    if (error)
+      throwDbError(error, `AdminScrapingService insertPlace item ${item.id}`);
+    if (!data) {
       throw new BadRequestException(
-        `Could not create place from item ${item.id}: ${error?.message ?? 'unknown error'}`,
+        'No se pudo crear el lugar a partir del item',
       );
     }
     const place = data as IdRow;
@@ -534,11 +538,7 @@ export class AdminScrapingService {
         .eq('source_external_id', item.source_external_id)
         .maybeSingle();
 
-      if (error) {
-        throw new BadRequestException(
-          `Could not check place source identity: ${error.message}`,
-        );
-      }
+      if (error) throwDbError(error, 'AdminScrapingService source-identity');
       if (data) return (data as IdRow).id;
     }
 
@@ -549,11 +549,7 @@ export class AdminScrapingService {
         .eq('source_url', item.source_url)
         .maybeSingle();
 
-      if (error) {
-        throw new BadRequestException(
-          `Could not check place source URL: ${error.message}`,
-        );
-      }
+      if (error) throwDbError(error, 'AdminScrapingService source-url');
       if (data) return (data as IdRow).id;
     }
 
@@ -615,9 +611,14 @@ export class AdminScrapingService {
       .select('id')
       .single();
 
-    if (error || !data) {
+    if (error)
+      throwDbError(
+        error,
+        `AdminScrapingService insertExperience item ${item.id}`,
+      );
+    if (!data) {
       throw new BadRequestException(
-        `Could not create experience from item ${item.id}: ${error?.message ?? 'unknown error'}`,
+        'No se pudo crear la experiencia a partir del item',
       );
     }
     const experience = data as IdRow;

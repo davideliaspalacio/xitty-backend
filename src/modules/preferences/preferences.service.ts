@@ -72,10 +72,9 @@ export class PreferencesService {
       .select('*')
       .single()) as unknown as SupabaseResult<PreferencesResponseDto>;
 
-    if (error || !data) {
-      throw new BadRequestException(
-        error?.message ?? 'Could not save preferences',
-      );
+    if (error) throwDbError(error, 'PreferencesService');
+    if (!data) {
+      throw new BadRequestException('No se pudieron guardar las preferencias');
     }
 
     return data;

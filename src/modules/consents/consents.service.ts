@@ -60,10 +60,9 @@ export class ConsentsService {
       .select('*')
       .single()) as unknown as SupabaseResult<ConsentResponseDto>;
 
-    if (error || !data) {
-      throw new BadRequestException(
-        error?.message || 'Could not grant consent',
-      );
+    if (error) throwDbError(error, 'ConsentsService');
+    if (!data) {
+      throw new BadRequestException('Could not grant consent');
     }
 
     return data;
@@ -104,10 +103,9 @@ export class ConsentsService {
       .select('*')
       .single()) as unknown as SupabaseResult<ConsentResponseDto>;
 
-    if (error || !data) {
-      throw new BadRequestException(
-        error?.message || 'Could not revoke consent',
-      );
+    if (error) throwDbError(error, 'ConsentsService');
+    if (!data) {
+      throw new BadRequestException('Could not revoke consent');
     }
 
     return data;

@@ -71,11 +71,7 @@ export class LocationService {
       .insert(rows)
       .select('id');
 
-    if (error) {
-      throw new BadRequestException(
-        error.message || 'Could not save snapshots',
-      );
-    }
+    if (error) throwDbError(error, 'LocationService');
 
     return { inserted: Array.isArray(data) ? data.length : rows.length };
   }
@@ -89,11 +85,7 @@ export class LocationService {
       .delete()
       .eq('user_id', userId);
 
-    if (error) {
-      throw new BadRequestException(
-        error.message || 'Could not delete snapshots',
-      );
-    }
+    if (error) throwDbError(error, 'LocationService');
 
     return { deleted: true };
   }
