@@ -109,10 +109,9 @@ export class ScrapingSourcesRepo {
       .select(SELECT_COLS)
       .single();
 
-    if (error || !data) {
-      throw new BadRequestException(
-        error?.message ?? 'No se pudo guardar la source',
-      );
+    if (error) throwDbError(error, 'ScrapingSourcesRepo');
+    if (!data) {
+      throw new BadRequestException('No se pudo guardar la source');
     }
     return data as ScrapingSource;
   }
@@ -151,9 +150,7 @@ export class ScrapingSourcesRepo {
       if (error?.code === 'PGRST116' || !data) {
         throw new NotFoundException(`Scraping source ${id} not found`);
       }
-      throw new BadRequestException(
-        error?.message ?? 'No se pudo actualizar la source',
-      );
+      throwDbError(error, 'ScrapingSourcesRepo');
     }
     return data;
   }

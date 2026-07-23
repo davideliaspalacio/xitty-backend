@@ -264,10 +264,9 @@ export class ScrapedItemsRepo {
       .select(ENRICHED_COLS)
       .single();
 
-    if (error || !data) {
-      throw new BadRequestException(
-        error?.message ?? 'No se pudo guardar el enriched item',
-      );
+    if (error) throwDbError(error, 'ScrapedItemsRepo');
+    if (!data) {
+      throw new BadRequestException('No se pudo guardar el enriched item');
     }
     return data as unknown as ScrapedItemEnriched;
   }
@@ -411,10 +410,9 @@ export class ScrapedItemsRepo {
       .select(ENRICHED_COLS)
       .single();
 
-    if (error || !data) {
-      throw new BadRequestException(
-        error?.message ?? 'No se pudo actualizar el enriched item',
-      );
+    if (error) throwDbError(error, 'ScrapedItemsRepo');
+    if (!data) {
+      throw new BadRequestException('No se pudo actualizar el enriched item');
     }
     return data as unknown as ScrapedItemEnriched;
   }

@@ -189,9 +189,10 @@ export class RankingService {
       .select(RANKING_CONFIG_SELECT)
       .single();
 
-    if (error || !data) {
+    if (error) throwDbError(error, 'RankingService');
+    if (!data) {
       throw new BadRequestException(
-        error?.message ?? 'Could not update ranking config',
+        'No se pudo actualizar la configuración de ranking',
       );
     }
 
@@ -463,9 +464,10 @@ export class RankingService {
       .eq('id', DEFAULT_RANKING_CONFIG_ID)
       .single();
 
-    if (error || !data) {
+    if (error) throwDbError(error, 'RankingService');
+    if (!data) {
       throw new BadRequestException(
-        error?.message ?? 'Could not read ranking config',
+        'No se pudo leer la configuración de ranking',
       );
     }
 

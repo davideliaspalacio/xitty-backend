@@ -121,10 +121,9 @@ export class ChatService {
       .select('id')
       .single()) as unknown as SupabaseSingleResult<ConversationIdRow>;
 
-    if (error || !data) {
-      throw new BadRequestException(
-        error?.message ?? 'No se pudo crear la conversacion',
-      );
+    if (error) throwDbError(error, 'ChatService');
+    if (!data) {
+      throw new BadRequestException('No se pudo crear la conversacion');
     }
 
     const conversationId = data.id;
@@ -297,10 +296,9 @@ export class ChatService {
       .select('id, conversation_id, role, content, metadata, created_at')
       .single()) as unknown as SupabaseSingleResult<MessageResponseDto>;
 
-    if (error || !data) {
-      throw new BadRequestException(
-        error?.message ?? 'No se pudo guardar el mensaje',
-      );
+    if (error) throwDbError(error, 'ChatService');
+    if (!data) {
+      throw new BadRequestException('No se pudo guardar el mensaje');
     }
     return data;
   }

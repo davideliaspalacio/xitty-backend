@@ -269,10 +269,9 @@ export class PromotionsService {
       .select('*')
       .single()) as unknown as SupabaseSingleResult<PromotionRow>;
 
-    if (error || !data) {
-      throw new BadRequestException(
-        error?.message ?? 'Could not create promotion',
-      );
+    if (error) throwDbError(error, 'PromotionsService');
+    if (!data) {
+      throw new BadRequestException('Could not create promotion');
     }
 
     // TODO: encolar notificacion a usuarios cercanos cuando exista

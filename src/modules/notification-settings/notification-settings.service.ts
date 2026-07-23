@@ -73,9 +73,11 @@ export class NotificationSettingsService {
       .select('*')
       .single()) as unknown as SupabaseSingleResult<NotificationSettingsDto>;
 
-    if (error || !data) {
+    if (error) throwDbError(error, 'NotificationSettingsService');
+
+    if (!data) {
       throw new BadRequestException(
-        error?.message || 'Could not save settings',
+        'No se pudo guardar la configuración de notificaciones',
       );
     }
     return data;
