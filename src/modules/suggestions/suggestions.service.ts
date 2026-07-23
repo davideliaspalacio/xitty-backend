@@ -1,5 +1,6 @@
 import { Inject, Injectable, BadRequestException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import {
   SuggestionResponseDto,
@@ -39,7 +40,7 @@ export class SuggestionsService {
     })) as unknown as SupabaseRpcResult<unknown>;
 
     if (error) {
-      throw new BadRequestException(error.message);
+      throwDbError(error, 'SuggestionsService');
     }
 
     return this.shape(data);

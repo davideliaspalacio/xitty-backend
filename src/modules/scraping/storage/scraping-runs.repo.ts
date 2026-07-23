@@ -5,6 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../../common/errors/throw-db-error';
 
 const TABLE = 'scraping_runs';
 const MAX_ERROR_LENGTH = 2000;
@@ -71,7 +72,7 @@ export class ScrapingRunsRepo {
     const { data, error } = (await (opts.sourceId
       ? query.eq('source_id', opts.sourceId)
       : query)) as unknown as SupabaseResult<ScrapingRun[]>;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ScrapingRunsRepo');
     return data ?? [];
   }
 
@@ -106,7 +107,7 @@ export class ScrapingRunsRepo {
       })
       .eq('id', runId);
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ScrapingRunsRepo');
   }
 
   /**

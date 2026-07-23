@@ -1,12 +1,12 @@
 import {
   Injectable,
   Inject,
-  BadRequestException,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 
+import { throwDbError } from '../../common/errors/throw-db-error';
 import {
   InteractionType,
   TrackInteractionDto,
@@ -172,7 +172,7 @@ export class MetricsService {
       return;
     }
     if (interactionError) {
-      throw new BadRequestException(interactionError.message);
+      throwDbError(interactionError, 'MetricsService');
     }
 
     await this.queueInteractionNotification({
@@ -199,7 +199,7 @@ export class MetricsService {
     });
 
     if (summaryResult.error) {
-      throw new BadRequestException(summaryResult.error.message);
+      throwDbError(summaryResult.error, 'MetricsService');
     }
 
     const summaryRows = (summaryResult.data || []) as MetricsSummaryRow[];
@@ -253,7 +253,7 @@ export class MetricsService {
     );
 
     if (timeseriesResult.error) {
-      throw new BadRequestException(timeseriesResult.error.message);
+      throwDbError(timeseriesResult.error, 'MetricsService');
     }
 
     const rows = (timeseriesResult.data || []) as MetricsTimeseriesRow[];

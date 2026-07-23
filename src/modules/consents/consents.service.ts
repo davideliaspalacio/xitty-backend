@@ -1,5 +1,6 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { GrantConsentDto, ConsentType } from './dto/grant-consent.dto';
 import { ConsentResponseDto } from './dto/consent-response.dto';
@@ -126,7 +127,7 @@ export class ConsentsService {
     >;
 
     if (error) {
-      throw new BadRequestException(error.message);
+      throwDbError(error, 'ConsentsService');
     }
 
     return data || [];

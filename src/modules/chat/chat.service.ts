@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { CHAT_PROVIDER } from './providers/chat-provider.interface';
 import type {
@@ -80,7 +81,7 @@ export class ChatService {
         ascending: false,
       })) as unknown as SupabaseListResult<ConversationResponseDto>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ChatService');
     return data ?? [];
   }
 
@@ -98,7 +99,7 @@ export class ChatService {
         ascending: true,
       })) as unknown as SupabaseListResult<MessageResponseDto>;
 
-    if (msgErr) throw new BadRequestException(msgErr.message);
+    if (msgErr) throwDbError(msgErr, 'ChatService');
 
     return {
       ...conv,
@@ -156,7 +157,7 @@ export class ChatService {
       .eq('id', conversationId)
       .eq('user_id', userId);
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ChatService');
   }
 
   // ────────────────────────────────────────────────────────────────────────
@@ -253,7 +254,7 @@ export class ChatService {
       .eq('id', conversationId)
       .maybeSingle()) as unknown as SupabaseSingleResult<ConversationResponseDto>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ChatService');
     if (!data) throw new NotFoundException('Conversation not found');
     if (data.user_id !== userId) {
       throw new ForbiddenException('No tienes acceso a esta conversacion');
@@ -273,7 +274,7 @@ export class ChatService {
         RECENT_MESSAGES_LIMIT,
       )) as unknown as SupabaseListResult<MessageResponseDto>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ChatService');
     const rows = data ?? [];
     // Reverse to chronological order
     return rows.reverse();

@@ -6,6 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import {
@@ -115,7 +116,7 @@ export class ReservationsService {
       .eq('id', experienceId)
       .maybeSingle()) as unknown as SupabaseSingleResult<ExperienceRulesRow>;
 
-    if (expError) throw new BadRequestException(expError.message);
+    if (expError) throwDbError(expError, 'ReservationsService');
     if (!experience) throw new NotFoundException('Experience not found');
     if (!experience.is_active) {
       throw new BadRequestException('Experience is not active');
@@ -173,7 +174,7 @@ export class ReservationsService {
           'Slot just filled up, please pick another one',
         );
       }
-      throw new BadRequestException(error.message);
+      throwDbError(error, 'ReservationsService');
     }
 
     if (!data) {
@@ -202,7 +203,7 @@ export class ReservationsService {
         offset + limit - 1,
       )) as unknown as SupabaseListResult<ReservationRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ReservationsService');
 
     const items = data || [];
     const hydrated = await this.hydrateCovers(items);
@@ -259,7 +260,7 @@ export class ReservationsService {
       .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
       .eq('id', reservationId);
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ReservationsService');
   }
 
   // ── helpers ───────────────────────────────────────────────────────────

@@ -1,10 +1,6 @@
-import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import {
   FavoriteItemDto,
@@ -102,7 +98,7 @@ export class FavoritesService {
         .eq('user_id', userId)
         .eq('place_id', placeId)) as unknown as SupabaseResult<unknown>;
 
-      if (error) throw new BadRequestException(error.message);
+      if (error) throwDbError(error, 'FavoritesService');
       return { place_id: placeId, is_favorite: false };
     }
 
@@ -112,7 +108,7 @@ export class FavoritesService {
       place_id: placeId,
     })) as unknown as SupabaseResult<unknown>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'FavoritesService');
     return { place_id: placeId, is_favorite: true };
   }
 
@@ -135,7 +131,7 @@ export class FavoritesService {
       FavoriteRow[]
     >;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'FavoritesService');
 
     // Fetch cover photos for favorited places
     const items = data || [];

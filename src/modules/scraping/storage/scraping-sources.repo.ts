@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../../common/errors/throw-db-error';
 
 const TABLE = 'scraping_sources';
 
@@ -77,7 +78,7 @@ export class ScrapingSourcesRepo {
     const { data, error } = (await (opts.enabledOnly
       ? query.eq('enabled', true)
       : query)) as unknown as SupabaseResult<ScrapingSource[]>;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ScrapingSourcesRepo');
     return data ?? [];
   }
 
@@ -88,7 +89,7 @@ export class ScrapingSourcesRepo {
       .eq('id', id)
       .maybeSingle();
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ScrapingSourcesRepo');
     if (!data) throw new NotFoundException(`Scraping source ${id} not found`);
     return data as ScrapingSource;
   }

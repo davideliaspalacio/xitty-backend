@@ -6,6 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { CreateReviewDto } from './dto/create-review.dto';
 import {
@@ -71,7 +72,7 @@ export class ReviewsService {
       ReviewRow[]
     >;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ReviewsService');
 
     return {
       data: data || [],
@@ -114,7 +115,7 @@ export class ReviewsService {
           'You have already reviewed this place. Use PATCH to update.',
         );
       }
-      throw new BadRequestException(error.message);
+      throwDbError(error, 'ReviewsService');
     }
 
     if (!data) throw new BadRequestException('Review could not be created');
@@ -157,6 +158,6 @@ export class ReviewsService {
       .eq('place_id', placeId)
       .eq('user_id', userId)) as unknown as SupabaseResult<unknown>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ReviewsService');
   }
 }

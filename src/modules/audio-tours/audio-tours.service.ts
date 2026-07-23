@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { AudioTourQueryDto } from './dto/audio-tour-query.dto';
 import { UpdateAudioTourProgressDto } from './dto/update-audio-tour-progress.dto';
@@ -66,7 +67,7 @@ export class AudioToursService {
 
     const { data, error } = await builder;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'AudioToursService');
 
     const tours = (data || []) as AudioTourRow[];
     const stopsByTour = await this.getStopsByTourIds(
@@ -88,7 +89,7 @@ export class AudioToursService {
       .eq('is_active', true)
       .maybeSingle();
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'AudioToursService');
     if (!data) throw new NotFoundException('Audio tour not found');
 
     const tour = data as AudioTourRow;
@@ -107,7 +108,7 @@ export class AudioToursService {
       .eq('audio_tour_id', tourId)
       .maybeSingle();
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'AudioToursService');
     return (data as AudioTourProgressDto) ?? null;
   }
 
@@ -155,7 +156,7 @@ export class AudioToursService {
       .select(PROGRESS_SELECT)
       .single();
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'AudioToursService');
     return data as AudioTourProgressDto;
   }
 
@@ -171,7 +172,7 @@ export class AudioToursService {
       .in('audio_tour_id', tourIds)
       .order('display_order', { ascending: true });
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'AudioToursService');
 
     for (const stop of (data || []) as AudioTourStopDto[]) {
       const stops = map.get(stop.audio_tour_id) || [];
@@ -195,7 +196,7 @@ export class AudioToursService {
       .eq('audio_tour_id', tourId)
       .in('id', unique);
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'AudioToursService');
 
     const found = new Set(
       ((data || []) as Array<{ id: string }>).map((s) => s.id),

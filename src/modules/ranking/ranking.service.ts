@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { RankingItemDto } from './dto/ranking-response.dto';
 import { UpdateRankingConfigDto } from './dto/update-ranking-config.dto';
@@ -150,7 +151,7 @@ export class RankingService {
 
   async refresh() {
     const { error } = await this.supabase.rpc('refresh_place_rankings');
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'RankingService');
     return { refreshed_at: new Date().toISOString() };
   }
 
@@ -311,7 +312,7 @@ export class RankingService {
     if (city) query = query.eq('city', city);
 
     const { data: rankings, error } = await query;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'RankingService');
     const rankingRows = (rankings ?? []) as RankingRow[];
     if (rankingRows.length === 0) return [];
 
@@ -408,7 +409,7 @@ export class RankingService {
       )
       .in('id', placeIds);
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'RankingService');
 
     // Keep only the cover photo (or first ordered) per place.
     const places = (data ?? []) as RankingPlaceRow[];
@@ -445,7 +446,7 @@ export class RankingService {
 
     const { data, error } = await query;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'RankingService');
 
     const byPlace = new Map<string, SnapshotRow>();
     const snapshots = (data ?? []) as SnapshotRow[];
