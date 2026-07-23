@@ -498,12 +498,19 @@ describe('AdminScrapingService', () => {
       );
     });
 
-    it('aplica filtro category_id y propaga errores de la vista', async () => {
+    it('degrada a un reporte vacío (sin filtrar el error) si la vista falla', async () => {
       supabase._on(null, { message: 'view missing' });
 
-      await expect(
-        service.listPlaceCompleteness({ category_id: 'cat-uuid' }),
-      ).rejects.toThrow(BadRequestException);
+      // Auditoría #7: en vez de un 400 con el error crudo de la BD, la pestaña
+      // recibe un reporte vacío y el detalle queda solo en los logs del server.
+      const result = await service.listPlaceCompleteness({
+        category_id: 'cat-uuid',
+      });
+
+      expect(result.data).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(result.totalPages).toBe(0);
+      expect(result.summary.total_places).toBe(0);
     });
   });
 
