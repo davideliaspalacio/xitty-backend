@@ -277,12 +277,12 @@ VALUES
  '+57 60 5 379 2786',
  'https://lacueva.com.co/reservas'),
 
-('Narcobollo',
+('Bollo Gourmet',
  'Restaurante de cocina caribeña contemporánea ubicado en el corazón de Alto Prado. Famoso por sus bollos rellenos creativos y su ambiente moderno e informal. Maneja productos locales con un toque gourmet. Su patio interior es perfecto para almuerzos al aire libre. Ideal para grupos y reuniones casuales.',
  'Carrera 51B #80-58, Alto Prado',
  11.0033, -74.8104,
  '+57 60 5 358 9912',
- 'https://narcobollo.com.co',
+ 'https://bollogourmet.com.co',
  2,
  '{"monday":"12:00-22:00","tuesday":"12:00-22:00","wednesday":"12:00-22:00","thursday":"12:00-23:00","friday":"12:00-00:00","saturday":"12:00-00:00","sunday":"12:00-21:00"}'::jsonb,
  (SELECT id FROM public.categories WHERE slug = 'restaurantes'),
@@ -1089,13 +1089,13 @@ INSERT INTO public.place_photos (place_id, url, alt_text, is_cover, display_orde
 ((SELECT id FROM public.places WHERE name = 'La Cueva Restaurante' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=1200&q=80', 'Decoración bohemia del restaurante', false, 4),
 ((SELECT id FROM public.places WHERE name = 'La Cueva Restaurante' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=1200&q=80', 'Cazuela de mariscos servida', false, 5);
 
--- Narcobollo
+-- Bollo Gourmet
 INSERT INTO public.place_photos (place_id, url, alt_text, is_cover, display_order) VALUES
-((SELECT id FROM public.places WHERE name = 'Narcobollo' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80', 'Bollos rellenos gourmet de Narcobollo', true, 0),
-((SELECT id FROM public.places WHERE name = 'Narcobollo' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80', 'Interior moderno del restaurante', false, 1),
-((SELECT id FROM public.places WHERE name = 'Narcobollo' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1200&q=80', 'Patio interior con plantas', false, 2),
-((SELECT id FROM public.places WHERE name = 'Narcobollo' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=1200&q=80', 'Mesa con varios platos', false, 3),
-((SELECT id FROM public.places WHERE name = 'Narcobollo' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=1200&q=80', 'Plato creativo de cocina caribeña', false, 4);
+((SELECT id FROM public.places WHERE name = 'Bollo Gourmet' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80', 'Bollos rellenos gourmet de la casa', true, 0),
+((SELECT id FROM public.places WHERE name = 'Bollo Gourmet' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80', 'Interior moderno del restaurante', false, 1),
+((SELECT id FROM public.places WHERE name = 'Bollo Gourmet' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1200&q=80', 'Patio interior con plantas', false, 2),
+((SELECT id FROM public.places WHERE name = 'Bollo Gourmet' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=1200&q=80', 'Mesa con varios platos', false, 3),
+((SELECT id FROM public.places WHERE name = 'Bollo Gourmet' ORDER BY created_at DESC LIMIT 1), 'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=1200&q=80', 'Plato creativo de cocina caribeña', false, 4);
 
 -- Comedor 7 Bocas
 INSERT INTO public.place_photos (place_id, url, alt_text, is_cover, display_order) VALUES
@@ -2360,28 +2360,28 @@ WITH picked_places AS (
 ),
 title_pool AS (
   SELECT ARRAY[
-    '2x1 en cocteles despues de las 8pm',
+    '2x1 en cócteles después de las 8pm',
     '30% off en mariscos los martes',
     'Happy hour 5-7pm',
-    'Promocion aniversario 25% en toda la carta',
+    'Promoción aniversario 25% en toda la carta',
     'Cena con vista al mar + copa de vino gratis',
-    'Ninos comen gratis los domingos',
+    'Niños comen gratis los domingos',
     'Tour guiado con 40% de descuento',
     'Hospedaje de 3 noches con desayuno incluido',
-    'Entrada 2x1 los miercoles',
-    'Sesion de masaje + sauna con 20% off'
+    'Entrada 2x1 los miércoles',
+    'Sesión de masaje + sauna con 20% off'
   ] AS titles,
   ARRAY[
-    'Disfruta dos cocteles por el precio de uno todas las noches despues de las 8pm. Aplica de lunes a jueves, no acumulable con otras promociones.',
-    'Los martes ofrecemos 30% de descuento en todos los platos de mariscos frescos del Caribe. Valido para consumo en el local.',
-    'Happy hour todos los dias de 5 a 7pm con cervezas, vinos por copa y picadas a precio especial. Imperdible despues del trabajo.',
+    'Disfruta dos cócteles por el precio de uno todas las noches después de las 8pm. Aplica de lunes a jueves, no acumulable con otras promociones.',
+    'Los martes ofrecemos 30% de descuento en todos los platos de mariscos frescos del Caribe. Válido para consumo en el local.',
+    'Happy hour todos los días de 5 a 7pm con cervezas, vinos por copa y picadas a precio especial. Imperdible después del trabajo.',
     'Celebramos nuestro aniversario con 25% de descuento en toda la carta durante una semana. Reservas recomendadas.',
-    'Cena romantica con vista al mar e incluimos una copa de vino tinto o blanco por persona. Valido de domingo a jueves.',
-    'Los domingos los ninos menores de 10 anos comen gratis acompanados de un adulto con plato principal. Maximo dos ninos por adulto.',
-    'Tour guiado por los puntos historicos con 40% de descuento. Cupo limitado, reserva con anticipacion.',
-    'Paquete de 3 noches con desayuno buffet incluido y late checkout. Valido para reservas directas.',
-    'Entrada general 2x1 todos los miercoles. Aplica solo para taquilla, no para eventos especiales.',
-    'Masaje relajante de 60 minutos mas acceso al sauna con 20% de descuento. Cita previa requerida.'
+    'Cena romántica con vista al mar e incluimos una copa de vino tinto o blanco por persona. Válido de domingo a jueves.',
+    'Los domingos los niños menores de 10 años comen gratis acompañados de un adulto con plato principal. Máximo dos niños por adulto.',
+    'Tour guiado por los puntos históricos con 40% de descuento. Cupo limitado, reserva con anticipación.',
+    'Paquete de 3 noches con desayuno buffet incluido y late checkout. Válido para reservas directas.',
+    'Entrada general 2x1 todos los miércoles. Aplica solo para taquilla, no para eventos especiales.',
+    'Masaje relajante de 60 minutos más acceso al sauna con 20% de descuento. Cita previa requerida.'
   ] AS descriptions,
   ARRAY[15, 20, 25, 30, 40, 50, 10]::smallint[] AS discounts
 )
@@ -2405,28 +2405,28 @@ WITH picked_places AS (
 ),
 title_pool AS (
   SELECT ARRAY[
-    'Pre-venta: cena de fin de ano 30% off',
+    'Pre-venta: cena de fin de año 30% off',
     'Carnaval 2026: paquete especial 25% descuento',
     'Apertura nueva sucursal: 50% en primera semana',
-    'San Valentin: cena para dos con champagne',
-    'Semana santa: tour con guia certificado',
-    'Festival gastronomico: menu degustacion 20% off',
+    'San Valentín: cena para dos con champagne',
+    'Semana Santa: tour con guía certificado',
+    'Festival gastronómico: menú degustación 20% off',
     'Black Friday hospedaje 40% descuento',
     'Aniversario ciudad: entrada gratis a museos',
     'Verano: combo familiar con descuento',
-    'Reapertura terraza: cocteles 2x1 una semana'
+    'Reapertura terraza: cócteles 2x1 una semana'
   ] AS titles,
   ARRAY[
-    'Pre-venta para cena de fin de ano con 30% de descuento. Cupos limitados, reserva con anticipacion.',
-    'Paquete especial para temporada de carnaval con 25% de descuento en todos los servicios. Valido del 6 al 9 de febrero.',
+    'Pre-venta para cena de fin de año con 30% de descuento. Cupos limitados, reserva con anticipación.',
+    'Paquete especial para temporada de carnaval con 25% de descuento en todos los servicios. Válido del 6 al 9 de febrero.',
     'Apertura de nueva sucursal con 50% de descuento durante la primera semana. Aplica solo en el nuevo local.',
-    'Cena romantica para dos con copa de champagne incluida. Reservas exclusivas para la noche del 14 de febrero.',
-    'Tour especial de semana santa con guia certificado y refrigerio incluido. Cupo de 20 personas por dia.',
-    'Festival gastronomico con menu degustacion de 5 tiempos al 20% de descuento. Duracion una semana.',
-    'Promocion Black Friday en hospedaje con 40% de descuento sobre tarifa rack. Reservas online unicamente.',
-    'Celebracion del aniversario de la ciudad con entrada gratuita a museos por un dia. Inscripcion previa.',
+    'Cena romántica para dos con copa de champagne incluida. Reservas exclusivas para la noche del 14 de febrero.',
+    'Tour especial de Semana Santa con guía certificado y refrigerio incluido. Cupo de 20 personas por día.',
+    'Festival gastronómico con menú degustación de 5 tiempos al 20% de descuento. Duración una semana.',
+    'Promoción Black Friday en hospedaje con 40% de descuento sobre tarifa rack. Reservas online únicamente.',
+    'Celebración del aniversario de la ciudad con entrada gratuita a museos por un día. Inscripción previa.',
     'Combo familiar de verano con descuento especial para familias de 4 personas. Incluye almuerzo y bebidas.',
-    'Reapertura de terraza con cocteles 2x1 durante toda la primera semana. Imperdible para foodies.'
+    'Reapertura de terraza con cócteles 2x1 durante toda la primera semana. Imperdible para foodies.'
   ] AS descriptions,
   ARRAY[15, 20, 25, 30, 40, 50, 10]::smallint[] AS discounts
 )
@@ -2450,28 +2450,28 @@ WITH picked_places AS (
 ),
 title_pool AS (
   SELECT ARRAY[
-    '2x1 en cocteles despues de las 8pm',
+    '2x1 en cócteles después de las 8pm',
     '30% off en mariscos los martes',
     'Happy hour 5-7pm',
-    'Promocion aniversario 25% en toda la carta',
+    'Promoción aniversario 25% en toda la carta',
     'Cena con vista al mar + copa de vino gratis',
-    'Ninos comen gratis los domingos',
+    'Niños comen gratis los domingos',
     'Tour guiado con 40% de descuento',
     'Hospedaje de 3 noches con desayuno incluido',
-    'Entrada 2x1 los miercoles',
-    'Sesion de masaje + sauna con 20% off'
+    'Entrada 2x1 los miércoles',
+    'Sesión de masaje + sauna con 20% off'
   ] AS titles,
   ARRAY[
-    'Promocion finalizada de 2x1 en cocteles despues de las 8pm.',
-    'Promocion finalizada de 30% off en mariscos los martes.',
+    'Promoción finalizada de 2x1 en cócteles después de las 8pm.',
+    'Promoción finalizada de 30% off en mariscos los martes.',
     'Happy hour de temporada pasada con cervezas y picadas.',
     'Aniversario celebrado con 25% en toda la carta.',
-    'Cena especial con copa de vino que ya finalizo.',
-    'Promocion para ninos que comieron gratis los domingos del mes pasado.',
+    'Cena especial con copa de vino que ya finalizó.',
+    'Promoción para niños que comieron gratis los domingos del mes pasado.',
     'Tour guiado con descuento especial ya finalizado.',
     'Paquete de hospedaje de temporada pasada ya finalizado.',
-    'Promocion de entrada 2x1 los miercoles del mes pasado.',
-    'Sesion de masaje con descuento que ya termino.'
+    'Promoción de entrada 2x1 los miércoles del mes pasado.',
+    'Sesión de masaje con descuento que ya terminó.'
   ] AS descriptions,
   ARRAY[15, 20, 25, 30, 40, 50, 10]::smallint[] AS discounts
 )
@@ -2504,7 +2504,7 @@ admins AS (
 ),
 pool AS (
   SELECT
-    ARRAY['Equipo Xitty','Maria Curadora','Andres Editorial','Camila Picks','Editorial Xitty'] AS curators,
+    ARRAY['Equipo Xitty','María Curadora','Andrés Editorial','Camila Picks','Editorial Xitty'] AS curators,
     ARRAY[
       'El plan que no te puedes perder este finde',
       'Joya escondida del Caribe',
@@ -2512,10 +2512,10 @@ pool AS (
       'El nuevo hot spot de Barranquilla'
     ] AS titles,
     ARRAY[
-      'Una experiencia que reune lo mejor de la gastronomia local con un ambiente unico. Recomendado por nuestro equipo editorial para vivir este fin de semana.',
-      'Descubre este rincon escondido que enamora a quienes lo visitan. Una joya que combina tradicion, sabor y autenticidad caribena.',
+      'Una experiencia que reúne lo mejor de la gastronomía local con un ambiente único. Recomendado por nuestro equipo editorial para vivir este fin de semana.',
+      'Descubre este rincón escondido que enamora a quienes lo visitan. Una joya que combina tradición, sabor y autenticidad caribeña.',
       'Este lugar se ha convertido en parada obligatoria para locales y visitantes. No te lo puedes perder esta semana.',
-      'El nuevo hot spot de la ciudad combina diseno, sabor y buena musica. Ideal para una salida diferente.'
+      'El nuevo hot spot de la ciudad combina diseño, sabor y buena música. Ideal para una salida diferente.'
     ] AS descriptions,
     ARRAY[
       'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80',
@@ -2552,18 +2552,18 @@ admins AS (
 ),
 pool AS (
   SELECT
-    ARRAY['Equipo Xitty','Maria Curadora','Andres Editorial','Camila Picks','Editorial Xitty'] AS curators,
+    ARRAY['Equipo Xitty','María Curadora','Andrés Editorial','Camila Picks','Editorial Xitty'] AS curators,
     ARRAY[
       'Destacado de la semana pasada',
-      'El sitio mas visitado del mes',
+      'El sitio más visitado del mes',
       'Recomendado por nuestros editores',
-      'Top pick de la curaduria Xitty'
+      'Top pick de la curaduría Xitty'
     ] AS titles,
     ARRAY[
-      'Lugar que destacamos la semana pasada por su propuesta unica y la calidad de su servicio. Sigue siendo un must.',
-      'Uno de los sitios mas visitados del mes segun nuestras metricas. La comunidad lo valida con sus visitas.',
-      'Recomendacion editorial por la consistencia y autenticidad de la experiencia. Vale la pena conocerlo.',
-      'Top pick de nuestra curaduria por combinar precio, sabor y ambiente. Recomendado sin reservas.'
+      'Lugar que destacamos la semana pasada por su propuesta única y la calidad de su servicio. Sigue siendo un must.',
+      'Uno de los sitios más visitados del mes según nuestras métricas. La comunidad lo valida con sus visitas.',
+      'Recomendación editorial por la consistencia y autenticidad de la experiencia. Vale la pena conocerlo.',
+      'Top pick de nuestra curaduría por combinar precio, sabor y ambiente. Recomendado sin reservas.'
     ] AS descriptions,
     ARRAY[
       'https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=1200&q=80',
@@ -2600,18 +2600,18 @@ admins AS (
 ),
 pool AS (
   SELECT
-    ARRAY['Equipo Xitty','Maria Curadora','Andres Editorial','Camila Picks','Editorial Xitty'] AS curators,
+    ARRAY['Equipo Xitty','María Curadora','Andrés Editorial','Camila Picks','Editorial Xitty'] AS curators,
     ARRAY[
-      'Clasico recomendado por Xitty',
+      'Clásico recomendado por Xitty',
       'Sitio favorito de los curadores',
       'Historia y sabor en un solo lugar',
       'Imperdible de Barranquilla'
     ] AS titles,
     ARRAY[
-      'Un clasico que nuestra curaduria recomienda visitar al menos una vez. Tradicion y calidad garantizadas.',
-      'Sitio favorito de nuestros curadores por su ambiente acogedor y atencion personalizada. Para repetir.',
+      'Un clásico que nuestra curaduría recomienda visitar al menos una vez. Tradición y calidad garantizadas.',
+      'Sitio favorito de nuestros curadores por su ambiente acogedor y atención personalizada. Para repetir.',
       'Lugar donde la historia y el sabor se encuentran. Una experiencia que vale la pena vivir en Barranquilla.',
-      'Imperdible para quienes visitan la ciudad o llevan tiempo aqui. Recomendado por el equipo Xitty.'
+      'Imperdible para quienes visitan la ciudad o llevan tiempo aquí. Recomendado por el equipo Xitty.'
     ] AS descriptions,
     ARRAY[
       'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=1200&q=80',
@@ -2652,13 +2652,13 @@ admins AS (
 ),
 pool AS (
   SELECT
-    ARRAY['Andrea Local','Carlos Conoce','Mariana del Norte','Diego Caribe','Sofia Centro'] AS curators,
+    ARRAY['Andrea Local','Carlos Conoce','Mariana del Norte','Diego Caribe','Sofía Centro'] AS curators,
     ARRAY['favorito_local','favorito_local','secreto','autentico'] AS tags,
     ARRAY[
       'Si quieres comer como un barranquillero de verdad, este es el sitio. La gente del barrio lo defiende con la vida.',
       'Mi favorito desde siempre. Sirven porciones generosas y el sabor es de casa. Imposible no volver.',
       'Pocas personas lo conocen pero quienes han ido repiten. Un secreto bien guardado de la ciudad.',
-      'Autentico en cada detalle. Si buscas la receta de verdad, sin atajos ni concesiones turisticas, este es el lugar.'
+      'Auténtico en cada detalle. Si buscas la receta de verdad, sin atajos ni concesiones turísticas, este es el lugar.'
     ] AS pitches,
     ARRAY[
       'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80',
