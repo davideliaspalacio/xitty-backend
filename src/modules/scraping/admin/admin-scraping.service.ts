@@ -272,9 +272,13 @@ export class AdminScrapingService {
     );
     const summaryResult = await summaryQuery;
     if (summaryResult.error) {
-      throw new BadRequestException(
-        `Could not read place completeness summary: ${summaryResult.error.message}`,
+      // No exponemos el error crudo de la BD (auditoría #7). Si la vista
+      // place_data_completeness no está disponible todavía, degradamos a un
+      // reporte vacío en vez de romper la pestaña con un 400 + stacktrace.
+      this.logger.error(
+        `place completeness summary query failed: ${summaryResult.error.message}`,
       );
+      return this.emptyCompletenessReport(page, limit);
     }
 
     const listQuery = this.applyCompletenessFilters(
@@ -289,9 +293,12 @@ export class AdminScrapingService {
     );
     const listResult = await listQuery;
     if (listResult.error) {
-      throw new BadRequestException(
-        `Could not read place completeness report: ${listResult.error.message}`,
+      // Mismo criterio que arriba (auditoría #7): log server-side, sin filtrar
+      // detalles internos de la BD al cliente.
+      this.logger.error(
+        `place completeness report query failed: ${listResult.error.message}`,
       );
+      return this.emptyCompletenessReport(page, limit);
     }
 
     const allRows = normalizeCompletenessRows(summaryResult.data);
@@ -305,6 +312,25 @@ export class AdminScrapingService {
       limit,
       totalPages: Math.ceil(total / limit),
       summary: buildCompletenessSummary(allRows),
+    };
+  }
+
+  /**
+   * Reporte de completitud vacío para degradar con gracia cuando la vista
+   * `place_data_completeness` no está disponible (auditoría #7). La pestaña
+   * muestra su estado vacío en lugar de romperse con un 400.
+   */
+  private emptyCompletenessReport(
+    page: number,
+    limit: number,
+  ): PlaceCompletenessReport {
+    return {
+      data: [],
+      total: 0,
+      page,
+      limit,
+      totalPages: 0,
+      summary: buildCompletenessSummary([]),
     };
   }
 

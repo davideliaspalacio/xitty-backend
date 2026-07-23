@@ -86,20 +86,20 @@ export class AuthService {
       const msg = error.message?.toLowerCase() || '';
       if (msg.includes('confirm') || msg.includes('not confirmed')) {
         throw new UnauthorizedException(
-          'Email not verified. Please check your inbox.',
+          'Email no verificado. Revisa tu bandeja de entrada.',
         );
       }
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Correo o contraseña incorrectos');
     }
 
     if (!data.user) {
-      throw new UnauthorizedException('Authentication failed');
+      throw new UnauthorizedException('No se pudo autenticar');
     }
 
     // Doble check defensivo: si el user existe pero no está confirmado
     if (!data.user.email_confirmed_at) {
       throw new UnauthorizedException(
-        'Email not verified. Please check your inbox.',
+        'Email no verificado. Revisa tu bandeja de entrada.',
       );
     }
 
@@ -129,7 +129,7 @@ export class AuthService {
     }
 
     if (!data.user) {
-      throw new BadRequestException('Registration failed');
+      throw new BadRequestException('No se pudo completar el registro');
     }
 
     // Crear perfil (el trigger SQL rellena el email automáticamente)
@@ -197,17 +197,17 @@ export class AuthService {
       }
       decoded = jwt.verify(refreshToken, jwtSecret) as jwt.JwtPayload;
     } catch {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException('Sesión inválida o expirada');
     }
 
     if (decoded.type !== 'refresh' || !decoded.sub) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException('Sesión inválida o expirada');
     }
 
     const userId = decoded.sub;
     const profile = await this.fetchProfile(userId);
     if (!profile) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException('Usuario no encontrado');
     }
 
     // Necesitamos el email del auth.users para devolverlo en el response
@@ -227,7 +227,7 @@ export class AuthService {
   ): Promise<ProfileRow> {
     if (!dto.full_name && !dto.phone) {
       throw new BadRequestException(
-        'At least one field (full_name or phone) is required',
+        'Debes enviar al menos un campo (nombre o teléfono)',
       );
     }
 
@@ -243,7 +243,7 @@ export class AuthService {
       .single()) as unknown as SupabaseSingleResult<ProfileRow>;
 
     if (error || !data) {
-      throw new NotFoundException('Profile not found');
+      throw new NotFoundException('Perfil no encontrado');
     }
 
     return data;
@@ -299,7 +299,7 @@ export class AuthService {
       throw new BadRequestException(updateError.message);
     }
 
-    return { message: 'Password updated successfully' };
+    return { message: 'Contraseña actualizada correctamente' };
   }
 
   /**
@@ -308,7 +308,7 @@ export class AuthService {
   async getProfile(userId: string): Promise<ProfileRow> {
     const profile = await this.fetchProfile(userId);
     if (!profile) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
     return profile;
   }
