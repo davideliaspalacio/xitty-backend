@@ -188,6 +188,42 @@ describe('PlacesService', () => {
       expect(result.data[1].cover_photo_url).toBeNull();
     });
 
+    // Regresión #2 (Directorio /places vacío): el directorio base debe filtrar
+    // por is_active=true y NO salir vacío cuando hay lugares activos.
+    it('el directorio base aplica is_active=true y devuelve los lugares activos', async () => {
+      const places = [
+        { id: 'p1', name: 'La Cueva', average_rating: 4.2 },
+        { id: 'p2', name: 'Bollo Gourmet', average_rating: 4.0 },
+      ];
+      const chain = supabase._on(places, null, 2); // places query
+      supabase._on([]); // covers
+
+      const result = await service.findAll({ page: 1, limit: 10 });
+
+      // Solo lugares publicados/activos deben aparecer en el directorio.
+      expect(chain.eq).toHaveBeenCalledWith('is_active', true);
+      // Con lugares activos en la BD, el directorio NO debe salir vacío.
+      expect(result.data).toHaveLength(2);
+      expect(result.total).toBe(2);
+    });
+
+    // Regresión #2: sin `city` explícito no se debe aplicar `.eq('city', …)`.
+    // Si se aplicara, los lugares sin ciudad (p.ej. scrapeados antes de la
+    // migración de city) desaparecerían y el directorio quedaría vacío.
+    it('no filtra por ciudad cuando no se pasa city', async () => {
+      const chain = supabase._on(
+        [{ id: 'p1', name: 'Sin ciudad', average_rating: 4 }],
+        null,
+        1,
+      );
+      supabase._on([]); // covers
+
+      const result = await service.findAll({ page: 1, limit: 10 });
+
+      expect(chain.eq).not.toHaveBeenCalledWith('city', expect.anything());
+      expect(result.data).toHaveLength(1);
+    });
+
     it('requiere lat/lng cuando sort_by es distance', async () => {
       await expect(
         service.findAll({ sort_by: PlaceSortBy.DISTANCE }),
