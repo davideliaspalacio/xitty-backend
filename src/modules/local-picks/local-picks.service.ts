@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { CreateLocalPickDto, PickTag } from './dto/create-local-pick.dto';
 import {
@@ -106,7 +107,7 @@ export class LocalPicksService {
     const { data, error } = (await qb) as unknown as SupabaseResult<
       LocalPickRow[]
     >;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'LocalPicksService');
     return (data || []).map((row) => this.toResponse(row));
   }
 
@@ -121,7 +122,7 @@ export class LocalPicksService {
       LocalPickRow[]
     >;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'LocalPicksService');
 
     return {
       data: (data || []).map((row) => this.toResponse(row)),
@@ -168,7 +169,7 @@ export class LocalPicksService {
       .select(`*, places:place_id(${PLACE_FIELDS})`)
       .single()) as unknown as SupabaseResult<LocalPickRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'LocalPicksService');
     if (!data) throw new BadRequestException('Local pick could not be created');
     return this.toResponse(data);
   }
@@ -219,7 +220,7 @@ export class LocalPicksService {
       .from(TABLE)
       .delete()
       .eq('id', id)) as unknown as SupabaseResult<unknown>;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'LocalPicksService');
   }
 
   // ── helpers ───────────────────────────────────────────────────────────

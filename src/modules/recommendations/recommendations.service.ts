@@ -1,5 +1,6 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { TodayQueryDto } from './dto/today-query.dto';
 import {
@@ -86,7 +87,7 @@ export class RecommendationsService {
     )) as unknown as SupabaseResult<RpcRecommendationRow[]>;
 
     if (rpcError) {
-      throw new BadRequestException(rpcError.message);
+      throwDbError(rpcError, 'RecommendationsService');
     }
 
     const rows = rpcData || [];
@@ -170,7 +171,7 @@ export class RecommendationsService {
       RecommendationPlaceRow[]
     >;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'RecommendationsService');
 
     const map = new Map<string, RecommendationPlaceRow>();
     for (const place of data || []) {

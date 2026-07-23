@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { throwDbError } from '../../../common/errors/throw-db-error';
 
 import {
   BadRequestException,
@@ -206,7 +207,7 @@ export class ScrapedItemsRepo {
         );
         return null;
       }
-      throw new BadRequestException(error.message);
+      throwDbError(error, 'ScrapedItemsRepo');
     }
     return data as unknown as ScrapedItemRaw;
   }
@@ -218,7 +219,7 @@ export class ScrapedItemsRepo {
       .eq('dedup_hash', dedupHash)
       .maybeSingle();
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ScrapedItemsRepo');
     return !!data;
   }
 
@@ -292,7 +293,7 @@ export class ScrapedItemsRepo {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ScrapedItemsRepo');
     return (data ?? []) as unknown as ScrapedItemEnriched[];
   }
 
@@ -303,7 +304,7 @@ export class ScrapedItemsRepo {
       .eq('id', id)
       .maybeSingle();
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ScrapedItemsRepo');
     if (!data) {
       throw new NotFoundException(`Enriched item ${id} not found`);
     }
@@ -398,7 +399,7 @@ export class ScrapedItemsRepo {
       .eq('id', id)
       .maybeSingle();
 
-    if (fetchErr) throw new BadRequestException(fetchErr.message);
+    if (fetchErr) throwDbError(fetchErr, 'ScrapedItemsRepo');
     if (!existing) {
       throw new NotFoundException(`Enriched item ${id} not found`);
     }

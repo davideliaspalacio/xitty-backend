@@ -6,6 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
@@ -123,7 +124,7 @@ export class PromotionsService {
         ascending: false,
       })) as unknown as SupabaseListResult<PromotionRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PromotionsService');
     return data || [];
   }
 
@@ -144,7 +145,7 @@ export class PromotionsService {
         ascending: false,
       })) as unknown as SupabaseListResult<PromotionRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PromotionsService');
     return data || [];
   }
 
@@ -168,7 +169,7 @@ export class PromotionsService {
         ascending: false,
       })) as unknown as SupabaseListResult<HeroPromotionRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PromotionsService');
     return data || [];
   }
 
@@ -190,7 +191,7 @@ export class PromotionsService {
       .eq('id', promoId)
       .maybeSingle()) as unknown as SupabaseSingleResult<PromotionLookupRow>;
 
-    if (lookupError) throw new BadRequestException(lookupError.message);
+    if (lookupError) throwDbError(lookupError, 'PromotionsService');
     if (!promo) throw new NotFoundException('Promotion not found');
 
     const trackingFields = buildInteractionTrackingFields({
@@ -211,7 +212,7 @@ export class PromotionsService {
     })) as unknown as SupabaseSingleResult<unknown>;
 
     if (error && isDuplicateInteractionError(error)) return { success: true };
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PromotionsService');
     return { success: true };
   }
 
@@ -230,7 +231,7 @@ export class PromotionsService {
         offset + limit - 1,
       )) as unknown as SupabaseListResult<ActivePromotionRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PromotionsService');
 
     return {
       data: data || [],
@@ -320,7 +321,7 @@ export class PromotionsService {
       .eq('place_id', placeId)
       .maybeSingle()) as unknown as SupabaseSingleResult<PromotionWindowRow>;
 
-    if (lookupError) throw new BadRequestException(lookupError.message);
+    if (lookupError) throwDbError(lookupError, 'PromotionsService');
     if (!existing) throw new NotFoundException('Promotion not found');
 
     const nextStartsAt = updates.starts_at ?? existing.starts_at;
@@ -355,7 +356,7 @@ export class PromotionsService {
       .eq('id', promotionId)
       .eq('place_id', placeId);
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PromotionsService');
   }
 
   private async assertOwnership(

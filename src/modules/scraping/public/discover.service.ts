@@ -1,10 +1,6 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../../common/errors/throw-db-error';
 
 import {
   CuratedItemCardDto,
@@ -112,7 +108,7 @@ export class DiscoverService {
 
     const { data, error } =
       (await qb) as unknown as SupabaseListResult<CuratedItemRow>;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'DiscoverService');
 
     return (data ?? []).map((row) => this.toCard(row));
   }
@@ -128,7 +124,7 @@ export class DiscoverService {
       .eq('status', 'published')
       .maybeSingle()) as unknown as SupabaseSingleResult<CuratedItemDetailRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'DiscoverService');
     if (!data) throw new NotFoundException(`Curated item ${id} not found`);
 
     return this.toDetail(data);

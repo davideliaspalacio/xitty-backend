@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
 
+import { throwDbError } from '../../common/errors/throw-db-error';
 import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
 import { PlaceListQueryDto, PlaceSortBy } from './dto/place-list-query.dto';
@@ -118,7 +119,7 @@ export class PlacesService {
       .select('id, name, slug, icon, description')
       .order('name')) as unknown as SupabaseListResult<CategoryResponseDto>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PlacesService');
     return data || [];
   }
 
@@ -172,7 +173,7 @@ export class PlacesService {
 
     const { data, error, count } =
       (await qb) as unknown as SupabaseListResult<PlaceCardRow>;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PlacesService');
 
     const lang = query.lang || DEFAULT_LANG;
     const cards: PlaceCardDto[] = (data || []).map((place) => ({
@@ -225,7 +226,7 @@ export class PlacesService {
       p_offset: offset,
     })) as unknown as SupabaseListResult<PlaceCardDto>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PlacesService');
 
     // Get total count for pagination (separate query without limit)
     let countQb = this.supabase
@@ -286,7 +287,7 @@ export class PlacesService {
 
     const { data, error, count } =
       (await qb) as unknown as SupabaseListResult<PlaceCardRow>;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PlacesService');
 
     const cards: PlaceCardDto[] = (data || []).map((place) => ({
       ...place,
@@ -377,7 +378,7 @@ export class PlacesService {
       .select(PLACE_DETAIL_SELECT)
       .single()) as unknown as SupabaseSingleResult<PlaceDetailRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PlacesService');
     if (!data) throw new BadRequestException('Could not create place');
     return { ...data, photos: [] };
   }
@@ -441,7 +442,7 @@ export class PlacesService {
       .select(PLACE_DETAIL_SELECT)
       .single()) as unknown as SupabaseSingleResult<PlaceDetailRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PlacesService');
     if (!data) throw new NotFoundException('Place not found');
 
     const { data: photos } = (await this.supabase
@@ -463,7 +464,7 @@ export class PlacesService {
       .update({ is_active: false })
       .eq('id', id);
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PlacesService');
   }
 
   async addPhoto(
@@ -499,7 +500,7 @@ export class PlacesService {
       .select('*')
       .single()) as unknown as SupabaseSingleResult<PlacePhotoDto>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'PlacesService');
     if (!data) throw new BadRequestException('Could not add photo');
     return data;
   }

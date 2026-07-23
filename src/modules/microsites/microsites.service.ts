@@ -1,10 +1,6 @@
-import {
-  Injectable,
-  Inject,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 const PLACES_TABLE = 'places';
 const ACTIVE_PROMOS_VIEW = 'active_promotions';
@@ -42,7 +38,7 @@ export class MicrositesService {
       .eq('is_active', true)
       .maybeSingle()) as unknown as SupabaseResult<MicrositePlaceRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'MicrositesService');
     if (!place) throw new NotFoundException('Microsite not found');
 
     const placeId = place.id;

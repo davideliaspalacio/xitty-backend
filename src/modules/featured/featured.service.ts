@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { CreateFeaturedDto } from './dto/create-featured.dto';
 import {
@@ -109,7 +110,7 @@ export class FeaturedService {
       FeaturedRow[]
     >;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'FeaturedService');
     const current = (data || []).map((row) => this.toResponse(row));
     if (current.length > 0) return current;
     return this.findFallbackCurrent();
@@ -126,7 +127,7 @@ export class FeaturedService {
       FeaturedRow[]
     >;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'FeaturedService');
 
     return {
       data: (data || []).map((row) => this.toResponse(row)),
@@ -174,7 +175,7 @@ export class FeaturedService {
       .select(`*, places:place_id(${PLACE_FIELDS})`)
       .single()) as unknown as SupabaseResult<FeaturedRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'FeaturedService');
     if (!data)
       throw new BadRequestException('Featured entry could not be created');
     return this.toResponse(data);
@@ -230,7 +231,7 @@ export class FeaturedService {
       .delete()
       .eq('id', id)) as unknown as SupabaseResult<unknown>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'FeaturedService');
   }
 
   // ── helpers ────────────────────────────────────────────────────────────
@@ -258,7 +259,7 @@ export class FeaturedService {
       .order('total_reviews', { ascending: false })
       .limit(3)) as unknown as SupabaseResult<FeaturedPlaceRow[]>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'FeaturedService');
 
     const window = this.currentBogotaWeekWindow();
     return (data || []).map((place, index) =>

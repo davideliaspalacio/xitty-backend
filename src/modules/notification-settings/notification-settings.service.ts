@@ -1,5 +1,6 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { UpdateNotificationSettingsDto } from './dto/update-notification-settings.dto';
 import { NotificationSettingsDto } from './dto/notification-settings.dto';
@@ -48,7 +49,7 @@ export class NotificationSettingsService {
       .eq('user_id', userId)
       .maybeSingle()) as unknown as SupabaseSingleResult<NotificationSettingsDto>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'NotificationSettingsService');
 
     if (!data) {
       return { user_id: userId, ...DEFAULTS };

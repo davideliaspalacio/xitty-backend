@@ -6,6 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { CreateExperienceDto } from './dto/create-experience.dto';
 import { UpdateExperienceDto } from './dto/update-experience.dto';
@@ -133,7 +134,7 @@ export class ExperiencesService {
           'starts_at',
           dayEnd.toISOString(),
         )) as unknown as SupabaseListResult<AvailableSlotExperienceRow>;
-      if (slotsError) throw new BadRequestException(slotsError.message);
+      if (slotsError) throwDbError(slotsError, 'ExperiencesService');
       availableExperienceIds = Array.from(
         new Set((slots || []).map((slot) => slot.experience_id)),
       );
@@ -186,7 +187,7 @@ export class ExperiencesService {
 
     const { data, error, count } =
       (await qb) as unknown as SupabaseListResult<ExperienceCardRow>;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ExperiencesService');
 
     const items: ExperienceCardDto[] = (data || []).map((experience) => ({
       ...experience,
@@ -294,7 +295,7 @@ export class ExperiencesService {
       .select(DETAIL_SELECT)
       .single()) as unknown as SupabaseSingleResult<ExperienceDetailRow>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ExperiencesService');
     if (!data) throw new BadRequestException('Could not create experience');
     return { ...data, cover_photo_url: null, photos: [] };
   }
@@ -362,7 +363,7 @@ export class ExperiencesService {
       .from(TABLE)
       .update({ is_active: false })
       .eq('id', id);
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ExperiencesService');
   }
 
   async addPhoto(
@@ -390,7 +391,7 @@ export class ExperiencesService {
       .select('*')
       .single()) as unknown as SupabaseSingleResult<ExperiencePhotoDto>;
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ExperiencesService');
     if (!data) throw new BadRequestException('Could not add photo');
     return data;
   }
@@ -415,7 +416,7 @@ export class ExperiencesService {
 
     const { data, error } =
       (await qb) as unknown as SupabaseListResult<SlotResponseDto>;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ExperiencesService');
     return data || [];
   }
 
@@ -448,7 +449,7 @@ export class ExperiencesService {
           'A slot already exists at that date/time for this experience',
         );
       }
-      throw new BadRequestException(error.message);
+      throwDbError(error, 'ExperiencesService');
     }
     if (!data) throw new BadRequestException('Could not create slot');
     return { ...data, seats_available: data.capacity - data.seats_taken };
@@ -477,7 +478,7 @@ export class ExperiencesService {
         .from(SLOTS_TABLE)
         .update({ is_active: false })
         .eq('id', slotId);
-      if (error) throw new BadRequestException(error.message);
+      if (error) throwDbError(error, 'ExperiencesService');
       return { soft_deleted: true };
     }
 
@@ -485,7 +486,7 @@ export class ExperiencesService {
       .from(SLOTS_TABLE)
       .delete()
       .eq('id', slotId);
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ExperiencesService');
     return { soft_deleted: false };
   }
 

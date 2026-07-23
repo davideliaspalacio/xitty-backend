@@ -1,5 +1,6 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { LocationSource, SaveSnapshotsDto } from './dto/save-snapshots.dto';
 import { LocationSnapshotDto } from './dto/location-snapshot.dto';
@@ -113,7 +114,7 @@ export class LocationService {
       .maybeSingle();
 
     if (error) {
-      throw new BadRequestException(error.message);
+      throwDbError(error, 'LocationService');
     }
 
     return (data as LocationSnapshotDto) ?? null;

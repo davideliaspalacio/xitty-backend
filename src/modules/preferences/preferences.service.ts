@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import { CreatePreferencesDto } from './dto/create-preferences.dto';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
@@ -92,7 +93,7 @@ export class PreferencesService {
       .maybeSingle()) as unknown as SupabaseResult<PreferencesResponseDto>;
 
     if (error) {
-      throw new BadRequestException(error.message);
+      throwDbError(error, 'PreferencesService');
     }
 
     if (!data) {

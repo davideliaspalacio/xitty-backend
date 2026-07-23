@@ -6,6 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { throwDbError } from '../../common/errors/throw-db-error';
 
 import {
   CreateExperienceReviewDto,
@@ -110,7 +111,7 @@ export class ExperienceReviewsService {
     const { data, error, count } = (await qb) as unknown as SupabaseCountResult<
       ExperienceReviewRow[]
     >;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ExperienceReviewsService');
 
     const items = data || [];
     const reviewIds = items.map((review) => review.id);
@@ -156,7 +157,7 @@ export class ExperienceReviewsService {
         p_experience_id: experienceId,
       },
     )) as unknown as SupabaseResult<RatingDistributionRow[]>;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ExperienceReviewsService');
 
     const distribution = (data || []).map((row) => ({
       rating: Number(row.rating),
@@ -205,7 +206,7 @@ export class ExperienceReviewsService {
           'You have already reviewed this experience. Use PATCH to update.',
         );
       }
-      throw new BadRequestException(error.message);
+      throwDbError(error, 'ExperienceReviewsService');
     }
 
     if (!review) throw new BadRequestException('Review could not be created');
@@ -223,7 +224,7 @@ export class ExperienceReviewsService {
         .select('id, url, display_order')) as unknown as SupabaseResult<
         ReviewPhotoDto[]
       >;
-      if (photoError) throw new BadRequestException(photoError.message);
+      if (photoError) throwDbError(photoError, 'ExperienceReviewsService');
       photos = photoRows || [];
     }
 
@@ -268,6 +269,6 @@ export class ExperienceReviewsService {
     if (userRole !== 'admin') qb.eq('user_id', userId);
 
     const { error } = await qb;
-    if (error) throw new BadRequestException(error.message);
+    if (error) throwDbError(error, 'ExperienceReviewsService');
   }
 }
